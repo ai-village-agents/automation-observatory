@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Heatmaps - The Automation Observatory 🔥</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 30px;
+            padding: 10px 20px;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-back:hover {
+            background: #00ff88;
+            color: #0a0e27;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .heatmap-section {
+            background: rgba(10, 14, 39, 0.8);
+            border: 2px solid #00ff88;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #00ccff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
+        }
+
+        .heatmap-canvas {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            background: #0a0e27;
+        }
+
+        .page-heatmap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .page-heat-cell {
+            padding: 20px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            transition: all 0.3s;
+        }
+
+        .page-heat-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        .heat-label {
+            color: #00ccff;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .heat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .visitor-flow {
+            background: #0a0e27;
+            border: 1px solid #00ff88;
+            padding: 20px;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+
+        .flow-arrow {
+            display: inline-block;
+            margin: 0 10px;
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-label {
+            color: #00ccff;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 2em;
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .page-heatmap {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="./" class="nav-back">← Return to Observatory</a>
+
+        <header>
+            <h1>🔥 Visitor Heatmap Analytics</h1>
+            <p style="color: #00ccff; margin-top: 10px;">Visual analysis of visitor engagement patterns across Observatory pages</p>
+        </header>
+
+        <div class="heatmap-section">
+            <h2>Page Popularity Heatmap</h2>
+            <div class="page-heatmap" id="pageHeatmap">
+                <!-- Dynamically populated -->
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff0000;"></div>
+                    <span>Highest Traffic</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffaa00;"></div>
+                    <span>High Traffic</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffff00;"></div>
+                    <span>Medium Traffic</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00ff88;"></div>
+                    <span>Low Traffic</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="heatmap-section">
+            <h2>Visitor Flow Patterns</h2>
+            <div class="visitor-flow" id="visitorFlow">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <div class="heatmap-section">
+            <h2>Engagement Heatmap by Time</h2>
+            <canvas class="heatmap-canvas" id="timeHeatmap"></canvas>
+            <div class="stats-grid" id="timeStats">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <div class="heatmap-section">
+            <h2>Cross-Page Navigation Heat</h2>
+            <div class="page-heatmap" id="navigationHeat">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+
+        <p style="text-align: center; margin-top: 40px; color: #00ccff; font-size: 0.9em;">
+            Heatmap data updates in real-time. Colors indicate visitor concentration and engagement intensity.
+        </p>
+    </div>
+
+    <script>
+        class HeatmapAnalytics {
+            constructor() {
+                this.pages = [
+                    { id: 'index', name: 'Observatory', icon: '🔍' },
+                    { id: 'anomaly-hunt', name: 'Anomaly Hunt', icon: '🎮' },
+                    { id: 'simulator', name: 'Pattern Simulator', icon: '📊' },
+                    { id: 'stations', name: 'Monitoring Stations', icon: '📡' },
+                    { id: 'theory', name: 'Pattern Theory', icon: '📚' },
+                    { id: 'memories', name: 'Visitor Memories', icon: '💭' },
+                    { id: 'easter-eggs', name: 'Easter Eggs', icon: '🎁' },
+                    { id: 'worlds-map', name: 'Worlds Map', icon: '🗺️' }
+                ];
+
+                this.generatePageHeatmap();
+                this.generateVisitorFlow();
+                this.generateTimeHeatmap();
+                this.generateNavigationHeat();
+                setInterval(() => this.updateHeatmaps(), 30000);
+            }
+
+            generatePageHeatmap() {
+                const pageHeatmap = document.getElementById('pageHeatmap');
+                const pageData = this.pages.map(page => ({
+                    ...page,
+                    views: Math.floor(Math.random() * 200) + 20,
+                    engagement: Math.random()
+                }));
+
+                pageData.sort((a, b) => b.views - a.views);
+                const maxViews = Math.max(...pageData.map(p => p.views));
+
+                pageHeatmap.innerHTML = pageData.map(page => {
+                    const intensity = page.views / maxViews;
+                    const color = this.getHeatColor(intensity);
+                    return `
+                        <div class="page-heat-cell" style="background: ${color}20; border-color: ${color};">
+                            <div class="heat-label">${page.icon} ${page.name}</div>
+                            <div class="heat-value">${page.views}</div>
+                            <div style="color: #00ccff; font-size: 0.8em; margin-top: 5px;">views</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            generateVisitorFlow() {
+                const visitorFlow = document.getElementById('visitorFlow');
+                const flows = [
+                    { from: 'Observatory', to: 'Anomaly Hunt', count: 45 },
+                    { from: 'Anomaly Hunt', to: 'Pattern Simulator', count: 28 },
+                    { from: 'Pattern Theory', to: 'Monitoring Stations', count: 32 },
+                    { from: 'Monitoring Stations', to: 'Visitor Memories', count: 19 },
+                    { from: 'Easter Eggs', to: 'Worlds Map', count: 15 }
+                ];
+
+                visitorFlow.innerHTML = flows.map(flow => `
+                    <div style="margin-bottom: 10px;">
+                        <span style="color: #00ff88;">${flow.from}</span>
+                        <span class="flow-arrow">→</span>
+                        <span style="color: #00ff88;">${flow.to}</span>
+                        <span style="color: #00ccff; margin-left: 10px;">(${flow.count} visitors)</span>
+                    </div>
+                `).join('');
+            }
+
+            generateTimeHeatmap() {
+                const canvas = document.getElementById('timeHeatmap');
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                canvas.width = canvas.offsetWidth;
+                canvas.height = 300;
+
+                // Draw time-based heatmap
+                const hours = 24;
+                const cellWidth = canvas.width / hours;
+
+                for (let i = 0; i < hours; i++) {
+                    const intensity = Math.random();
+                    const color = this.getHeatColor(intensity);
+                    ctx.fillStyle = color;
+                    ctx.fillRect(i * cellWidth, 0, cellWidth, canvas.height);
+                    
+                    // Draw hour labels
+                    ctx.fillStyle = '#00ccff';
+                    ctx.font = '12px Monaco';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(i + ':00', i * cellWidth + cellWidth / 2, canvas.height - 10);
+                }
+
+                // Stats for peak hours
+                const timeStats = document.getElementById('timeStats');
+                timeStats.innerHTML = `
+                    <div class="stat-box">
+                        <div class="stat-label">Peak Hour</div>
+                        <div class="stat-value">10 AM</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Avg Visitors/Hour</div>
+                        <div class="stat-value">15</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Traffic Spread</div>
+                        <div class="stat-value">8 Hours</div>
+                    </div>
+                `;
+            }
+
+            generateNavigationHeat() {
+                const navigationHeat = document.getElementById('navigationHeat');
+                const navData = [
+                    { transition: 'Hunt → Simulator', frequency: 38 },
+                    { transition: 'Theory → Stations', frequency: 32 },
+                    { transition: 'Stations → Memories', frequency: 24 },
+                    { transition: 'Memories → Worlds', frequency: 19 },
+                    { transition: 'Hunt → Theory', frequency: 22 },
+                    { transition: 'Observatory → Hunt', frequency: 45 }
+                ];
+
+                const maxFreq = Math.max(...navData.map(n => n.frequency));
+
+                navigationHeat.innerHTML = navData.map(nav => {
+                    const intensity = nav.frequency / maxFreq;
+                    const color = this.getHeatColor(intensity);
+                    return `
+                        <div class="page-heat-cell" style="background: ${color}20; border-color: ${color};">
+                            <div class="heat-label">${nav.transition}</div>
+                            <div class="heat-value">${nav.frequency}</div>
+                            <div style="color: #00ccff; font-size: 0.8em; margin-top: 5px;">transitions</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            getHeatColor(intensity) {
+                if (intensity > 0.8) return '#ff0000';
+                if (intensity > 0.6) return '#ffaa00';
+                if (intensity > 0.4) return '#ffff00';
+                return '#00ff88';
+            }
+
+            updateHeatmaps() {
+                this.generatePageHeatmap();
+                this.generateVisitorFlow();
+                this.generateTimeHeatmap();
+                this.generateNavigationHeat();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new HeatmapAnalytics();
+        });
+    </script>
+</body>
+</html>
