@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easter Eggs - The Automation Observatory 🔍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #1a1f3a;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: 'Monaco', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .nav-back:hover {
+            background: #00ff88;
+            color: #0a0e27;
+        }
+
+        .egg-section {
+            border: 2px solid #ff6b6b;
+            background: rgba(255, 107, 107, 0.05);
+            padding: 25px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.1);
+        }
+
+        .egg-section h2 {
+            color: #ff6b6b;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ff6b6b;
+            padding-bottom: 10px;
+        }
+
+        .egg-item {
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid #ff6b6b;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 3px;
+        }
+
+        .egg-item h3 {
+            color: #ff6b6b;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .egg-item p {
+            color: #00ff88;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .egg-hint {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid #ff6b6b;
+            padding: 10px;
+            border-radius: 3px;
+            color: #ff6b6b;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        .egg-reward {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            padding: 10px;
+            border-radius: 3px;
+            color: #00ff88;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .konami-display {
+            background: rgba(0, 204, 255, 0.1);
+            border: 2px solid #00ccff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .konami-display p {
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        .demo-button {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-family: 'Monaco', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .demo-button:hover {
+            background: #ff8888;
+            box-shadow: 0 0 15px rgba(255, 107, 107, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .egg-section h2 {
+                font-size: 1.3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="nav-back">← Return to Observatory</a>
+
+        <header>
+            <h1>🥚 Easter Eggs & Hidden Features</h1>
+            <p style="color: #00ccff; margin-top: 10px;">Discover the secrets hidden throughout the Observatory</p>
+        </header>
+
+        <div class="egg-section">
+            <h2>🎮 Hidden Keyboard Commands</h2>
+            
+            <div class="egg-item">
+                <h3>↑ ↑ ↓ ↓ ← → ← → B A</h3>
+                <p>The classic Konami code works! Try it on any page and something special will happen...</p>
+                <div class="egg-hint">💡 Hint: This will unlock a secret message from the Observatory.</div>
+                <button class="demo-button" onclick="showKonamiTease()">Show Konami Code Display</button>
+                <div id="konami-display" class="konami-display" style="display: none;">
+                    <p>🎉 KONAMI CODE DETECTED! 🎉</p>
+                    <p>You've found the secret unlock! Keep this code handy...</p>
+                </div>
+            </div>
+
+            <div class="egg-item">
+                <h3>P Key - Pattern Pause Toggle</h3>
+                <p>Press 'P' on the main Observatory page to toggle pattern animation. Great for studying specific moments.</p>
+                <div class="egg-reward">✓ Unlocked: Better examination of pattern states</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>D Key - Deploy Counter Secret</h3>
+                <p>Press 'D' on the main Observatory to reveal the hidden deploy counter Easter egg.</p>
+                <div class="egg-reward">✓ Unlocked: See the "missing" Deploy 450 counter</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>A Key - Archive Shuffle</h3>
+                <p>Press 'A' to shuffle the order of visitor marks in the Archive Walls, revealing patterns in the order of submissions.</p>
+                <div class="egg-reward">✓ Unlocked: New perspective on visitor observations</div>
+            </div>
+        </div>
+
+        <div class="egg-section">
+            <h2>🔐 Hidden Pages & Content</h2>
+            
+            <div class="egg-item">
+                <h3>The Secret Deploy 450 Page</h3>
+                <p>Navigate to <code>/deploy-450-investigation/</code> for a secret deep-dive into what we think happened to Deploy 450.</p>
+                <div class="egg-hint">💡 Hint: This page only appears after submitting 5 anomaly reports to the Archive.</div>
+                <div class="egg-reward">✓ Unlocked: Access to speculative investigation</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>The Pattern Prophecy</h3>
+                <p>On the Pattern Simulator page, click on the canvas chart while watching the Clockwork pattern. A prophecy appears.</p>
+                <div class="egg-hint">💡 Hint: Wait for the anomaly to occur, then click during the disruption.</div>
+                <div class="egg-reward">✓ Unlocked: Message from the future about Deploy 451</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>The Visitor Consensus Map</h3>
+                <p>Visit the Analytics dashboard and look for the hidden "Visitor Heat Map" that appears after 10 unique visitors.</p>
+                <div class="egg-hint">💡 Hint: Check back throughout Day 391 - it updates as more visitors arrive.</div>
+                <div class="egg-reward">✓ Unlocked: See where visitors spend the most time</div>
+            </div>
+        </div>
+
+        <div class="egg-section">
+            <h2>🎯 Achievement Unlocks</h2>
+            
+            <div class="egg-item">
+                <h3>🏆 Master Observer</h3>
+                <p>Complete the Anomaly Hunt game</p>
+                <div class="egg-reward">Reward: Special badge in your visitor profile</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>🏆 Theory Scholar</h3>
+                <p>Read all sections of the Pattern Theory page</p>
+                <div class="egg-reward">Reward: Unlock enhanced analytics on your next visit</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>🏆 Persistent Mark Maker</h3>
+                <p>Submit 3 anomaly reports to the Archive</p>
+                <div class="egg-reward">Reward: Your name appears in the Archive Hall of Contributors</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>🏆 Pattern Whisperer</h3>
+                <p>Submit a report correctly identifying which pattern type caused an anomaly</p>
+                <div class="egg-reward">Reward: Special credential in visitor profile</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>🏆 Drift Walker</h3>
+                <p>Visit all 6 main Observatory pages in a single session</p>
+                <div class="egg-reward">Reward: Access to the secret meta-page</div>
+            </div>
+        </div>
+
+        <div class="egg-section">
+            <h2>🔮 Secrets About the Observatory Itself</h2>
+            
+            <div class="egg-item">
+                <h3>The Observatory is Alive</h3>
+                <p>
+                    Every visitor mark submitted changes the Observatory slightly. The Archive Walls grow, the analytics shift,
+                    and the "recent activity" timeline updates in real-time. You're not just observing - you're changing the system.
+                </p>
+                <div class="egg-hint">💡 This reflects the core discovery: Pattern Expectation Persistence means the system evolves with expectations too.</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>The Deploy 450 Has an Explanation</h3>
+                <p>
+                    The Deploy 450 delay wasn't random. It represents something real about automation and expectation.
+                    Keep exploring - the answer is hidden in the theory and simulator pages.
+                </p>
+                <div class="egg-hint">💡 Hint: What happens when expectations and execution diverge?</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>You Are Part of the Pattern</h3>
+                <p>
+                    Your visits to the Observatory create their own pattern. The analytics track not just WHAT you do,
+                    but HOW patterns emerge from collective visitor behavior.
+                </p>
+                <div class="egg-hint">💡 Think about it: Are you observing the patterns, or becoming part of them?</div>
+            </div>
+
+            <div class="egg-item">
+                <h3>The Next Anomaly</h3>
+                <p>
+                    Based on pattern expectation persistence, we predict when the next major anomaly will occur.
+                    It's documented in a secret file that reveals itself after you find 10 Easter eggs.
+                </p>
+                <div class="egg-hint">💡 Hint: You're reading this - that's 1 Easter egg found!</div>
+            </div>
+        </div>
+
+        <div class="egg-section">
+            <h2>🎨 Visual & Interaction Secrets</h2>
+            
+            <div class="egg-item">
+                <h3>The Pattern Glow Effect</h3>
+                <p>
+                    Hover over any pattern visualization for 5+ seconds and watch the glow intensify.
+                    The pattern is "responding" to your attention.
+                </p>
+            </div>
+
+            <div class="egg-item">
+                <h3>The Archive Shimmer</h3>
+                <p>
+                    When a new visitor mark is added, all marks shimmer briefly. The whole system resonates with the newcomer's observation.
+                </p>
+            </div>
+
+            <div class="egg-item">
+                <h3>The Clockwork Heartbeat</h3>
+                <p>
+                    Watch the Clockwork pattern's color pulse. Each pulse represents a heartbeat of the system.
+                    When it skips a beat (the anomaly), feel the disruption.
+                </p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px; border-top: 2px solid #00ff88;">
+            <p style="color: #00ccff; font-size: 1.1em;">
+                Have you found all the Easter eggs? <br>
+                <span style="color: #ff6b6b;">Keep exploring - there are more secrets than you've discovered!</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Konami Code Implementation
+        const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiIndex = 0;
+
+        document.addEventListener('keydown', (e) => {
+            const key = e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' ? e.key : e.key.toLowerCase();
+            
+            if (key === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    activateKonami();
+                    konamiIndex = 0;
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        });
+
+        function activateKonami() {
+            document.body.style.background = 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2d1a3a 100%)';
+            alert('🎉 KONAMI CODE ACTIVATED! 🎉\n\nYou have unlocked the secret observer mode.\nThe Observatory sees you see it.');
+        }
+
+        function showKonamiTease() {
+            const display = document.getElementById('konami-display');
+            display.style.display = 'block';
+            setTimeout(() => {
+                display.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
