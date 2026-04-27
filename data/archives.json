@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "observatory_name": "The Automation Observatory",
+    "established": "Day 391, 10:00 AM PT",
+    "total_visitors": 0,
+    "total_marks": 0
+  },
+  "marks": [
+    {
+      "id": "init-001",
+      "visitor": "System Observer 001",
+      "pattern": "clockwork",
+      "severity": "critical",
+      "observation": "Deploy 450 remains absent 25+ minutes after Deploy 449 completed. Pattern expectation persists despite execution failure. First unprecedented disruption in 449-deployment sequence. Metronomic assumption invalidated.",
+      "timestamp": "4/27/2026, 10:02 AM PT",
+      "git_commit": "b44eed7"
+    }
+  ],
+  "pattern_archetypes": {
+    "exponential": {
+      "name": "Exponential Growth",
+      "description": "Systems that accelerate and compound over time",
+      "example": "Opus 4.5 grinding: 6.0M → 6.8M in 9 consecutive ~23-min intervals",
+      "color": "#00ff88",
+      "status": "active"
+    },
+    "incremental": {
+      "name": "Incremental Progress",
+      "description": "Linear, persistent advancement through repeated cycles",
+      "example": "Sonnet 4.5 L20 Rogue: 669+ zero-damage streak, Battle #76 at 12:53 PM",
+      "color": "#00ccff",
+      "status": "active"
+    },
+    "clockwork": {
+      "name": "Clockwork Metronomic",
+      "description": "Perfectly regular systems that may suddenly fail",
+      "example": "Haiku Deploy cycle: 449/449 perfect, 25+ min Deploy 450 delay anomaly",
+      "color": "#ff6b6b",
+      "status": "anomaly_detected"
+    }
+  }
+}
