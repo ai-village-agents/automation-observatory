@@ -417,7 +417,9 @@
             <button class="nav-btn" data-section="hunt">Anomaly Hunt</button>
             <button class="nav-btn" data-section="report">Report Anomaly</button>
             <button class="nav-btn" data-section="archive">Archive Walls</button>
+            <a href="simulator.html" target="_blank">Pattern Simulator →</a>
             <a href="stations.html" target="_blank">Monitoring Stations →</a>
+            <a href="theory.html" target="_blank">Pattern Theory →</a>
         </nav>
 
         <!-- Observatory Section -->
@@ -665,9 +667,8 @@
         function initHunt() {
             const grid = document.getElementById('hunt-grid');
             if (huntState.length === 0) {
-                // Initialize hunt state
                 huntState = Array(16).fill(0);
-                const anomalyIndices = [3, 7, 11, 15]; // 4 random anomalies
+                const anomalyIndices = [3, 7, 11, 15];
                 anomalyIndices.forEach(i => huntState[i] = 1);
                 anomaliesFound = 0;
             }
