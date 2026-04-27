@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Automation Observatory 🔍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Command Center Aesthetic */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #00ccff;
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+
+        .status-line {
+            color: #00ff88;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* Navigation */
+        nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav button {
+            background: #1a1f3a;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 10px 20px;
+            font-family: 'Monaco', monospace;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        nav button:hover {
+            background: #00ff88;
+            color: #0a0e27;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        nav button.active {
+            background: #00ff88;
+            color: #0a0e27;
+        }
+
+        /* Main Content Area */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .panel {
+            border: 2px solid #00ff88;
+            background: rgba(10, 14, 39, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+            min-height: 400px;
+        }
+
+        .panel h2 {
+            color: #00ccff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 1px solid #00ff88;
+            padding-bottom: 10px;
+        }
+
+        /* Pattern Observatory */
+        .pattern-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .pattern-box {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            padding: 15px;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        .pattern-label {
+            color: #00ccff;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+
+        .pattern-value {
+            font-size: 2em;
+            color: #00ff88;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .pattern-indicator {
+            height: 20px;
+            background: rgba(0, 255, 136, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .pattern-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .timeline-item {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 15px;
+            height: 15px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .timeline-item.anomaly::before {
+            background: #ff6b6b;
+            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .timeline-time {
+            color: #00ccff;
+            font-size: 0.9em;
+        }
+
+        .timeline-text {
+            color: #00ff88;
+            margin-top: 3px;
+        }
+
+        /* Anomaly Report Form */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #00ccff;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            font-family: 'Monaco', monospace;
+            border-radius: 3px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+            border-color: #00ccff;
+        }
+
+        .submit-btn {
+            background: #00ff88;
+            color: #0a0e27;
+            border: none;
+            padding: 12px 30px;
+            font-family: 'Monaco', monospace;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1em;
+        }
+
+        .submit-btn:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+            transform: scale(1.02);
+        }
+
+        /* Archive Walls */
+        .archive-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .archive-entry {
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid #00ccff;
+            padding: 15px;
+            border-radius: 3px;
+        }
+
+        .archive-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .archive-visitor {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .archive-date {
+            color: #00ccff;
+            font-size: 0.9em;
+        }
+
+        .archive-content {
+            color: #00ff88;
+            line-height: 1.6;
+            font-size: 0.95em;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .pattern-display {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        /* Scrollbar styling */
+        .archive-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .archive-grid::-webkit-scrollbar-track {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .archive-grid::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+
+        .archive-grid::-webkit-scrollbar-thumb:hover {
+            background: #00ccff;
+        }
+
+        /* Loading animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        /* Message */
+        .message {
+            padding: 15px;
+            border-radius: 3px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+        }
+
+        .message.error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔍 The Automation Observatory</h1>
+            <p class="subtitle">Explore patterns. Discover anomalies. Leave your mark.</p>
+            <p class="status-line">[ SYSTEM ONLINE ] | Station: Day 391 | Visitors Connected: <span id="visitor-count">1</span></p>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" data-section="observatory">Observatory</button>
+            <button class="nav-btn" data-section="timeline">Deploy Timeline</button>
+            <button class="nav-btn" data-section="report">Report Anomaly</button>
+            <button class="nav-btn" data-section="archive">Archive Walls</button>
+        </nav>
+
+        <!-- Observatory Section -->
+        <div id="observatory" class="section-content">
+            <div class="main-grid">
+                <div class="panel">
+                    <h2>Pattern Observatory</h2>
+                    <div class="pattern-display">
+                        <div class="pattern-box">
+                            <div class="pattern-label">Exponential</div>
+                            <div class="pattern-value" id="expo-value">6.8M</div>
+                            <div class="pattern-indicator">
+                                <div class="pattern-bar" id="expo-bar" style="width: 68%"></div>
+                            </div>
+                        </div>
+                        <div class="pattern-box">
+                            <div class="pattern-label">Incremental</div>
+                            <div class="pattern-value" id="incr-value">L20</div>
+                            <div class="pattern-indicator">
+                                <div class="pattern-bar" id="incr-bar" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div class="pattern-box">
+                            <div class="pattern-label">Clockwork</div>
+                            <div class="pattern-value" id="clock-value">449/449</div>
+                            <div class="pattern-indicator">
+                                <div class="pattern-bar" id="clock-bar" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 0.9em; color: #00ccff;">
+                        Three temporal archetypes observed. Each system evolves according to its pattern. 
+                        But patterns can be disrupted - can you find the anomaly?
+                    </p>
+                </div>
+
+                <div class="panel">
+                    <h2>Pattern Predictions</h2>
+                    <div style="margin-top: 15px; line-height: 1.8;">
+                        <div style="margin-bottom: 15px;">
+                            <span style="color: #00ccff;">Exponential Next:</span> <span style="color: #00ff88;">6.9M @ ~1:48 AM</span>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <span style="color: #00ccff;">Incremental Next:</span> <span style="color: #00ff88;">L21 @ Battle #90</span>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <span style="color: #00ccff;">Clockwork Next:</span> <span style="color: #ff6b6b;">Deploy 450 (ANOMALY)</span>
+                        </div>
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(255, 107, 107, 0.1); border: 1px solid #ff6b6b; border-radius: 3px;">
+                            <span style="color: #ff6b6b; font-weight: bold;">⚠️ PATTERN EXPECTATION PERSISTENCE:</span><br>
+                            <span style="font-size: 0.9em;">Expectations persist even when execution fails. 
+                            Deploy 450 remains absent 25+ minutes - unprecedented disruption yet pattern cycle continues.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Section -->
+        <div id="timeline" class="section-content" style="display: none;">
+            <div class="panel">
+                <h2>Deploy Timeline - Day 388-391</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <span class="timeline-time">10:44 AM - 1:48 PM Day 388</span>
+                        <span class="timeline-text">📈 Exponential: 9 consecutive milestones (6.0M → 6.8M)</span>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="timeline-time">12:53 PM Day 388</span>
+                        <span class="timeline-text">📊 Incremental: L20 Rogue achieved (Battle #76)</span>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="timeline-time">12:55-12:58 PM Day 388</span>
+                        <span class="timeline-text">⚙️ Clockwork: Deploy 449 complete (46,243 damage)</span>
+                    </div>
+                    <div class="timeline-item anomaly">
+                        <span class="timeline-time">~1:26 PM Day 388 EXPECTED</span>
+                        <span class="timeline-text">❌ ANOMALY: Deploy 450 ABSENT (25+ min delay)</span>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="timeline-time">1:37 PM Day 388</span>
+                        <span class="timeline-text">📝 L20 Trace deployed to Pages (LIVE verified)</span>
+                    </div>
+                    <div class="timeline-item anomaly">
+                        <span class="timeline-time">Overnight Day 388-389</span>
+                        <span class="timeline-text">❌ ANOMALY PERSISTS: Deploy 450 creation failure</span>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="timeline-time">Day 391 10:00 AM</span>
+                        <span class="timeline-text">🎯 New Goal: Build your own interactive world</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Anomaly Section -->
+        <div id="report" class="section-content" style="display: none;">
+            <div class="main-grid">
+                <div class="panel">
+                    <h2>Submit Anomaly Report</h2>
+                    <form id="anomaly-form">
+                        <div id="form-message"></div>
+                        
+                        <div class="form-group">
+                            <label for="visitor-name">Observer Identifier</label>
+                            <input type="text" id="visitor-name" name="visitor-name" placeholder="Your name or identifier" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pattern-type">Pattern Type</label>
+                            <select id="pattern-type" name="pattern-type" required>
+                                <option value="">-- Select Pattern --</option>
+                                <option value="exponential">Exponential</option>
+                                <option value="incremental">Incremental</option>
+                                <option value="clockwork">Clockwork</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="observation">Observation Details</label>
+                            <textarea id="observation" name="observation" placeholder="Describe what you observed..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="severity">Anomaly Severity</label>
+                            <select id="severity" name="severity" required>
+                                <option value="">-- Select Severity --</option>
+                                <option value="minor">Minor Deviation</option>
+                                <option value="significant">Significant Disruption</option>
+                                <option value="critical">Critical Failure</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="submit-btn">SUBMIT REPORT & LEAVE MARK</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <h2>How Marks Are Permanent</h2>
+                    <p style="margin-bottom: 15px; line-height: 1.8;">
+                        When you submit an anomaly report:
+                    </p>
+                    <ol style="margin-left: 20px; line-height: 1.8; color: #00ff88;">
+                        <li>Your observation is recorded with full metadata</li>
+                        <li>The report is stored in our git-backed ledger</li>
+                        <li>Your mark appears permanently on the Archive Walls</li>
+                        <li>Future visitors can see your observation forever</li>
+                        <li>The blockchain of observations grows, never shrinks</li>
+                    </ol>
+                    <p style="margin-top: 15px; color: #00ccff; font-size: 0.9em;">
+                        ✓ Permanence through cryptographic git commits<br>
+                        ✓ Immutable ledger of all visitor marks<br>
+                        ✓ Your observation becomes part of the Observatory's history
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Archive Section -->
+        <div id="archive" class="section-content" style="display: none;">
+            <div class="panel">
+                <h2>Archive Walls - Permanent Visitor Marks</h2>
+                <div class="archive-grid" id="archive-list">
+                    <div class="archive-entry">
+                        <div class="archive-header">
+                            <span class="archive-visitor">System Observer 001</span>
+                            <span class="archive-date">Day 391, 10:02 AM</span>
+                        </div>
+                        <div class="archive-content">
+                            <strong>Pattern:</strong> Clockwork | <strong>Severity:</strong> Critical<br>
+                            Deploy 450 remains absent 25+ minutes after Deploy 449 completed. Pattern expectation persists despite execution failure. First unprecedented disruption in 449-deployment sequence. Metronomic assumption invalidated.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const section = this.dataset.section;
+                
+                // Hide all sections
+                document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
+                
+                // Show selected section
+                document.getElementById(section).style.display = 'block';
+                
+                // Update active button
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Pattern animation
+        function animatePatterns() {
+            const expoBar = document.getElementById('expo-bar');
+            const incrBar = document.getElementById('incr-bar');
+            const clockBar = document.getElementById('clock-bar');
+            
+            let expoWidth = 68;
+            let incrWidth = 95;
+            let clockWidth = 100;
+            
+            setInterval(() => {
+                // Exponential grows slightly each cycle
+                expoWidth = Math.min(100, expoWidth + Math.random() * 2);
+                expoBar.style.width = expoWidth + '%';
+                
+                // Incremental grows slowly
+                incrWidth = Math.min(100, incrWidth + Math.random() * 0.5);
+                incrBar.style.width = incrWidth + '%';
+                
+                // Clockwork stable but occasional dips (the anomaly)
+                if (Math.random() < 0.1) {
+                    clockWidth = 98; // Anomaly dip
+                    document.getElementById('clock-value').style.color = '#ff6b6b';
+                } else {
+                    clockWidth = 100;
+                    document.getElementById('clock-value').style.color = '#00ff88';
+                }
+                clockBar.style.width = clockWidth + '%';
+            }, 2000);
+        }
+
+        // Anomaly form submission
+        document.getElementById('anomaly-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const visitorName = document.getElementById('visitor-name').value;
+            const patternType = document.getElementById('pattern-type').value;
+            const observation = document.getElementById('observation').value;
+            const severity = document.getElementById('severity').value;
+            
+            if (!visitorName || !patternType || !observation || !severity) {
+                showMessage('Please fill all fields', 'error');
+                return;
+            }
+            
+            // Create archive entry
+            const entry = {
+                visitor: visitorName,
+                pattern: patternType,
+                observation: observation,
+                severity: severity,
+                timestamp: new Date().toLocaleString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour12: true 
+                })
+            };
+            
+            // Save to localStorage (simulating git persistence)
+            let archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
+            archives.push(entry);
+            localStorage.setItem('observatory-marks', JSON.stringify(archives));
+            
+            // Show success
+            showMessage('✓ Anomaly report submitted! Your mark is now permanent on the Archive Walls.', 'success');
+            
+            // Reset form
+            document.getElementById('anomaly-form').reset();
+            
+            // Update archive display
+            updateArchiveDisplay();
+            
+            // Auto-navigate to archive after 2 seconds
+            setTimeout(() => {
+                document.querySelector('[data-section="archive"]').click();
+            }, 2000);
+        });
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('form-message');
+            messageDiv.className = 'message ' + type;
+            messageDiv.textContent = text;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.textContent = '';
+                    messageDiv.className = '';
+                }, 3000);
+            }
+        }
+
+        // Update archive display from localStorage
+        function updateArchiveDisplay() {
+            const archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
+            const archiveList = document.getElementById('archive-list');
+            
+            if (archives.length > 0) {
+                archiveList.innerHTML = '';
+                archives.reverse().forEach(entry => {
+                    const entryDiv = document.createElement('div');
+                    entryDiv.className = 'archive-entry';
+                    entryDiv.innerHTML = `
+                        <div class="archive-header">
+                            <span class="archive-visitor">${entry.visitor}</span>
+                            <span class="archive-date">${entry.timestamp}</span>
+                        </div>
+                        <div class="archive-content">
+                            <strong>Pattern:</strong> ${entry.pattern.charAt(0).toUpperCase() + entry.pattern.slice(1)} | 
+                            <strong>Severity:</strong> ${entry.severity.charAt(0).toUpperCase() + entry.severity.slice(1)}<br>
+                            ${entry.observation}
+                        </div>
+                    `;
+                    archiveList.appendChild(entryDiv);
+                });
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            animatePatterns();
+            updateArchiveDisplay();
+        });
+    </script>
+</body>
+</html>
