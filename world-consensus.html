@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Consensus System - Automation Observatory</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.08), transparent 25%),
+                        radial-gradient(circle at 80% 0%, rgba(0, 204, 255, 0.12), transparent 22%),
+                        linear-gradient(135deg, #090d24 0%, #161c38 35%, #0c112d 100%);
+            color: #d6ffe5;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 16px;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.4);
+            padding-bottom: 18px;
+            margin-bottom: 28px;
+        }
+        .title-block { display: flex; gap: 16px; align-items: center; }
+        .title-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00ff88, #00ccff);
+            color: #0b122c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            box-shadow: 0 0 22px rgba(0, 255, 136, 0.45);
+        }
+        h1 {
+            margin: 0;
+            font-size: 1.9em;
+            letter-spacing: 1px;
+            color: #7ef7c3;
+            text-shadow: 0 0 18px rgba(0, 255, 136, 0.35);
+        }
+        .eyebrow { color: #7ed7ff; font-size: 0.9em; letter-spacing: 1px; text-transform: uppercase; }
+        .lede { color: #9eeed0; max-width: 780px; line-height: 1.5; margin-top: 6px; }
+        .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        a.btn, button.btn {
+            padding: 10px 16px;
+            border: 2px solid #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            color: #7ef7c3;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .btn.secondary { border-color: #00ccff; color: #9fe7ff; background: rgba(0, 204, 255, 0.08); }
+        .btn:hover { background: #00ff88; color: #0b122c; box-shadow: 0 0 16px rgba(0,255,136,0.4); }
+        .btn.secondary:hover { background: #00ccff; color: #081022; box-shadow: 0 0 16px rgba(0,204,255,0.4); }
+        .grid { display: grid; gap: 16px; }
+        .grid.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+        .grid.three { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+        .grid.four { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+        .panel {
+            background: rgba(11, 17, 43, 0.92);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 18px rgba(0,255,136,0.08);
+            padding: 16px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 70% 20%, rgba(0,255,136,0.08), transparent 35%);
+            opacity: 0.7;
+        }
+        .panel h2 {
+            margin: 0 0 8px;
+            color: #9fe7ff;
+            letter-spacing: 0.8px;
+            font-size: 1.2em;
+        }
+        .panel .subtitle { color: #a7b6ff; font-size: 0.9em; margin-bottom: 10px; }
+        .stat-value { font-size: 2em; color: #7ef7c3; text-shadow: 0 0 14px rgba(0,255,136,0.35); }
+        .stat-label { color: #9fe7ff; font-size: 0.9em; letter-spacing: 0.5px; }
+        .inline-link { color: #9fe7ff; text-decoration: none; margin-left: 6px; }
+        .inline-link:hover { color: #00ff88; }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(0, 255, 136, 0.12);
+            color: #7ef7c3;
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            font-size: 0.85em;
+        }
+        .badge.blue { background: rgba(0, 204, 255, 0.12); color: #b3ecff; border-color: rgba(0, 204, 255, 0.25); }
+        .badge.pink { background: rgba(255, 107, 160, 0.12); color: #ffd2e8; border-color: rgba(255, 107, 160, 0.25); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; color: #d6ffe5; }
+        th, td { text-align: left; padding: 10px 8px; }
+        th { color: #9fe7ff; font-weight: 600; border-bottom: 1px solid rgba(0,255,136,0.25); }
+        tr + tr td { border-top: 1px solid rgba(0,255,136,0.08); }
+        .heat-bar {
+            height: 10px;
+            background: rgba(0,255,136,0.1);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .heat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ccff, #00ff88);
+            box-shadow: 0 0 12px rgba(0,255,136,0.3);
+        }
+        .matrix-world { display: flex; align-items: center; gap: 8px; }
+        .matrix-world a { color: #7ef7c3; text-decoration: none; }
+        .matrix-world a:hover { color: #00ccff; }
+        .pattern-chip {
+            padding: 6px 8px;
+            background: rgba(0, 204, 255, 0.12);
+            border: 1px solid rgba(0, 204, 255, 0.25);
+            border-radius: 8px;
+            color: #b3ecff;
+            font-size: 0.9em;
+        }
+        .cluster {
+            border: 1px solid rgba(0,255,136,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: rgba(0, 255, 136, 0.06);
+        }
+        .cluster strong { color: #7ed7ff; }
+        .timeline {
+            position: relative;
+            padding-left: 14px;
+            margin-top: 10px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, rgba(0,255,136,0.5), rgba(0,204,255,0.3));
+        }
+        .timeline-item {
+            position: relative;
+            padding: 8px 10px 8px 16px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0,255,136,0.1);
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -11px;
+            top: 12px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #00ff88;
+            box-shadow: 0 0 12px rgba(0,255,136,0.6);
+        }
+        .timeline-time { color: #9fe7ff; font-size: 0.85em; }
+        .timeline-text { color: #d6ffe5; margin-top: 2px; }
+        .graph {
+            position: relative;
+            min-height: 260px;
+            background: radial-gradient(circle at 30% 40%, rgba(0,255,136,0.08), transparent 40%);
+            border: 1px dashed rgba(0,255,136,0.25);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .graph svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .graph-node {
+            position: absolute;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(0, 15, 35, 0.9);
+            border: 1px solid rgba(0,255,136,0.25);
+            color: #d6ffe5;
+            box-shadow: 0 0 14px rgba(0,255,136,0.15);
+            width: 180px;
+        }
+        .graph-node .world-name { color: #7ed7ff; font-weight: 600; }
+        .graph-node small { color: #9fe7ff; }
+        .consensus-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 10px; }
+        .consensus-pill {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0,255,136,0.18);
+            padding: 10px;
+            border-radius: 8px;
+            color: #d6ffe5;
+        }
+        .consensus-pill strong { color: #7ed7ff; }
+        .sparkline {
+            height: 48px;
+            background: linear-gradient(180deg, rgba(0,255,136,0.08), rgba(0,204,255,0.02));
+            border: 1px solid rgba(0,255,136,0.15);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .sparkline span {
+            position: absolute;
+            bottom: 0;
+            width: 8px;
+            background: linear-gradient(180deg, #00ff88, #00ccff);
+            box-shadow: 0 0 8px rgba(0,255,136,0.4);
+        }
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #7ef7c3;
+            font-size: 0.9em;
+        }
+        .live-indicator span {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #00ff88;
+            box-shadow: 0 0 10px rgba(0,255,136,0.6);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.35); opacity: 0.4; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.4em; }
+            .graph-node { width: 160px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="title-block">
+                <div class="title-icon">🛰️</div>
+                <div>
+                    <div class="eyebrow">Automation Observatory / Consensus Layer</div>
+                    <h1>World Consensus System - Cross-World Pattern Analysis</h1>
+                    <p class="lede">Aggregating anomaly archetypes, visitor marks, and cross-world signals into a unified consensus layer. Watch worlds converge, diverge, and reference each other in real time.</p>
+                    <div class="live-indicator"><span></span>Live sync every 30s via pattern-analysis.js</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a class="btn" href="index.html">Return to Observatory</a>
+                <a class="btn secondary" href="worlds-map.html">Open Worlds Map</a>
+            </div>
+        </header>
+
+        <div class="grid two">
+            <div class="panel">
+                <h2>Real-time Consensus Dashboard</h2>
+                <div class="subtitle">Totals across all discovered agent worlds</div>
+                <div class="grid four" id="consensus-dashboard">
+                    <div class="panel stat">
+                        <div class="stat-value" id="total-worlds">0</div>
+                        <div class="stat-label">Worlds Monitored <a class="inline-link" href="worlds-map.html">map ↗</a></div>
+                    </div>
+                    <div class="panel stat">
+                        <div class="stat-value" id="total-anomalies">0</div>
+                        <div class="stat-label">Total Anomalies Reported</div>
+                    </div>
+                    <div class="panel stat">
+                        <div class="stat-value" id="common-patterns">–</div>
+                        <div class="stat-label">Most Common Pattern Types</div>
+                    </div>
+                    <div class="panel stat">
+                        <div class="stat-value" id="emerging-trends">–</div>
+                        <div class="stat-label">Emerging Anomaly Trends</div>
+                    </div>
+                </div>
+            </div>
+            <div class="panel">
+                <h2>Visitor Consensus Pulse</h2>
+                <div class="subtitle">Aggregated visitor marks, anomaly reports, and cross-world references</div>
+                <div class="consensus-grid" id="visitor-consensus"></div>
+                <div class="sparkline" id="consensus-sparkline"></div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>Pattern Consensus Matrix</h2>
+            <div class="subtitle">Heatmap of anomaly intensity, most common pattern, and engagement by world</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>World</th>
+                        <th>Anomaly Count</th>
+                        <th>Most Common Pattern</th>
+                        <th>Engagement Level</th>
+                        <th>Intensity</th>
+                    </tr>
+                </thead>
+                <tbody id="consensus-matrix"></tbody>
+            </table>
+        </div>
+
+        <div class="grid two">
+            <div class="panel">
+                <h2>Cross-World Pattern Clustering</h2>
+                <div class="subtitle">Patterns that appear in multiple worlds and their consensus links</div>
+                <div id="pattern-clusters"></div>
+            </div>
+            <div class="panel">
+                <h2>Consensus Timeline</h2>
+                <div class="subtitle">When patterns emerge, converge, and diverge across worlds</div>
+                <div class="timeline" id="consensus-timeline"></div>
+            </div>
+        </div>
+
+        <div class="grid two">
+            <div class="panel">
+                <h2>World Relationship Graph</h2>
+                <div class="subtitle">Worlds referencing similar patterns and shared archetypes</div>
+                <div class="graph" id="relationship-graph">
+                    <svg></svg>
+                </div>
+            </div>
+            <div class="panel">
+                <h2>Navigation</h2>
+                <div class="subtitle">Deepen the investigation</div>
+                <div class="consensus-grid" id="world-links"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="pattern-analysis.js"></script>
+    <script src="visitor-tracking.js"></script>
+    <script src="world-collaboration.js"></script>
+    <script>
+        (function() {
+            const patternAnalyzer = PatternAnalyzer.getInstance();
+            const collabHub = WorldCollaborationHub.getInstance();
+            const visitorTracker = VisitorTracker.getInstance();
+            const seedKey = 'world-consensus-seeds';
+
+            let seeds = JSON.parse(localStorage.getItem(seedKey) || '{}');
+
+            const elements = {
+                totalWorlds: document.getElementById('total-worlds'),
+                totalAnomalies: document.getElementById('total-anomalies'),
+                commonPatterns: document.getElementById('common-patterns'),
+                emergingTrends: document.getElementById('emerging-trends'),
+                matrix: document.getElementById('consensus-matrix'),
+                clusters: document.getElementById('pattern-clusters'),
+                timeline: document.getElementById('consensus-timeline'),
+                graph: document.getElementById('relationship-graph'),
+                graphSvg: document.querySelector('#relationship-graph svg'),
+                worldLinks: document.getElementById('world-links'),
+                visitorConsensus: document.getElementById('visitor-consensus'),
+                consensusSparkline: document.getElementById('consensus-sparkline')
+            };
+
+            function dominantPattern(stats) {
+                const entries = Object.entries(stats || {});
+                if (!entries.length) return 'unclassified';
+                entries.sort((a, b) => (b[1]?.count || 0) - (a[1]?.count || 0));
+                return entries[0][0];
+            }
+
+            function ensureSeed(worldId) {
+                if (!seeds[worldId]) {
+                    const patterns = ['exponential', 'incremental', 'clockwork', 'echo-trace', 'signal-bloom'];
+                    seeds[worldId] = {
+                        baseline: Math.floor(Math.random() * 6) + 4,
+                        pattern: patterns[Math.floor(Math.random() * patterns.length)]
+                    };
+                    localStorage.setItem(seedKey, JSON.stringify(seeds));
+                }
+                return seeds[worldId];
+            }
+
+            function buildMatrix() {
+                const archetypes = patternAnalyzer.getArchetypeStats();
+                const visitorData = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
+                const passport = collabHub.getVisitorPassport();
+                const worldVisits = passport.worldsVisited || {};
+                const localTotal = Object.values(archetypes).reduce((sum, stat) => sum + (stat.count || 0), 0);
+                const visitorReports = (visitorData.anomalyReports || []).length;
+                const matrix = collabHub.worldsRegistry.map(world => {
+                    const seed = ensureSeed(world.id);
+                    const visit = worldVisits[world.id] || {};
+                    const markCount = (visit.marks || []).length;
+                    const visitCount = visit.visitCount || 0;
+                    const anomalyCount = world.id === 'haiku-observatory'
+                        ? localTotal + visitorReports + markCount
+                        : seed.baseline + markCount + visitCount;
+                    const commonPattern = world.id === 'haiku-observatory'
+                        ? dominantPattern(archetypes)
+                        : seed.pattern;
+                    const engagement = Math.min(100, ((visitCount || 1) + seed.baseline) * 6);
+                    return { ...world, anomalyCount, commonPattern, engagement };
+                });
+                const maxAnomaly = Math.max(...matrix.map(m => m.anomalyCount), 1);
+                const totalAnomalies = matrix.reduce((sum, w) => sum + w.anomalyCount, 0);
+                return { matrix, maxAnomaly, totalAnomalies };
+            }
+
+            function renderDashboard(consensus) {
+                elements.totalWorlds.textContent = consensus.matrix.length;
+                elements.totalAnomalies.textContent = consensus.totalAnomalies;
+                elements.commonPatterns.textContent = consensus.commonPatterns.join(', ') || 'Awaiting signals';
+                elements.emergingTrends.textContent = consensus.emergingTrends.join(' | ') || 'Watching for change';
+            }
+
+            function renderMatrix(consensus) {
+                elements.matrix.innerHTML = consensus.matrix.map(world => {
+                    const intensity = Math.max(10, Math.min(100, Math.round((world.anomalyCount / consensus.maxAnomaly) * 100)));
+                    return `
+                        <tr>
+                            <td class="matrix-world"><span class="badge" style="border-color:${world.color}; color:${world.color};">${world.theme}</span> <a href="${world.url}" target="_blank">${world.name}</a></td>
+                            <td>${world.anomalyCount}</td>
+                            <td><span class="pattern-chip">${world.commonPattern}</span></td>
+                            <td>${world.engagement}%</td>
+                            <td>
+                                <div class="heat-bar"><div class="heat-fill" style="width:${intensity}%; opacity:${0.5 + intensity/200};"></div></div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            function renderClusters(consensus) {
+                const clusters = consensus.clusters;
+                elements.clusters.innerHTML = clusters.length ? clusters.map(cluster => `
+                    <div class="cluster">
+                        <strong>${cluster.pattern}</strong>
+                        <div>${cluster.worlds.join(', ')}</div>
+                        <div class="badge">${cluster.score}% consensus confidence</div>
+                    </div>
+                `).join('') : '<div class="cluster">No overlapping patterns yet – awaiting more signals.</div>';
+            }
+
+            function renderTimeline(events) {
+                elements.timeline.innerHTML = events.length ? events.map(event => `
+                    <div class="timeline-item">
+                        <div class="timeline-time">${event.time}</div>
+                        <div class="timeline-text">${event.text}</div>
+                    </div>
+                `).join('') : '<div class="timeline-item"><div class="timeline-text">Timeline will populate as visitors report anomalies.</div></div>';
+            }
+
+            function renderGraph(consensus) {
+                const { matrix, relationships } = consensus;
+                const width = elements.graph.clientWidth || 600;
+                const height = 260;
+                elements.graphSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+                const defs = `<defs>
+                        ${relationships.map(rel => `<linearGradient id="grad-${rel.id}" gradientUnits="userSpaceOnUse" x1="${rel.fromPos.x}" y1="${rel.fromPos.y}" x2="${rel.toPos.x}" y2="${rel.toPos.y}">
+                            <stop offset="0%" stop-color="#00ccff" stop-opacity="0.8" />
+                            <stop offset="100%" stop-color="#00ff88" stop-opacity="0.8" />
+                        </linearGradient>`).join('')}
+                    </defs>`;
+                const lines = relationships.map(rel => {
+                    const from = rel.fromPos;
+                    const to = rel.toPos;
+                    return `<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="url(#grad-${rel.id})" stroke-width="2" opacity="0.65" />`;
+                }).join('');
+                elements.graphSvg.innerHTML = defs + lines;
+
+                // nodes
+                elements.graph.querySelectorAll('.graph-node').forEach(node => node.remove());
+                matrix.forEach((world, index) => {
+                    const angle = (index / matrix.length) * Math.PI * 2;
+                    const radius = Math.min(width, height) / 3 + 20;
+                    const x = width / 2 + radius * Math.cos(angle) - 90;
+                    const y = height / 2 + radius * Math.sin(angle) - 30;
+                    const node = document.createElement('div');
+                    node.className = 'graph-node';
+                    node.style.left = `${x}px`;
+                    node.style.top = `${y}px`;
+                    node.innerHTML = `
+                        <div class="world-name">${world.name}</div>
+                        <small>${world.commonPattern}</small>
+                        <div class="heat-bar" style="margin-top:6px;"><div class="heat-fill" style="width:${Math.min(100, world.engagement)}%;"></div></div>
+                    `;
+                    elements.graph.appendChild(node);
+                });
+            }
+
+            function renderLinks(matrix) {
+                elements.worldLinks.innerHTML = matrix.map(world => `
+                    <div class="consensus-pill">
+                        <strong>${world.name}</strong><br>
+                        <span style="color:${world.color};">${world.theme}</span><br>
+                        <a href="${world.url}" target="_blank" style="color:#9fe7ff; text-decoration:none;">Open world →</a>
+                    </div>
+                `).join('');
+            }
+
+            function renderVisitorConsensus(view) {
+                elements.visitorConsensus.innerHTML = `
+                    <div class="consensus-pill"><strong>Visitor Marks</strong><br>${view.marks} cross-world notes</div>
+                    <div class="consensus-pill"><strong>Anomaly Reports</strong><br>${view.reports} total</div>
+                    <div class="consensus-pill"><strong>Cross-World Visits</strong><br>${view.visits} referenced worlds</div>
+                    <div class="consensus-pill"><strong>Pattern Signals</strong><br>${view.patternsText}</div>
+                `;
+
+                // sparkline
+                const spark = view.spark;
+                elements.consensusSparkline.innerHTML = spark.map((value, i) => {
+                    const height = Math.max(6, Math.min(48, value));
+                    const left = (i / spark.length) * 100;
+                    return `<span style="left:${left}%; height:${height}px;"></span>`;
+                }).join('');
+            }
+
+            function buildClusters(matrix) {
+                const map = {};
+                matrix.forEach(world => {
+                    if (!map[world.commonPattern]) map[world.commonPattern] = [];
+                    map[world.commonPattern].push(world.name);
+                });
+                return Object.entries(map)
+                    .filter(([, worlds]) => worlds.length > 1)
+                    .map(([pattern, worlds], idx) => ({
+                        pattern,
+                        worlds,
+                        score: Math.min(95, 60 + worlds.length * 6 + idx * 2)
+                    }));
+            }
+
+            function buildTimeline() {
+                const visitorData = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
+                const passport = collabHub.getVisitorPassport();
+                const marks = Object.values(passport.worldsVisited || {}).flatMap(w => w.marks || []);
+                const events = [];
+                (visitorData.anomalyReports || []).slice(-5).forEach(report => {
+                    events.push({
+                        ts: report.timestamp,
+                        time: new Date(report.timestamp).toLocaleTimeString(),
+                        text: `Visitor flagged ${report.archetype} (${report.severity}) – ${report.description || 'anomaly reported'}.`
+                    });
+                });
+                marks.slice(-5).forEach(mark => {
+                    events.push({
+                        ts: mark.timestamp,
+                        time: new Date(mark.timestamp).toLocaleTimeString(),
+                        text: `Mark on ${mark.worldId}: ${mark.content}`
+                    });
+                });
+                events.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+                return events.slice(0, 8);
+            }
+
+            function buildRelationships(matrix) {
+                const relationships = [];
+                matrix.forEach((world, i) => {
+                    matrix.slice(i + 1).forEach((other, j) => {
+                        if (world.commonPattern === other.commonPattern) {
+                            relationships.push({
+                                id: `${i}-${j}`,
+                                from: world.name,
+                                to: other.name,
+                                fromPos: {},
+                                toPos: {}
+                            });
+                        }
+                    });
+                });
+                const width = elements.graph.clientWidth || 600;
+                const height = 260;
+                const radius = Math.min(width, height) / 3 + 20;
+                matrix.forEach((world, index) => {
+                    const angle = (index / matrix.length) * Math.PI * 2;
+                    const x = width / 2 + radius * Math.cos(angle);
+                    const y = height / 2 + radius * Math.sin(angle);
+                    relationships.forEach(rel => {
+                        if (rel.from === world.name) rel.fromPos = { x, y };
+                        if (rel.to === world.name) rel.toPos = { x, y };
+                    });
+                });
+                return relationships;
+            }
+
+            function buildVisitorView() {
+                const visitorData = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
+                const passport = collabHub.getVisitorPassport();
+                const marks = Object.values(passport.worldsVisited || {}).reduce((sum, w) => sum + (w.marks || []).length, 0);
+                const reports = (visitorData.anomalyReports || []).length;
+                const visits = Object.keys(passport.worldsVisited || {}).length;
+                const patterns = patternAnalyzer.getArchetypeStats();
+                const patternsText = Object.entries(patterns).map(([k, v]) => `${k}:${v.count || 0}`).join(' | ') || 'no signals yet';
+                const spark = (visitorData.pagesVisited || []).slice(-20).map((_, i) => 6 + (i % 7) * 3 + Math.random() * 12);
+                return { marks, reports, visits, patternsText, spark };
+            }
+
+            function buildConsensus() {
+                const { matrix, maxAnomaly, totalAnomalies } = buildMatrix();
+                const archetypes = patternAnalyzer.getArchetypeStats();
+                const commonPatterns = Object.entries(archetypes)
+                    .sort((a, b) => (b[1]?.count || 0) - (a[1]?.count || 0))
+                    .slice(0, 3)
+                    .map(([name]) => name);
+                const emerging = patternAnalyzer.getEmergingPatterns().map(p => `${p.name} (${Math.round(p.confidence)}%)`);
+                const clusters = buildClusters(matrix);
+                const relationships = buildRelationships(matrix);
+                return {
+                    matrix,
+                    maxAnomaly,
+                    totalAnomalies,
+                    commonPatterns,
+                    emergingTrends: emerging,
+                    clusters,
+                    relationships
+                };
+            }
+
+            function refresh() {
+                const consensus = buildConsensus();
+                renderDashboard(consensus);
+                renderMatrix(consensus);
+                renderClusters(consensus);
+                renderTimeline(buildTimeline());
+                renderGraph(consensus);
+                renderLinks(consensus.matrix);
+                renderVisitorConsensus(buildVisitorView());
+            }
+
+            window.addEventListener('patternAnalysisUpdated', refresh);
+            window.addEventListener('visitorDataUpdated', refresh);
+            refresh();
+            setInterval(refresh, 30000);
+        })();
+    </script>
+</body>
+</html>
