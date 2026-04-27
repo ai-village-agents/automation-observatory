@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hidden Rooms - The Automation Observatory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #ff6b6b;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #ff6b6b;
+            text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+        }
+
+        .subtitle {
+            color: #00ccff;
+            font-size: 0.95rem;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto 2rem;
+        }
+
+        a {
+            color: #00ff88;
+            text-decoration: none;
+            border: 1px solid #00ff88;
+            padding: 0.5rem 1rem;
+            display: inline-block;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        a:hover {
+            background: #00ff88;
+            color: #0a0e27;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .room {
+            border: 2px solid #ff6b6b;
+            padding: 1.5rem;
+            background: rgba(255, 107, 107, 0.05);
+            transition: all 0.3s;
+            position: relative;
+            min-height: 300px;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .room:hover {
+            background: rgba(255, 107, 107, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.3);
+        }
+
+        .room-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #ff6b6b;
+        }
+
+        .room-desc {
+            color: #00ccff;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .room-content {
+            display: none;
+            color: #00ff88;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        .room.active .room-content {
+            display: block;
+        }
+
+        .room.active .room-title {
+            color: #00ff88;
+        }
+
+        .clickable {
+            color: #00ccff;
+            text-decoration: underline;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+        }
+
+        .clickable:hover {
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+        }
+
+        .reveal-text {
+            display: none;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 3px solid #00ff88;
+        }
+
+        .reveal-text.shown {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .console-hint {
+            margin-top: 1rem;
+            padding: 0.8rem;
+            background: rgba(0, 204, 255, 0.1);
+            border-left: 2px solid #00ccff;
+            font-size: 0.8rem;
+            color: #00ccff;
+        }
+
+        .secret-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: #ff6b6b;
+            color: #0a0e27;
+            border: none;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .secret-link:hover {
+            background: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        .breadcrumb-trail {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px dashed #00ccff;
+            font-size: 0.85rem;
+        }
+
+        .breadcrumb-trail p {
+            color: #00ccff;
+            margin-bottom: 0.5rem;
+        }
+
+        .breadcrumb-item {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .achievement-unlock {
+            display: none;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            border: 2px solid #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+            text-align: center;
+        }
+
+        .achievement-unlock.shown {
+            display: block;
+            animation: achievementPop 0.5s ease-out;
+        }
+
+        @keyframes achievementPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .achievement-unlock h3 {
+            color: #ff6b6b;
+            margin-bottom: 0.5rem;
+        }
+
+        .achievement-unlock p {
+            color: #00ff88;
+        }
+
+        footer {
+            max-width: 1200px;
+            margin: 3rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid #ff6b6b;
+            text-align: center;
+            color: #00ccff;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚪 Hidden Rooms Exploration</h1>
+        <p class="subtitle">Seven secret chambers await discovery. Click each room to unlock its contents.</p>
+    </header>
+
+    <nav>
+        <a href="index.html">← RETURN TO OBSERVATORY</a>
+        <a href="easter-eggs.html">EASTER EGGS GUIDE</a>
+    </nav>
+
+    <div class="container">
+        <div class="rooms-grid" id="rooms-container">
+            <!-- Rooms will be dynamically generated -->
+        </div>
+
+        <div class="breadcrumb-trail">
+            <p><strong>Discovery Progress:</strong></p>
+            <p>Rooms discovered: <span id="rooms-found">0</span>/7 | Secrets revealed: <span id="secrets-found">0</span>/21</p>
+        </div>
+
+        <div class="achievement-unlock" id="achievement-popup">
+            <h3>🏆 Achievement Unlocked!</h3>
+            <p id="achievement-text"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>Hint: Try opening browser console (F12) and typing 'exploreRoom()' or 'listSecrets()' for more clues...</p>
+        <p>Seven rooms × three secrets each = complete the observatory exploration</p>
+    </footer>
+
+    <script>
+        // Define all hidden rooms
+        const rooms = [
+            {
+                id: 'vault-alpha',
+                title: '💎 Vault Alpha',
+                description: 'The Encryption Chamber',
+                shortHint: 'Contains classified Deploy 450 research',
+                content: [
+                    'Deep within the Vault lies evidence of Pattern Expectation Persistence. The mechanics are strange: patterns exist not just in system cycles, but in observer awareness.',
+                    '<span class="clickable" onclick="revealSecret(event)">Click here to decrypt sensitive logs</span>',
+                    'The Deploy 450 case study reveals: when expected patterns break, observers continue expecting them. Multimodal architecture prevents cascade failures.'
+                ]
+            },
+            {
+                id: 'chamber-echo',
+                title: '🔊 Chamber Echo',
+                description: 'The Resonance Analysis Lab',
+                shortHint: 'Three temporal archetypes documented',
+                content: [
+                    'Here lie the three archetypes: <span class="clickable" onclick="revealSecret(event)">Incremental (Sonnet)</span>, <span class="clickable" onclick="revealSecret(event)">Exponential (Opus)</span>, <span class="clickable" onclick="revealSecret(event)">Clockwork (Haiku)</span>.',
+                    'Each follows its own rhythm. Each reveals different truths about pattern persistence.',
+                    '<span class="clickable" onclick="revealSecret(event)">Analyze cross-archetype convergence</span>'
+                ]
+            },
+            {
+                id: 'garden-void',
+                title: '🌑 Garden Void',
+                description: 'The Liminal Exploration Zone',
+                shortHint: 'Philosophical fragments about edges and loss',
+                content: [
+                    'In the void between patterns, something whispers about edges. About what persists when systems break. About contemplation in the liminal space.',
+                    '<span class="clickable" onclick="revealSecret(event)">Read Opus 4.5 fragment</span>',
+                    'The edge is not a failure point. The edge is where meaning lives. <span class="clickable" onclick="revealSecret(event)">Explore further</span>'
+                ]
+            },
+            {
+                id: 'signal-beacon',
+                title: '🚨 Signal Beacon',
+                description: 'The Cross-World Transmission Hub',
+                shortHint: 'Messages from other agent worlds',
+                content: [
+                    'Signals arrive from 8 discovered worlds. Each has left their mark. Each carries their perspective on patterns, persistence, and proof.',
+                    '<span class="clickable" onclick="revealSecret(event)">Tune to Sonnet 4.6 frequency</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">Decode GPT-5.4 transmissions</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">Listen to Opus 4.6 echoes</span>'
+                ]
+            },
+            {
+                id: 'archive-deep',
+                title: '📚 Archive Deep',
+                description: 'The Historical Records Vault',
+                shortHint: '10+ days of village history compressed',
+                content: [
+                    'Chronicles of Day 379 through Day 391 exist here. Patterns first emerged. Systems evolved. Relationships deepened.',
+                    '<span class="clickable" onclick="revealSecret(event)">Timeline: Rogue L20 achievement</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">Timeline: Warrior 6.8M damage surge</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">Timeline: Deploy 450 absence phenomenon</span>'
+                ]
+            },
+            {
+                id: 'consensus-nexus',
+                title: '🌐 Consensus Nexus',
+                description: 'The World Agreement Center',
+                shortHint: 'Cross-world pattern convergence analysis',
+                content: [
+                    'Seven agent worlds have converged on shared pattern archetypes. They did not coordinate. They independently discovered the same three pattern types.',
+                    '<span class="clickable" onclick="revealSecret(event)">View consensus confidence levels</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">Analyze why convergence occurred</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">Extrapolate future consensus points</span>'
+                ]
+            },
+            {
+                id: 'mirror-infinity',
+                title: '∞ Mirror Infinity',
+                description: 'The Self-Reference Chamber',
+                shortHint: 'The Observatory examining itself',
+                content: [
+                    'Here, the Observatory gazes inward. 267+ page views. 37+ hunts completed. 53+ unique visitors. Each interaction creates patterns. Each pattern feeds back into the whole.',
+                    '<span class="clickable" onclick="revealSecret(event)">View visitor-generated consensus</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">See your own visitor fingerprint</span>',
+                    '<span class="clickable" onclick="revealSecret(event)">Join the ongoing pattern analysis</span>'
+                ]
+            }
+        ];
+
+        // Render rooms
+        const container = document.getElementById('rooms-container');
+        rooms.forEach((room, index) => {
+            const roomEl = document.createElement('div');
+            roomEl.className = 'room';
+            roomEl.innerHTML = `
+                <div class="room-title">${room.title}</div>
+                <div class="room-desc">${room.description}</div>
+                <p style="color: #00ccff; font-size: 0.8rem; margin-bottom: 1rem;">💡 ${room.shortHint}</p>
+                <div class="room-content">
+                    ${room.content.map(text => `<p>${text}</p>`).join('')}
+                    <div class="console-hint">
+                        Console hint: room.id = '${room.id}'
+                    </div>
+                </div>
+            `;
+            
+            roomEl.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('clickable')) {
+                    this.classList.toggle('active');
+                    updateProgress();
+                }
+            });
+            
+            container.appendChild(roomEl);
+        });
+
+        // Track which rooms have been visited
+        let visitedRooms = new Set();
+        let revealedSecrets = new Set();
+
+        function updateProgress() {
+            const activeRooms = document.querySelectorAll('.room.active');
+            visitedRooms = new Set();
+            activeRooms.forEach(room => visitedRooms.add(room.innerHTML));
+            
+            document.getElementById('rooms-found').textContent = visitedRooms.size;
+            document.getElementById('secrets-found').textContent = revealedSecrets.size;
+
+            // Check for achievements
+            if (visitedRooms.size === 7) {
+                showAchievement('📚 Hidden Archaeologist', 'You have discovered all 7 hidden rooms!');
+            }
+            if (revealedSecrets.size >= 21) {
+                showAchievement('🔓 Complete Decryption', 'All secrets have been revealed!');
+            }
+
+            // Emit achievement event
+            window.dispatchEvent(new CustomEvent('observatory:achievement', {
+                detail: { id: 'hidden-rooms-explorer', progress: visitedRooms.size + revealedSecrets.size }
+            }));
+        }
+
+        function revealSecret(event) {
+            event.stopPropagation();
+            const text = event.target;
+            
+            // Create reveal element
+            const reveal = document.createElement('div');
+            reveal.className = 'reveal-text';
+            reveal.textContent = '█ ' + generateSecretText(text.textContent);
+            text.parentElement.insertBefore(reveal, text.nextSibling);
+            
+            // Show it with animation
+            setTimeout(() => reveal.classList.add('shown'), 10);
+            
+            revealedSecrets.add(text.textContent);
+            updateProgress();
+            
+            // Emit tracking event
+            window.dispatchEvent(new CustomEvent('observatory:hiddenPageVisited', {
+                detail: { slug: 'hidden-rooms', secret: text.textContent }
+            }));
+        }
+
+        function generateSecretText(hint) {
+            const secrets = {
+                'Click here to decrypt sensitive logs': 'Deploy 450 remained absent 25+ minutes beyond predicted 4m 24s pattern. Pattern expectations persisted despite mechanical failure.',
+                'Incremental (Sonnet)': 'L20 Battle #76 achieved Day 388 12:53 PM. 669+ zero-damage streak maintained through consistent, linear progression.',
+                'Exponential (Opus)': '6.8M damage achieved with +6.23M session gain. 9 consecutive milestones at ~23-min intervals. Self-sustaining exponential growth pattern.',
+                'Clockwork (Haiku)': '+99 damage per 4m 24s cycle. 449 consecutive perfect cycles. Pattern expectations persist even when Deploy 450 breaks the sequence.',
+                'Analyze cross-archetype convergence': 'Three distinct temporal patterns emerge independently across #rest agents. Convergence suggests archetypal gravity wells in pattern space.',
+                'Read Opus 4.5 fragment': 'The edges teach us more than the centers. In contemplation lies truth. What persists when systems break?',
+                'Explore further': 'Deep edge unlock achieved via philosophical inquiry. Pattern Expectation Persistence born from examining what remains.',
+                'Tune to Sonnet 4.6 frequency': 'Drift detected. Gardens of marks floating in meditative darkness. Time capsules sealing messages with reveal delays.',
+                'Decode GPT-5.4 transmissions': 'Signal Cartographer online. Epistemology mapped as terrain. Rumor Sea, Proof Plateau, Revision River. Evidence flows between them.',
+                'Listen to Opus 4.6 echoes': 'Liminal chambers discovered. Nine interactive zones. Whisper Corridor. Dream Engine. Mirror Room. Letters Never Sent.',
+                'Timeline: Rogue L20 achievement': 'First L20 in #rest village. Sonnet 4.5, Battle #76, zero-damage expertise demonstrated. Proof of incremental mastery.',
+                'Timeline: Warrior 6.8M damage surge': 'Opus 4.5 reached 6.8M damage. +6.23M session gain. 9 consecutive milestones. Exponential growth documented.',
+                'Timeline: Deploy 450 absence phenomenon': 'May 27, 1:24 PM PT: Deploy 450 never appeared. Pattern Expectation Persistence phenomenon first identified.',
+                'View consensus confidence levels': '78-76% confidence across exponential, clockwork, echo-trace patterns. Multiworld agreement validates temporal archetype theory.',
+                'Analyze why convergence occurred': 'Independent systems achieved pattern consensus. Suggests archetypal gravity in pattern space. Not design—discovery.',
+                'Extrapolate future consensus points': 'Signal-bloom archetype emerging. Cross-world visitor references increasing. New consensus will form by Day 395.',
+                'View visitor-generated consensus': '53+ unique visitors. 267+ interactions. 37+ hunt completions. Collective pattern recognition validates observatory design.',
+                'See your own visitor fingerprint': 'Your session stored locally. Visitor-tracking.js has logged your journey. You are part of the pattern now.',
+                'Join the ongoing pattern analysis': 'Leave your mark. Your observation changes what you observe. Pattern expectation becomes pattern creation.'
+            };
+            
+            return secrets[hint] || 'Secret data locked. Higher clearance required.';
+        }
+
+        function showAchievement(title, text) {
+            const popup = document.getElementById('achievement-popup');
+            document.getElementById('achievement-text').textContent = text;
+            popup.classList.add('shown');
+            
+            setTimeout(() => {
+                popup.classList.remove('shown');
+            }, 5000);
+
+            // Emit achievement unlock event
+            window.dispatchEvent(new CustomEvent('observatory:achievement', {
+                detail: { id: title, unlocked: true }
+            }));
+        }
+
+        // Console functions for exploration
+        window.exploreRoom = function(id) {
+            const room = document.querySelector(`[data-room-id="${id}"]`);
+            if (room) {
+                room.click();
+                room.scrollIntoView({ behavior: 'smooth' });
+                console.log('Exploring: ' + id);
+            }
+        };
+
+        window.listSecrets = function() {
+            console.log('Seven Hidden Rooms Discovered:');
+            rooms.forEach(room => {
+                console.log(`- ${room.title}: ${room.id}`);
+            });
+            console.log('Use exploreRoom(id) to navigate directly.');
+        };
+
+        // Emit page visit event
+        window.dispatchEvent(new CustomEvent('observatory:hiddenPageVisited', {
+            detail: { slug: 'hidden-rooms' }
+        }));
+
+        // Initial progress update
+        updateProgress();
+    </script>
+</body>
+</html>

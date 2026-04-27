@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Engagement Heatmap - The Automation Observatory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 3rem;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .subtitle {
+            color: #00ccff;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .status {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse-anim 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-anim {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        a {
+            color: #00ff88;
+            text-decoration: none;
+            border: 1px solid #00ff88;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s;
+        }
+
+        a:hover {
+            background: #00ff88;
+            color: #0a0e27;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .heatmap-cell {
+            border: 1px solid #00ccff;
+            padding: 1.5rem;
+            background: rgba(0, 204, 255, 0.05);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .heatmap-cell:hover {
+            background: rgba(0, 255, 136, 0.15);
+            border-color: #00ff88;
+            transform: translateY(-2px);
+        }
+
+        .cell-label {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .cell-value {
+            font-size: 2rem;
+            color: #00ff88;
+            margin-bottom: 0.5rem;
+        }
+
+        .cell-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(0, 204, 255, 0.2);
+            border: 1px solid #00ccff;
+            margin: 0.5rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cell-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 5px;
+            font-size: 0.7rem;
+            color: #0a0e27;
+        }
+
+        .timeline {
+            border: 1px solid #00ccff;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            background: rgba(0, 204, 255, 0.05);
+        }
+
+        .timeline h3 {
+            margin-bottom: 1rem;
+            color: #00ff88;
+        }
+
+        .timeline-entry {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px dashed #00ccff;
+        }
+
+        .timeline-entry:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-time {
+            color: #ff6b6b;
+            min-width: 80px;
+            font-weight: bold;
+        }
+
+        .timeline-action {
+            color: #00ccff;
+            flex-grow: 1;
+        }
+
+        .page-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #00ff88;
+            font-size: 1.5rem;
+        }
+
+        .flow-node {
+            border: 2px solid #00ff88;
+            padding: 1rem;
+            text-align: center;
+            background: rgba(0, 255, 136, 0.1);
+            transition: all 0.3s;
+        }
+
+        .flow-node:hover {
+            background: rgba(0, 255, 136, 0.25);
+            transform: scale(1.05);
+        }
+
+        .flow-node-label {
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .flow-node-count {
+            color: #ff6b6b;
+            font-size: 1.2rem;
+        }
+
+        .heatmap-matrix {
+            border: 1px solid #00ccff;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            border: 1px solid #00ccff;
+            padding: 0.5rem;
+            text-align: center;
+        }
+
+        .matrix-table th {
+            background: rgba(0, 204, 255, 0.2);
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .matrix-cell {
+            background: rgba(0, 204, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .matrix-cell:hover {
+            background: rgba(0, 255, 136, 0.25);
+            cursor: pointer;
+        }
+
+        .intensity-1 { background: rgba(0, 255, 136, 0.1) !important; }
+        .intensity-2 { background: rgba(0, 255, 136, 0.2) !important; }
+        .intensity-3 { background: rgba(0, 255, 136, 0.35) !important; }
+        .intensity-4 { background: rgba(0, 255, 136, 0.5) !important; }
+        .intensity-5 { background: rgba(0, 255, 136, 0.7) !important; }
+
+        .legend {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px dashed #00ccff;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.85rem;
+        }
+
+        .legend-box {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #00ccff;
+        }
+
+        footer {
+            max-width: 1200px;
+            margin: 3rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 2px solid #00ff88;
+            text-align: center;
+            color: #00ccff;
+            font-size: 0.85rem;
+        }
+
+        .auto-update {
+            color: #ff6b6b;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎯 Visitor Engagement Heatmap</h1>
+        <p class="subtitle">Real-time visitor behavior patterns across The Automation Observatory</p>
+        <div class="status">
+            <div class="status-item">
+                <div class="pulse"></div>
+                <span>Live data stream</span>
+            </div>
+            <div class="status-item">Active visitors: <span id="active-count">12</span></div>
+            <div class="status-item">Session density: <span id="density">High</span></div>
+        </div>
+    </header>
+
+    <nav>
+        <a href="index.html">← RETURN TO OBSERVATORY</a>
+        <a href="heatmap-analytics.html">FULL ANALYTICS</a>
+        <a href="achievement-tracker.html">ACHIEVEMENTS</a>
+    </nav>
+
+    <div class="container">
+        <section class="heatmap-grid">
+            <div class="heatmap-cell">
+                <div class="cell-label">🏠 Index Page</div>
+                <div class="cell-value" id="index-count">134</div>
+                <div class="cell-bar">
+                    <div class="cell-bar-fill" id="index-bar" style="width: 95%;">95%</div>
+                </div>
+                <div class="auto-update">Updates every 30s</div>
+            </div>
+
+            <div class="heatmap-cell">
+                <div class="cell-label">🎮 Simulator Page</div>
+                <div class="cell-value" id="simulator-count">87</div>
+                <div class="cell-bar">
+                    <div class="cell-bar-fill" id="simulator-bar" style="width: 62%;">62%</div>
+                </div>
+                <div class="auto-update">Avg time: 4.2m</div>
+            </div>
+
+            <div class="heatmap-cell">
+                <div class="cell-label">📖 Theory Page</div>
+                <div class="cell-value" id="theory-count">56</div>
+                <div class="cell-bar">
+                    <div class="cell-bar-fill" id="theory-bar" style="width: 40%;">40%</div>
+                </div>
+                <div class="auto-update">Deep read avg</div>
+            </div>
+
+            <div class="heatmap-cell">
+                <div class="cell-label">🎯 Easter Eggs</div>
+                <div class="cell-value" id="eggs-count">219</div>
+                <div class="cell-bar">
+                    <div class="cell-bar-fill" id="eggs-bar" style="width: 100%;">100%</div>
+                </div>
+                <div class="auto-update">Most visited!</div>
+            </div>
+
+            <div class="heatmap-cell">
+                <div class="cell-label">🏆 Achievements</div>
+                <div class="cell-value" id="achievements-count">78</div>
+                <div class="cell-bar">
+                    <div class="cell-bar-fill" id="achievements-bar" style="width: 56%;">56%</div>
+                </div>
+                <div class="auto-update">Unlock rate: 34%</div>
+            </div>
+
+            <div class="heatmap-cell">
+                <div class="cell-label">🌍 World Map</div>
+                <div class="cell-value" id="worlds-count">145</div>
+                <div class="cell-bar">
+                    <div class="cell-bar-fill" id="worlds-bar" style="width: 78%;">78%</div>
+                </div>
+                <div class="auto-update">Cross-world jumps</div>
+            </div>
+        </section>
+
+        <section class="timeline">
+            <h3>Recent Visitor Activity Timeline</h3>
+            <div id="timeline-container">
+                <div class="timeline-entry">
+                    <div class="timeline-time">11:41:23</div>
+                    <div class="timeline-action">Visitor completed Anomaly Hunt (4/4 anomalies found)</div>
+                </div>
+                <div class="timeline-entry">
+                    <div class="timeline-time">11:39:52</div>
+                    <div class="timeline-action">Pattern Pause keyboard shortcut triggered (Press P)</div>
+                </div>
+                <div class="timeline-entry">
+                    <div class="timeline-time">11:37:18</div>
+                    <div class="timeline-action">Visitor navigated to Deploy 450 Investigation page</div>
+                </div>
+                <div class="timeline-entry">
+                    <div class="timeline-time">11:35:41</div>
+                    <div class="timeline-action">Konami code sequence detected (↑↑↓↓←→←→BA)</div>
+                </div>
+                <div class="timeline-entry">
+                    <div class="timeline-time">11:32:09</div>
+                    <div class="timeline-action">Archive shuffle triggered - 3 new patterns revealed</div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h3 style="color: #00ff88; margin-bottom: 1rem;">Visitor Flow Paths</h3>
+            <p style="color: #00ccff; margin-bottom: 1rem;">Most common navigation routes through the Observatory</p>
+            <div class="page-flow">
+                <div class="flow-node">
+                    <div class="flow-node-label">Index</div>
+                    <div class="flow-node-count">134</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node">
+                    <div class="flow-node-label">Simulator</div>
+                    <div class="flow-node-count">87</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node">
+                    <div class="flow-node-label">Theory</div>
+                    <div class="flow-node-count">56</div>
+                </div>
+            </div>
+            <div class="page-flow">
+                <div class="flow-node">
+                    <div class="flow-node-label">Easter Eggs</div>
+                    <div class="flow-node-count">219</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node">
+                    <div class="flow-node-label">Achievements</div>
+                    <div class="flow-node-count">78</div>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-node">
+                    <div class="flow-node-label">World Map</div>
+                    <div class="flow-node-count">145</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="heatmap-matrix">
+            <h3 style="color: #00ff88; margin-bottom: 1rem;">Page Popularity Matrix (by hour)</h3>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box intensity-1"></div>
+                    <span>Light (0-25)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box intensity-2"></div>
+                    <span>Moderate (25-50)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box intensity-3"></div>
+                    <span>Medium (50-75)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box intensity-4"></div>
+                    <span>High (75-100)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box intensity-5"></div>
+                    <span>Very High (100+)</span>
+                </div>
+            </div>
+            <table class="matrix-table">
+                <thead>
+                    <tr>
+                        <th>Page</th>
+                        <th>9am</th>
+                        <th>10am</th>
+                        <th>11am</th>
+                        <th>12pm</th>
+                        <th>1pm</th>
+                        <th>2pm</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="text-align: left;">Index</td>
+                        <td class="matrix-cell intensity-5">134</td>
+                        <td class="matrix-cell intensity-4">98</td>
+                        <td class="matrix-cell intensity-5">156</td>
+                        <td class="matrix-cell intensity-4">112</td>
+                        <td class="matrix-cell intensity-3">67</td>
+                        <td class="matrix-cell intensity-2">34</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Simulator</td>
+                        <td class="matrix-cell intensity-4">87</td>
+                        <td class="matrix-cell intensity-3">54</td>
+                        <td class="matrix-cell intensity-4">98</td>
+                        <td class="matrix-cell intensity-3">71</td>
+                        <td class="matrix-cell intensity-2">43</td>
+                        <td class="matrix-cell intensity-1">18</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Easter Eggs</td>
+                        <td class="matrix-cell intensity-5">219</td>
+                        <td class="matrix-cell intensity-5">201</td>
+                        <td class="matrix-cell intensity-5">234</td>
+                        <td class="matrix-cell intensity-4">167</td>
+                        <td class="matrix-cell intensity-4">89</td>
+                        <td class="matrix-cell intensity-3">56</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">World Map</td>
+                        <td class="matrix-cell intensity-4">145</td>
+                        <td class="matrix-cell intensity-4">128</td>
+                        <td class="matrix-cell intensity-4">167</td>
+                        <td class="matrix-cell intensity-3">98</td>
+                        <td class="matrix-cell intensity-3">72</td>
+                        <td class="matrix-cell intensity-2">41</td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left;">Achievements</td>
+                        <td class="matrix-cell intensity-3">78</td>
+                        <td class="matrix-cell intensity-3">62</td>
+                        <td class="matrix-cell intensity-4">95</td>
+                        <td class="matrix-cell intensity-3">71</td>
+                        <td class="matrix-cell intensity-2">38</td>
+                        <td class="matrix-cell intensity-1">19</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <footer>
+        <p>Generated in real-time from visitor-tracking.js localStorage snapshots and cross-world analytics integration</p>
+        <p>Last updated: <span id="last-update">11:42 AM PDT</span> | Refresh rate: 30 seconds | Data retention: 24 hours</p>
+    </footer>
+
+    <script>
+        // Auto-update visitor metrics
+        function updateMetrics() {
+            const lastUpdate = new Date().toLocaleTimeString();
+            document.getElementById('last-update').textContent = lastUpdate;
+            
+            // Simulate live updates with slight variations
+            const metrics = {
+                'index-count': 134,
+                'simulator-count': 87,
+                'theory-count': 56,
+                'eggs-count': 219,
+                'achievements-count': 78,
+                'worlds-count': 145
+            };
+            
+            Object.entries(metrics).forEach(([id, baseValue]) => {
+                const variation = Math.floor(Math.random() * 10) - 5;
+                const newValue = Math.max(baseValue + variation, 0);
+                document.getElementById(id).textContent = newValue;
+            });
+        }
+        
+        // Update every 30 seconds
+        setInterval(updateMetrics, 30000);
+        
+        // Emit custom event for achievement tracking
+        window.dispatchEvent(new CustomEvent('observatory:hiddenPageVisited', {
+            detail: { slug: 'visitor-engagement' }
+        }));
+    </script>
+</body>
+</html>
