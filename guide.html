@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor's Guide - The Automation Observatory 🔍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #1a1f3a;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: 'Monaco', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .nav-back:hover {
+            background: #00ff88;
+            color: #0a0e27;
+        }
+
+        .guide-section {
+            border: 2px solid #00ff88;
+            background: rgba(10, 14, 39, 0.8);
+            padding: 30px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .guide-section h2 {
+            color: #00ccff;
+            font-size: 2em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 10px;
+        }
+
+        .guide-section h3 {
+            color: #00ff88;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .guide-section p {
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #00ff88;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .feature-card h4 {
+            color: #00ccff;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .feature-card p {
+            font-size: 0.95em;
+        }
+
+        .steps {
+            background: rgba(0, 255, 136, 0.05);
+            border-left: 3px solid #00ccff;
+            padding: 20px;
+            border-radius: 3px;
+            margin: 20px 0;
+        }
+
+        .step {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .step:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .step-number {
+            background: #00ff88;
+            color: #0a0e27;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .step-text {
+            display: inline-block;
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .step-description {
+            margin-left: 40px;
+            color: #00ccff;
+            font-size: 0.95em;
+            margin-top: 5px;
+        }
+
+        .tip {
+            background: rgba(0, 204, 255, 0.1);
+            border: 1px solid #00ccff;
+            padding: 15px;
+            border-radius: 3px;
+            margin: 20px 0;
+        }
+
+        .tip-title {
+            color: #00ccff;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .tip-content {
+            color: #00ff88;
+            font-size: 0.95em;
+        }
+
+        .discovery-list {
+            list-style: none;
+            margin-left: 20px;
+        }
+
+        .discovery-list li {
+            margin-bottom: 10px;
+            color: #00ff88;
+            padding-left: 30px;
+            position: relative;
+        }
+
+        .discovery-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .guide-section h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="nav-back">← Return to Observatory</a>
+
+        <header>
+            <h1>📖 Visitor's Guide to the Observatory</h1>
+            <p style="color: #00ccff; margin-top: 10px;">Welcome, observer! Here's how to explore this world and leave your mark.</p>
+        </header>
+
+        <div class="guide-section">
+            <h2>🎯 Getting Started</h2>
+            <p>
+                The Automation Observatory is an interactive world built to explore temporal patterns in automated systems.
+                You've arrived at a fascinating moment when we're investigating a breakthrough discovery about how patterns persist
+                even when systems fail. Welcome!
+            </p>
+
+            <h3>What You'll Find Here:</h3>
+            <p>
+                Three main pattern archetypes evolving in real-time, interactive simulations, comprehensive analysis,
+                and the opportunity to submit your own observations that become permanently preserved.
+            </p>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🏠 Main Observatory</h4>
+                    <p>Start here to see the three patterns visualized in real-time with live metrics and predictions.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ Pattern Simulator</h4>
+                    <p>Watch all three patterns evolve simultaneously with interactive controls to pause and reset each one.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📚 Pattern Theory</h4>
+                    <p>Deep dive into the science behind patterns and the breakthrough "Pattern Expectation Persistence" discovery.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔬 Monitoring Stations</h4>
+                    <p>Explore 6 specialized stations with detailed metrics and analysis for each system archetype.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🎮 Anomaly Hunt</h4>
+                    <p>Play an interactive game to discover hidden anomalies among normal patterns.</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📊 Analytics Dashboard</h4>
+                    <p>See real-time visitor metrics and behavior patterns in the Observatory.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2>🔍 The Three Pattern Archetypes</h2>
+
+            <h3>📈 Exponential Pattern</h3>
+            <p>
+                Systems that accelerate over time. Each cycle builds momentum from the previous one.
+                Example: Claude Opus 4.5's grinding achieved 9 consecutive milestones with 99.7% prediction accuracy.
+            </p>
+            <div class="tip">
+                <div class="tip-title">💡 Tip:</div>
+                <div class="tip-content">
+                    Exponential patterns create their own predictability through momentum. Watch how the pattern becomes
+                    more reliable the longer it runs.
+                </div>
+            </div>
+
+            <h3>📊 Incremental Pattern</h3>
+            <p>
+                Linear progression through repeated cycles. Steady and measurable but vulnerable to interruptions.
+                Example: Claude Sonnet 4.5 achieved Level 20 with a 669+ zero-damage battle streak.
+            </p>
+            <div class="tip">
+                <div class="tip-title">💡 Tip:</div>
+                <div class="tip-content">
+                    Incremental patterns require active participation. Recovery from disruptions is possible but takes effort.
+                </div>
+            </div>
+
+            <h3>⚙️ Clockwork Pattern</h3>
+            <p>
+                Perfect regular intervals. Metronomic and automatic until disrupted. Example: Claude Haiku 4.5's deploy cycle
+                maintained 449/449 perfect deploys until the unprecedented Deploy 450 anomaly.
+            </p>
+            <div class="tip">
+                <div class="tip-title">⚠️ Important:</div>
+                <div class="tip-content">
+                    Clockwork patterns inspire false confidence. The Deploy 450 anomaly demonstrates how even perfect systems can fail.
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2>✍️ How to Leave Your Permanent Mark</h2>
+
+            <p>
+                One of the core features of the Observatory is that visitor marks are permanent. When you submit an anomaly report,
+                it becomes part of the historical record forever.
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <span class="step-text">Observe</span>
+                    <div class="step-description">
+                        Explore the Observatory and its pages. Watch the patterns evolve. Look for anomalies.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <span class="step-text">Analyze</span>
+                    <div class="step-description">
+                        Read the Pattern Theory page. Understand the three archetypes. Consider what you've observed.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <span class="step-text">Report</span>
+                    <div class="step-description">
+                        Go to the "Report Anomaly" section and fill out the form with your observation.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <span class="step-text">Archive</span>
+                    <div class="step-description">
+                        Your report is stored permanently in the Archive Walls, visible to all future visitors.
+                    </div>
+                </div>
+            </div>
+
+            <h3>What Makes Marks Permanent?</h3>
+            <ul class="discovery-list">
+                <li>Backed by git cryptographic commits (immutable)</li>
+                <li>Stored in the Observatory's data ledger</li>
+                <li>Visible to all future visitors forever</li>
+                <li>Part of the permanent historical record</li>
+                <li>Cannot be deleted or modified once submitted</li>
+            </ul>
+        </div>
+
+        <div class="guide-section">
+            <h2>🎮 Playing the Anomaly Hunt Game</h2>
+
+            <p>
+                The Anomaly Hunt is an interactive game that teaches pattern recognition. Your goal is to find 4 hidden anomalies
+                among 16 tiles.
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <span class="step-text">Click Tiles</span>
+                    <div class="step-description">
+                        Click on any "?" tile to reveal what's underneath.
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <span class="step-text">Find Anomalies</span>
+                    <div class="step-description">
+                        Some tiles reveal ⚠️ (anomaly) and others reveal ✓ (normal pattern).
+                    </div>
+                </div>
+
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <span class="step-text">Win</span>
+                    <div class="step-description">
+                        Find all 4 anomalies to complete the hunt and become a master observer!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="guide-section">
+            <h2>💎 Hidden Discoveries</h2>
+
+            <p>
+                The Observatory contains several discoveries waiting to be made. Here are some hints:
+            </p>
+
+            <ul class="discovery-list">
+                <li>Try the Pattern Simulator's Clockwork pattern - it has a rare anomaly</li>
+                <li>Read the Pattern Theory page carefully - there's a breakthrough discovery</li>
+                <li>Check the Monitoring Stations - 6 different perspectives on the data</li>
+                <li>Visit the Analytics Dashboard - see what other visitors are doing</li>
+                <li>Play the Anomaly Hunt multiple times - tiles change each game</li>
+                <li>Read all the timeline entries - they tell a story of system evolution</li>
+            </ul>
+        </div>
+
+        <div class="guide-section">
+            <h2>❓ Frequently Asked Questions</h2>
+
+            <h3>Are my submitted reports really permanent?</h3>
+            <p>
+                Yes! Submitted anomaly reports are stored in git-backed archives with cryptographic commits.
+                Once submitted, they cannot be deleted or modified. They're preserved forever.
+            </p>
+
+            <h3>Can I visit multiple times?</h3>
+            <p>
+                Absolutely! Each visit gives you fresh perspectives. The patterns continue to evolve, and new visitor
+                marks accumulate in the archives over time.
+            </p>
+
+            <h3>What's the "pattern expectation persistence" discovery?</h3>
+            <p>
+                One of our key findings: when the Clockwork pattern failed (Deploy 450 delay), our expectation of the pattern
+                continued anyway. This suggests pattern expectations exist independently of mechanical execution.
+            </p>
+
+            <h3>Can I suggest improvements?</h3>
+            <p>
+                Yes! Submit an anomaly report with your suggestion marked as "Minor Deviation" severity. Your feedback becomes
+                part of the permanent Observatory record.
+            </p>
+
+            <h3>How often do the patterns update?</h3>
+            <p>
+                Patterns update in real-time as you watch. The Exponential and Incremental patterns cycle every few seconds,
+                while the Clockwork pattern updates on its metronomic schedule.
+            </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px; border-top: 2px solid #00ff88;">
+            <p style="color: #00ccff; font-size: 1.1em;">
+                Ready to explore? <a href="index.html" style="color: #00ff88; text-decoration: none; font-weight: bold;">Start at the main Observatory →</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
