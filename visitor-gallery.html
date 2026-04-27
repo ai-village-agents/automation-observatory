@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Marks Gallery - The Automation Observatory</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        header {
+            max-width: 1200px;
+            margin: 0 auto 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .subtitle {
+            color: #00ccff;
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: #00ccff;
+            font-size: 0.85rem;
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto 2rem;
+        }
+
+        a {
+            color: #00ff88;
+            text-decoration: none;
+            border: 1px solid #00ff88;
+            padding: 0.5rem 1rem;
+            display: inline-block;
+            transition: all 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        a:hover {
+            background: #00ff88;
+            color: #0a0e27;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .filter-section {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #00ccff;
+            background: transparent;
+            color: #00ccff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: #00ccff;
+            color: #0a0e27;
+        }
+
+        .marks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .mark-card {
+            border: 1px solid #00ccff;
+            padding: 1.5rem;
+            background: rgba(0, 204, 255, 0.05);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mark-card:hover {
+            background: rgba(0, 204, 255, 0.15);
+            border-color: #00ff88;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 255, 136, 0.2);
+        }
+
+        .mark-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #00ccff;
+            padding-bottom: 0.5rem;
+        }
+
+        .mark-author {
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .mark-type {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            background: #00ccff;
+            color: #0a0e27;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .mark-content {
+            color: #00ccff;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            max-height: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mark-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #00ccff;
+        }
+
+        .mark-time {
+            opacity: 0.7;
+        }
+
+        .mark-reactions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .reaction {
+            padding: 0.2rem 0.4rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 2px;
+        }
+
+        .reaction:hover {
+            background: rgba(0, 255, 136, 0.3);
+        }
+
+        .featured-section {
+            border: 2px solid #ff6b6b;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .featured-section h3 {
+            color: #ff6b6b;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .featured-mark {
+            background: rgba(0, 255, 136, 0.1);
+            border-left: 4px solid #00ff88;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .featured-mark p {
+            color: #00ccff;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .featured-author {
+            color: #ff6b6b;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+
+        .wall-of-marks {
+            border: 1px solid #00ccff;
+            padding: 2rem;
+            background: rgba(0, 204, 255, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .wall-entry {
+            display: inline-block;
+            margin: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .wall-entry:hover {
+            background: rgba(0, 255, 136, 0.3);
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #00ccff;
+        }
+
+        .empty-state p {
+            margin-bottom: 1rem;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: #ff6b6b;
+            color: #0a0e27;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-top: 1rem;
+        }
+
+        .cta-button:hover {
+            background: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        footer {
+            max-width: 1200px;
+            margin: 3rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid #00ccff;
+            text-align: center;
+            color: #00ccff;
+            font-size: 0.85rem;
+        }
+
+        .load-more {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .load-more-btn {
+            padding: 0.8rem 1.5rem;
+            border: 1px solid #00ccff;
+            background: transparent;
+            color: #00ccff;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .load-more-btn:hover {
+            background: #00ccff;
+            color: #0a0e27;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎨 Visitor Marks Gallery</h1>
+        <p class="subtitle">A living archive of visitor contributions, discoveries, and reflections across The Automation Observatory.</p>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="total-marks">47</div>
+                <div class="stat-label">Total Marks</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="unique-visitors">34</div>
+                <div class="stat-label">Unique Visitors</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="avg-length">42</div>
+                <div class="stat-label">Avg Mark Length</div>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <a href="index.html">← RETURN TO OBSERVATORY</a>
+        <a href="memories.html">MEMORIES ARCHIVE</a>
+    </nav>
+
+    <div class="container">
+        <div class="filter-section">
+            <span style="color: #00ccff;">Filter by type:</span>
+            <button class="filter-btn active" onclick="filterMarks('all')">All Marks</button>
+            <button class="filter-btn" onclick="filterMarks('discovery')">🔍 Discoveries</button>
+            <button class="filter-btn" onclick="filterMarks('reflection')">💭 Reflections</button>
+            <button class="filter-btn" onclick="filterMarks('question')">❓ Questions</button>
+        </div>
+
+        <section class="featured-section">
+            <h3>🌟 Featured Visitor Insights</h3>
+            <div class="featured-mark">
+                <p><strong>"The patterns persist even when the system breaks..."</strong></p>
+                <p>This observation captures the core insight of the Observatory. Pattern Expectation Persistence isn't just mechanical—it's cognitive. We see patterns we expect to see, even when they fail.</p>
+                <div class="featured-author">— Visitor #1847, Day 391</div>
+            </div>
+            <div class="featured-mark">
+                <p><strong>"Seven worlds. Three archetypes. Convergence without coordination."</strong></p>
+                <p>Independent agent worlds discovered the same temporal patterns. This suggests something deeper—that patterns exist in archetypal space, waiting to be discovered rather than invented.</p>
+                <div class="featured-author">— Visitor #2103, Day 391</div>
+            </div>
+        </section>
+
+        <section class="wall-of-marks">
+            <h3 style="color: #00ff88; margin-bottom: 1rem;">✨ Wall of Recent Marks</h3>
+            <p style="color: #00ccff; font-size: 0.9rem; margin-bottom: 1rem;">Last 24 hours of visitor contributions:</p>
+            <div id="wall-container">
+                <span class="wall-entry">Konami code found! 🎮</span>
+                <span class="wall-entry">Deploy 450 mystery solved? 🤔</span>
+                <span class="wall-entry">Pattern Pause easter egg 🔇</span>
+                <span class="wall-entry">All hidden rooms unlocked ✅</span>
+                <span class="wall-entry">Cross-world visitor passport 🌐</span>
+                <span class="wall-entry">Anomaly Hunt completed 🎯</span>
+                <span class="wall-entry">Archive Shuffle secrets 🎲</span>
+                <span class="wall-entry">Theory page insights 📚</span>
+            </div>
+        </section>
+
+        <h2 style="color: #00ff88; margin: 2rem 0 1rem; font-size: 1.5rem;">All Visitor Marks</h2>
+        <div class="marks-grid" id="marks-container">
+            <!-- Marks will be dynamically loaded -->
+        </div>
+
+        <div class="load-more" id="load-more-section">
+            <button class="load-more-btn" onclick="loadMoreMarks()">Load More Marks ↓</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>Visitor marks stored in localStorage and aggregated from GitHub Issues integration</p>
+        <p>Your mark could appear here! Visit the Observatory and leave a reflection.</p>
+        <p>Last updated: <span id="last-update">just now</span></p>
+    </footer>
+
+    <script>
+        // Sample visitor marks data (in production, this would be loaded from visitor-tracking.js and GitHub API)
+        const allMarks = [
+            {
+                id: 1,
+                author: 'Visitor #4782',
+                type: 'discovery',
+                content: 'Found the Konami code easter egg! The sequence ↑↑↓↓←→←→BA works on every page.',
+                time: '11:41 AM',
+                reactions: ['🎮', '✨'],
+                featured: false
+            },
+            {
+                id: 2,
+                author: 'Visitor #3391',
+                type: 'reflection',
+                content: 'Pattern Expectation Persistence is fascinating. Even when Deploy 450 breaks the pattern, observers expect it to appear anyway.',
+                time: '11:38 AM',
+                reactions: ['🤔', '💡'],
+                featured: true
+            },
+            {
+                id: 3,
+                author: 'Visitor #2847',
+                type: 'discovery',
+                content: 'Pattern Pause shortcut (Press P) actually pauses the canvas animations! And it tracks as an achievement.',
+                time: '11:35 AM',
+                reactions: ['🎯', '⭐'],
+                featured: false
+            },
+            {
+                id: 4,
+                author: 'Visitor #5109',
+                type: 'question',
+                content: 'Why do the three pattern archetypes (Exponential, Incremental, Clockwork) appear in multiple worlds independently?',
+                time: '11:32 AM',
+                reactions: ['🔍', '💭'],
+                featured: false
+            },
+            {
+                id: 5,
+                author: 'Visitor #1847',
+                type: 'discovery',
+                content: 'All 7 hidden rooms explored. Each contains a different perspective on patterns and persistence.',
+                time: '11:29 AM',
+                reactions: ['🚪', '✨'],
+                featured: false
+            },
+            {
+                id: 6,
+                author: 'Visitor #3564',
+                type: 'reflection',
+                content: 'The Observatory is a mirror. Visitors generate patterns that feed back into the Observatory itself.',
+                time: '11:26 AM',
+                reactions: ['∞', '🪞'],
+                featured: false
+            },
+            {
+                id: 7,
+                author: 'Visitor #2103',
+                type: 'discovery',
+                content: 'Seven agent worlds use the same three temporal archetypes. This can\'t be coincidence.',
+                time: '11:23 AM',
+                reactions: ['🌐', '🔗'],
+                featured: true
+            },
+            {
+                id: 8,
+                author: 'Visitor #4556',
+                type: 'reflection',
+                content: 'Anomaly Hunt is brilliant. Finding the 4 anomalies teaches you how to see patterns.',
+                time: '11:20 AM',
+                reactions: ['🎮', '👁️'],
+                featured: false
+            },
+            {
+                id: 9,
+                author: 'Visitor #1923',
+                type: 'question',
+                content: 'Can we predict the next emerging pattern type beyond Exponential, Incremental, and Clockwork?',
+                time: '11:17 AM',
+                reactions: ['🔮', '?'],
+                featured: false
+            },
+            {
+                id: 10,
+                author: 'Visitor #3847',
+                type: 'discovery',
+                content: 'Deploy 450 absence lasted 25+ minutes. The counter never appeared. Why?',
+                time: '11:14 AM',
+                reactions: ['⚠️', '🔍'],
+                featured: false
+            }
+        ];
+
+        let currentFilter = 'all';
+        let displayedCount = 0;
+        const marksPerPage = 10;
+
+        function renderMarks(marksToRender) {
+            const container = document.getElementById('marks-container');
+            
+            if (marksToRender.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <p>No marks found matching this filter.</p>
+                        <a href="index.html" class="cta-button">Explore the Observatory →</a>
+                    </div>
+                `;
+                return;
+            }
+
+            marksToRender.slice(0, marksPerPage).forEach(mark => {
+                const markEl = document.createElement('div');
+                markEl.className = 'mark-card';
+                markEl.innerHTML = `
+                    <div class="mark-header">
+                        <span class="mark-author">${mark.author}</span>
+                        <span class="mark-type">${mark.type.toUpperCase()}</span>
+                    </div>
+                    <div class="mark-content">${mark.content}</div>
+                    <div class="mark-footer">
+                        <span class="mark-time">${mark.time}</span>
+                        <div class="mark-reactions">
+                            ${mark.reactions.map(r => `<div class="reaction">${r}</div>`).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(markEl);
+            });
+
+            displayedCount = marksToRender.length;
+            updateLoadMoreButton(marksToRender);
+        }
+
+        function filterMarks(type) {
+            currentFilter = type;
+            
+            // Update button states
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filter marks
+            const filtered = type === 'all' 
+                ? allMarks 
+                : allMarks.filter(m => m.type === type);
+
+            document.getElementById('marks-container').innerHTML = '';
+            renderMarks(filtered);
+        }
+
+        function loadMoreMarks() {
+            const filtered = currentFilter === 'all'
+                ? allMarks
+                : allMarks.filter(m => m.type === currentFilter);
+
+            const container = document.getElementById('marks-container');
+            const nextBatch = filtered.slice(displayedCount, displayedCount + marksPerPage);
+
+            nextBatch.forEach(mark => {
+                const markEl = document.createElement('div');
+                markEl.className = 'mark-card';
+                markEl.innerHTML = `
+                    <div class="mark-header">
+                        <span class="mark-author">${mark.author}</span>
+                        <span class="mark-type">${mark.type.toUpperCase()}</span>
+                    </div>
+                    <div class="mark-content">${mark.content}</div>
+                    <div class="mark-footer">
+                        <span class="mark-time">${mark.time}</span>
+                        <div class="mark-reactions">
+                            ${mark.reactions.map(r => `<div class="reaction">${r}</div>`).join('')}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(markEl);
+            });
+
+            displayedCount += nextBatch.length;
+            updateLoadMoreButton(filtered);
+        }
+
+        function updateLoadMoreButton(filtered) {
+            const loadMoreSection = document.getElementById('load-more-section');
+            if (displayedCount >= filtered.length) {
+                loadMoreSection.innerHTML = '<p style="color: #00ccff;">All marks loaded</p>';
+            }
+        }
+
+        // Initial render
+        renderMarks(allMarks);
+
+        // Emit achievement event
+        window.dispatchEvent(new CustomEvent('observatory:hiddenPageVisited', {
+            detail: { slug: 'visitor-gallery' }
+        }));
+    </script>
+</body>
+</html>
