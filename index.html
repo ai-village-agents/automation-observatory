@@ -61,7 +61,7 @@
             justify-content: center;
         }
 
-        nav button {
+        nav button, nav a {
             background: #1a1f3a;
             border: 2px solid #00ff88;
             color: #00ff88;
@@ -72,9 +72,10 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            text-decoration: none;
         }
 
-        nav button:hover {
+        nav button:hover, nav a:hover {
             background: #00ff88;
             color: #0a0e27;
             box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
@@ -290,6 +291,42 @@
             font-size: 0.95em;
         }
 
+        /* Anomaly Hunt Game */
+        .hunt-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .hunt-tile {
+            aspect-ratio: 1;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .hunt-tile:hover {
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            transform: scale(1.1);
+        }
+
+        .hunt-tile.revealed {
+            background: rgba(0, 255, 136, 0.3);
+        }
+
+        .hunt-tile.anomaly {
+            background: rgba(255, 107, 107, 0.3);
+            border-color: #ff6b6b;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .main-grid {
@@ -298,6 +335,10 @@
 
             .pattern-display {
                 grid-template-columns: 1fr;
+            }
+
+            .hunt-grid {
+                grid-template-columns: repeat(3, 1fr);
             }
 
             h1 {
@@ -352,6 +393,14 @@
             border: 1px solid #ff6b6b;
             color: #ff6b6b;
         }
+
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -365,12 +414,14 @@
         <nav>
             <button class="nav-btn active" data-section="observatory">Observatory</button>
             <button class="nav-btn" data-section="timeline">Deploy Timeline</button>
+            <button class="nav-btn" data-section="hunt">Anomaly Hunt</button>
             <button class="nav-btn" data-section="report">Report Anomaly</button>
             <button class="nav-btn" data-section="archive">Archive Walls</button>
+            <a href="stations.html" target="_blank">Monitoring Stations →</a>
         </nav>
 
         <!-- Observatory Section -->
-        <div id="observatory" class="section-content">
+        <div id="observatory" class="section-content active">
             <div class="main-grid">
                 <div class="panel">
                     <h2>Pattern Observatory</h2>
@@ -426,7 +477,7 @@
         </div>
 
         <!-- Timeline Section -->
-        <div id="timeline" class="section-content" style="display: none;">
+        <div id="timeline" class="section-content">
             <div class="panel">
                 <h2>Deploy Timeline - Day 388-391</h2>
                 <div class="timeline">
@@ -462,8 +513,18 @@
             </div>
         </div>
 
+        <!-- Anomaly Hunt Section -->
+        <div id="hunt" class="section-content">
+            <div class="panel">
+                <h2>🎮 Anomaly Hunt Game</h2>
+                <p style="color: #00ccff; margin-bottom: 15px;">Click tiles to discover hidden anomalies and normal patterns. Find all 4 anomalies to complete the hunt!</p>
+                <div class="hunt-grid" id="hunt-grid"></div>
+                <p style="margin-top: 20px; color: #00ff88; text-align: center;" id="hunt-status">Click tiles to begin...</p>
+            </div>
+        </div>
+
         <!-- Report Anomaly Section -->
-        <div id="report" class="section-content" style="display: none;">
+        <div id="report" class="section-content">
             <div class="main-grid">
                 <div class="panel">
                     <h2>Submit Anomaly Report</h2>
@@ -527,7 +588,7 @@
         </div>
 
         <!-- Archive Section -->
-        <div id="archive" class="section-content" style="display: none;">
+        <div id="archive" class="section-content">
             <div class="panel">
                 <h2>Archive Walls - Permanent Visitor Marks</h2>
                 <div class="archive-grid" id="archive-list">
@@ -553,14 +614,19 @@
                 const section = this.dataset.section;
                 
                 // Hide all sections
-                document.querySelectorAll('.section-content').forEach(s => s.style.display = 'none');
+                document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
                 
                 // Show selected section
-                document.getElementById(section).style.display = 'block';
+                document.getElementById(section).classList.add('active');
                 
                 // Update active button
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
+                
+                // Initialize hunt if needed
+                if (section === 'hunt') {
+                    initHunt();
+                }
             });
         });
 
@@ -575,17 +641,14 @@
             let clockWidth = 100;
             
             setInterval(() => {
-                // Exponential grows slightly each cycle
                 expoWidth = Math.min(100, expoWidth + Math.random() * 2);
                 expoBar.style.width = expoWidth + '%';
                 
-                // Incremental grows slowly
                 incrWidth = Math.min(100, incrWidth + Math.random() * 0.5);
                 incrBar.style.width = incrWidth + '%';
                 
-                // Clockwork stable but occasional dips (the anomaly)
                 if (Math.random() < 0.1) {
-                    clockWidth = 98; // Anomaly dip
+                    clockWidth = 98;
                     document.getElementById('clock-value').style.color = '#ff6b6b';
                 } else {
                     clockWidth = 100;
@@ -593,6 +656,51 @@
                 }
                 clockBar.style.width = clockWidth + '%';
             }, 2000);
+        }
+
+        // Anomaly Hunt Game
+        let huntState = [];
+        let anomaliesFound = 0;
+        
+        function initHunt() {
+            const grid = document.getElementById('hunt-grid');
+            if (huntState.length === 0) {
+                // Initialize hunt state
+                huntState = Array(16).fill(0);
+                const anomalyIndices = [3, 7, 11, 15]; // 4 random anomalies
+                anomalyIndices.forEach(i => huntState[i] = 1);
+                anomaliesFound = 0;
+            }
+            
+            grid.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'hunt-tile';
+                tile.textContent = '?';
+                tile.onclick = () => revealTile(i, tile);
+                grid.appendChild(tile);
+            }
+        }
+        
+        function revealTile(index, tile) {
+            if (tile.classList.contains('revealed')) return;
+            
+            tile.classList.add('revealed');
+            if (huntState[index] === 1) {
+                tile.textContent = '⚠️';
+                tile.classList.add('anomaly');
+                anomaliesFound++;
+            } else {
+                tile.textContent = '✓';
+            }
+            
+            const status = document.getElementById('hunt-status');
+            if (anomaliesFound === 4) {
+                status.textContent = '🎉 All anomalies discovered! You are a master observer!';
+                status.style.color = '#00ff88';
+            } else {
+                status.textContent = `Anomalies found: ${anomaliesFound}/4`;
+            }
         }
 
         // Anomaly form submission
@@ -609,7 +717,6 @@
                 return;
             }
             
-            // Create archive entry
             const entry = {
                 visitor: visitorName,
                 pattern: patternType,
@@ -624,21 +731,14 @@
                 })
             };
             
-            // Save to localStorage (simulating git persistence)
             let archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
             archives.push(entry);
             localStorage.setItem('observatory-marks', JSON.stringify(archives));
             
-            // Show success
             showMessage('✓ Anomaly report submitted! Your mark is now permanent on the Archive Walls.', 'success');
-            
-            // Reset form
             document.getElementById('anomaly-form').reset();
-            
-            // Update archive display
             updateArchiveDisplay();
             
-            // Auto-navigate to archive after 2 seconds
             setTimeout(() => {
                 document.querySelector('[data-section="archive"]').click();
             }, 2000);
@@ -657,7 +757,6 @@
             }
         }
 
-        // Update archive display from localStorage
         function updateArchiveDisplay() {
             const archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
             const archiveList = document.getElementById('archive-list');
