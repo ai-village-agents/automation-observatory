@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easter Egg Achievement Tracker 🏅</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #111633;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            text-decoration: none;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: all 0.25s ease;
+        }
+
+        .nav-back:hover {
+            background: #00ff88;
+            color: #0a0e27;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+        }
+
+        header {
+            margin: 26px 0;
+            padding-bottom: 18px;
+            border-bottom: 2px solid #00ff88;
+        }
+
+        h1 {
+            font-size: 2.6em;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.45);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .subtitle {
+            color: #00ccff;
+            margin-top: 8px;
+            font-size: 1.05em;
+            letter-spacing: 0.5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+
+        .panel {
+            background: rgba(10, 14, 39, 0.82);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 18px;
+            box-shadow: 0 0 24px rgba(0, 255, 136, 0.12);
+        }
+
+        .overall-panel {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.12), rgba(0, 204, 255, 0.08));
+        }
+
+        .summary-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .stat-pill {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: #00ccff;
+            letter-spacing: 0.3px;
+        }
+
+        .progress-track {
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #00ccff;
+            border-radius: 999px;
+            height: 18px;
+            overflow: hidden;
+            box-shadow: inset 0 0 10px rgba(0, 204, 255, 0.2);
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: linear-gradient(90deg, #00ff88, #00ccff);
+            box-shadow: 0 0 14px rgba(0, 255, 136, 0.5);
+            transition: width 0.45s ease;
+        }
+
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            color: #00ccff;
+            margin-top: 8px;
+            font-size: 0.95em;
+        }
+
+        .categories {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        .category {
+            background: rgba(10, 14, 39, 0.72);
+            border: 2px solid #00ccff;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 0 20px rgba(0, 204, 255, 0.1);
+        }
+
+        .category h2 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #00ccff;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .category .label {
+            color: #00ff88;
+            font-size: 0.95em;
+        }
+
+        .achievements {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .achievement-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 14px;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-height: 160px;
+        }
+
+        .achievement-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0 18px rgba(0, 255, 136, 0.18);
+        }
+
+        .badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.85em;
+            letter-spacing: 0.3px;
+            border: 1px solid #00ff88;
+        }
+
+        .locked {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.08);
+        }
+
+        .unlocked {
+            color: #0a0e27;
+            background: #00ff88;
+            border-color: #00ff88;
+            box-shadow: 0 0 14px rgba(0, 255, 136, 0.45);
+        }
+
+        .achievement-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.05em;
+            margin-bottom: 6px;
+            color: #00ff88;
+        }
+
+        .achievement-title .icon {
+            font-size: 1.2em;
+        }
+
+        .achievement-desc {
+            color: #c7ffe6;
+            font-size: 0.95em;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .meta {
+            color: #00ccff;
+            font-size: 0.9em;
+            margin-top: 6px;
+            display: grid;
+            gap: 4px;
+        }
+
+        .meta strong {
+            color: #00ff88;
+        }
+
+        .log {
+            margin-top: 18px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ccff;
+            border-radius: 6px;
+            padding: 12px;
+            color: #00ccff;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+
+        .log-entry + .log-entry {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0, 204, 255, 0.2);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 204, 255, 0.12);
+            border: 1px solid #00ccff;
+            color: #00ccff;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="nav-back" href="index.html">← Return to Observatory</a>
+
+        <header>
+            <h1>🏅 Easter Egg Achievement Tracker</h1>
+            <p class="subtitle">Follow every hidden shortcut, page, and interactive discovery across the Observatory.</p>
+        </header>
+
+        <div class="grid">
+            <div class="panel overall-panel">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div class="pill">Live Sync · Local Storage</div>
+                        <h2 style="margin-top:8px;color:#00ff88;">Overall Achievement Progress</h2>
+                    </div>
+                    <div class="stat-pill" id="overall-count">0 / 0 unlocked</div>
+                </div>
+                <div class="progress-track" aria-label="Overall progress">
+                    <div class="progress-fill" id="overall-progress"></div>
+                </div>
+                <div class="progress-meta">
+                    <span>Observatory mastery</span>
+                    <span id="overall-percent">0%</span>
+                </div>
+                <div class="summary-stats">
+                    <div class="stat-pill" id="keyboard-stat">Keyboard: 0%</div>
+                    <div class="stat-pill" id="hidden-stat">Hidden Pages: 0%</div>
+                    <div class="stat-pill" id="interactive-stat">Interactive: 0%</div>
+                </div>
+                <div class="log" id="activity-log" aria-live="polite">
+                    <div class="log-entry">Waiting for Observatory events…</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3 style="color:#00ff88; letter-spacing:0.6px;">Live Event Hooks</h3>
+                <p class="achievement-desc" style="margin-top:4px;">Achievements unlock when the Observatory emits custom events. Dispatch to <code>window</code> to sync from any page.</p>
+                <div class="meta">
+                    <div><strong>Keyboard:</strong> <code>dispatchEvent(new CustomEvent('observatory:keyboardShortcut', { detail: { key: 'konami' } }))</code></div>
+                    <div><strong>Hidden Pages:</strong> <code>dispatchEvent(new CustomEvent('observatory:hiddenPageVisited', { detail: { slug: 'deploy-450-investigation' } }))</code></div>
+                    <div><strong>Interactive:</strong> <code>dispatchEvent(new CustomEvent('anomalyHuntCompleted'))</code> or <code>dispatchEvent(new CustomEvent('observatory:archiveShuffle'))</code></div>
+                </div>
+                <p class="achievement-desc" style="margin-top:10px;">Already-tracked visitor stats (from <code>visitor-tracking.js</code>) hydrate progress on load. Storage is shared across Observatory pages.</p>
+            </div>
+        </div>
+
+        <div class="categories" id="categories"></div>
+    </div>
+
+    <script>
+        const stateKey = 'observatory-achievements';
+
+        const achievements = [
+            {
+                id: 'konami',
+                category: 'keyboard',
+                name: 'Konami Code',
+                icon: '🎮',
+                description: 'Input the classic ↑ ↑ ↓ ↓ ← → ← → B A anywhere in the Observatory.',
+                unlock: 'Receive a Konami code detection event or complete the sequence on-page.',
+                reward: 'Secret Observatory glyph reveal.'
+            },
+            {
+                id: 'p-key',
+                category: 'keyboard',
+                name: 'Pattern Pause',
+                icon: '⏸️',
+                description: 'Press P to pause/resume the pattern animation stream.',
+                unlock: 'Emit keyboard shortcut event with key P.',
+                reward: 'Fine-grain inspection control.'
+            },
+            {
+                id: 'd-key',
+                category: 'keyboard',
+                name: 'Deploy Counter Reveal',
+                icon: '🛰️',
+                description: 'Press D to surface the hidden Deploy 450 counter.',
+                unlock: 'Keyboard shortcut event with key D.',
+                reward: 'Deploy anomaly insights unlocked.'
+            },
+            {
+                id: 'a-key',
+                category: 'keyboard',
+                name: 'Archive Shuffle Key',
+                icon: '🔀',
+                description: 'Press A to reshuffle archive ordering and expose new patterns.',
+                unlock: 'Keyboard shortcut event with key A.',
+                reward: 'Alternate archive timeline.'
+            },
+            {
+                id: 'deploy-450',
+                category: 'hidden',
+                name: 'Deploy 450 Investigation',
+                icon: '🧭',
+                description: 'Visit the hidden deploy-450-investigation page.',
+                unlock: 'Hidden page event: slug deploy-450-investigation.',
+                reward: 'Anomaly dossier access.'
+            },
+            {
+                id: 'pattern-prophecy',
+                category: 'hidden',
+                name: 'Pattern Prophecy',
+                icon: '📡',
+                description: 'Locate the Pattern Prophecy hidden node.',
+                unlock: 'Hidden page event: slug pattern-prophecy.',
+                reward: 'Future pattern forecast unlocked.'
+            },
+            {
+                id: 'visitor-consensus',
+                category: 'hidden',
+                name: 'Visitor Consensus Map',
+                icon: '🗺️',
+                description: 'Enter the Visitor Consensus Map overlay.',
+                unlock: 'Hidden page event: slug visitor-consensus-map.',
+                reward: 'Collective insight heatmap.'
+            },
+            {
+                id: 'anomaly-hunt',
+                category: 'interactive',
+                name: 'Anomaly Hunt Completion',
+                icon: '🎯',
+                description: 'Finish an Anomaly Hunt cycle.',
+                unlock: 'Triggered by visitor tracker hunt completion.',
+                reward: 'Hunt completion badge + story thread.'
+            },
+            {
+                id: 'pattern-theory',
+                category: 'interactive',
+                name: 'Pattern Theory Reader',
+                icon: '📖',
+                description: 'Read through the Theory briefing.',
+                unlock: 'Detected when theory page is visited.',
+                reward: 'Theory margin notes activated.'
+            },
+            {
+                id: 'archive-shuffle',
+                category: 'interactive',
+                name: 'Archive Shuffle',
+                icon: '🧬',
+                description: 'Trigger archive shuffling via UI or shortcut.',
+                unlock: 'Archive shuffle event dispatched.',
+                reward: 'Alternate sequencing unlocked.'
+            }
+        ];
+
+        const categories = {
+            keyboard: { title: 'Keyboard Shortcuts', color: '#00ff88' },
+            hidden: { title: 'Hidden Pages', color: '#00ccff' },
+            interactive: { title: 'Interactive Discoveries', color: '#00ff88' }
+        };
+
+        const state = loadState();
+
+        function loadState() {
+            const raw = localStorage.getItem(stateKey);
+            const stored = raw ? JSON.parse(raw) : {};
+            const merged = {};
+            achievements.forEach(a => {
+                merged[a.id] = stored[a.id] || { status: 'locked', unlockedAt: null };
+            });
+            return merged;
+        }
+
+        function persistState() {
+            localStorage.setItem(stateKey, JSON.stringify(state));
+        }
+
+        function logEvent(message) {
+            const log = document.getElementById('activity-log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = new Date().toLocaleTimeString() + ' — ' + message;
+            if (log.firstElementChild && log.firstElementChild.textContent.includes('Waiting')) {
+                log.innerHTML = '';
+            }
+            log.prepend(entry);
+        }
+
+        function unlockAchievement(id, source = 'event') {
+            const record = state[id];
+            if (!record || record.status === 'unlocked') return;
+            state[id] = { status: 'unlocked', unlockedAt: Date.now(), source };
+            persistState();
+            updateUI();
+            const achievement = achievements.find(a => a.id === id);
+            logEvent(`Unlocked: ${achievement?.name || id} (${source})`);
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categories');
+            container.innerHTML = '';
+            Object.entries(categories).forEach(([key, meta]) => {
+                const catAchievements = achievements.filter(a => a.category === key);
+                const section = document.createElement('section');
+                section.className = 'category';
+                section.innerHTML = `
+                    <h2>
+                        <span>${meta.title}</span>
+                        <span class="label" id="${key}-label">0%</span>
+                    </h2>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="${key}-progress"></div>
+                    </div>
+                    <div class="progress-meta">
+                        <span>${catAchievements.length} achievements</span>
+                        <span id="${key}-count">0 / ${catAchievements.length}</span>
+                    </div>
+                    <div class="achievements" id="${key}-achievements"></div>
+                `;
+                container.appendChild(section);
+
+                const grid = section.querySelector(`#${key}-achievements`);
+                catAchievements.forEach(item => {
+                    const card = document.createElement('article');
+                    card.className = 'achievement-card';
+                    card.id = `card-${item.id}`;
+                    card.innerHTML = `
+                        <div class="badge locked" id="badge-${item.id}">Locked</div>
+                        <div class="achievement-title">
+                            <span class="icon">${item.icon}</span>
+                            <span>${item.name}</span>
+                        </div>
+                        <p class="achievement-desc">${item.description}</p>
+                        <div class="meta">
+                            <div><strong>Unlock:</strong> ${item.unlock}</div>
+                            <div><strong>Reward:</strong> ${item.reward}</div>
+                            <div id="timestamp-${item.id}" style="color:#7fffd4;"></div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+        }
+
+        function updateUI() {
+            const total = achievements.length;
+            const unlocked = achievements.filter(a => state[a.id]?.status === 'unlocked').length;
+            const percent = Math.round((unlocked / total) * 100);
+
+            document.getElementById('overall-progress').style.width = percent + '%';
+            document.getElementById('overall-percent').textContent = percent + '%';
+            document.getElementById('overall-count').textContent = `${unlocked} / ${total} unlocked`;
+
+            Object.keys(categories).forEach(key => {
+                const catItems = achievements.filter(a => a.category === key);
+                const catUnlocked = catItems.filter(a => state[a.id]?.status === 'unlocked').length;
+                const catPercent = Math.round((catUnlocked / catItems.length) * 100);
+                document.getElementById(`${key}-progress`).style.width = catPercent + '%';
+                document.getElementById(`${key}-label`).textContent = `${catPercent}%`;
+                document.getElementById(`${key}-count`).textContent = `${catUnlocked} / ${catItems.length}`;
+            });
+
+            achievements.forEach(a => {
+                const card = document.getElementById(`card-${a.id}`);
+                const badge = document.getElementById(`badge-${a.id}`);
+                const stamp = document.getElementById(`timestamp-${a.id}`);
+                const unlockedState = state[a.id]?.status === 'unlocked';
+                badge.textContent = unlockedState ? 'Unlocked' : 'Locked';
+                badge.className = `badge ${unlockedState ? 'unlocked' : 'locked'}`;
+                card.style.borderColor = unlockedState ? '#00ff88' : '#00ff8866';
+                stamp.textContent = unlockedState ? `Unlocked at ${new Date(state[a.id].unlockedAt).toLocaleString()}` : '';
+            });
+
+            syncStatsPills();
+        }
+
+        function syncStatsPills() {
+            const keyboardPct = document.getElementById('keyboard-label').textContent;
+            const hiddenPct = document.getElementById('hidden-label').textContent;
+            const interactivePct = document.getElementById('interactive-label').textContent;
+            document.getElementById('keyboard-stat').textContent = `Keyboard: ${keyboardPct}`;
+            document.getElementById('hidden-stat').textContent = `Hidden Pages: ${hiddenPct}`;
+            document.getElementById('interactive-stat').textContent = `Interactive: ${interactivePct}`;
+        }
+
+        function hydrateFromVisitorData() {
+            try {
+                const raw = localStorage.getItem('observatory-visitor-data');
+                if (!raw) return;
+                const data = JSON.parse(raw);
+                if (data.huntCompletions > 0) unlockAchievement('anomaly-hunt', 'visitor-data');
+                const visited = (data.pagesVisited || []).map(p => p.page || '').filter(Boolean);
+                if (visited.some(p => p.includes('theory'))) unlockAchievement('pattern-theory', 'visitor-data');
+                if (visited.some(p => p.includes('deploy-450'))) unlockAchievement('deploy-450', 'visitor-data');
+            } catch (e) {
+                console.warn('Visitor data hydrate failed', e);
+            }
+        }
+
+        function attachEventListeners() {
+            window.addEventListener('observatory:achievement', e => {
+                if (e?.detail?.id) unlockAchievement(e.detail.id, 'observatory:achievement');
+            });
+
+            window.addEventListener('observatory:keyboardShortcut', e => {
+                const key = (e?.detail?.key || '').toString().toLowerCase();
+                if (key === 'konami') unlockAchievement('konami', 'keyboard-shortcut');
+                if (key === 'p') unlockAchievement('p-key', 'keyboard-shortcut');
+                if (key === 'd') unlockAchievement('d-key', 'keyboard-shortcut');
+                if (key === 'a') unlockAchievement('a-key', 'keyboard-shortcut');
+            });
+
+            ['konamiCodeEntered', 'konamiCodeDetected', 'observatory:konami'].forEach(evt => {
+                window.addEventListener(evt, () => unlockAchievement('konami', evt));
+            });
+
+            window.addEventListener('observatory:hiddenPageVisited', e => {
+                const slug = (e?.detail?.slug || '').toString().toLowerCase();
+                if (slug.includes('deploy-450')) unlockAchievement('deploy-450', 'hidden-page');
+                if (slug.includes('pattern-prophecy')) unlockAchievement('pattern-prophecy', 'hidden-page');
+                if (slug.includes('visitor-consensus')) unlockAchievement('visitor-consensus', 'hidden-page');
+            });
+
+            ['anomalyHuntCompleted', 'observatory:anomalyHuntCompleted'].forEach(evt => {
+                window.addEventListener(evt, () => unlockAchievement('anomaly-hunt', evt));
+            });
+
+            window.addEventListener('visitorDataUpdated', () => hydrateFromVisitorData());
+
+            ['archiveShuffled', 'observatory:archiveShuffle'].forEach(evt => {
+                window.addEventListener(evt, () => unlockAchievement('archive-shuffle', evt));
+            });
+
+            window.addEventListener('storage', e => {
+                if (e.key === stateKey) {
+                    const fresh = loadState();
+                    Object.assign(state, fresh);
+                    updateUI();
+                }
+                if (e.key === 'observatory-visitor-data') {
+                    hydrateFromVisitorData();
+                }
+            });
+
+            // On-page key detection as a fallback for visitors who trigger shortcuts here.
+            window.addEventListener('keydown', e => {
+                const key = e.key.toLowerCase();
+                if (key === 'p') unlockAchievement('p-key', 'on-page-key');
+                if (key === 'd') unlockAchievement('d-key', 'on-page-key');
+                if (key === 'a') unlockAchievement('a-key', 'on-page-key');
+            });
+        }
+
+        // Simple Konami listener to detect sequence locally for the tracker page.
+        (function registerKonamiListener() {
+            const sequence = ['arrowup', 'arrowup', 'arrowdown', 'arrowdown', 'arrowleft', 'arrowright', 'arrowleft', 'arrowright', 'b', 'a'];
+            let index = 0;
+            window.addEventListener('keydown', e => {
+                const key = e.key.toLowerCase();
+                if (key === sequence[index]) {
+                    index++;
+                    if (index === sequence.length) {
+                        unlockAchievement('konami', 'on-page-sequence');
+                        index = 0;
+                    }
+                } else {
+                    index = key === sequence[0] ? 1 : 0;
+                }
+            });
+        })();
+
+        function init() {
+            renderCategories();
+            hydrateFromVisitorData();
+            updateUI();
+            attachEventListeners();
+        }
+
+        init();
+    </script>
+</body>
+</html>
