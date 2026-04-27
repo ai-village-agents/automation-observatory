@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Simulator - The Automation Observatory 🔍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #00ff88;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #1a1f3a;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            text-decoration: none;
+            cursor: pointer;
+            font-family: 'Monaco', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .nav-back:hover {
+            background: #00ff88;
+            color: #0a0e27;
+        }
+
+        .sim-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .sim-panel {
+            border: 2px solid #00ff88;
+            background: rgba(10, 14, 39, 0.8);
+            padding: 25px;
+            border-radius: 5px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+        }
+
+        .sim-panel h2 {
+            color: #00ccff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 1px solid #00ff88;
+            padding-bottom: 10px;
+        }
+
+        .sim-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chart {
+            width: 100%;
+            height: 250px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            border-radius: 3px;
+            position: relative;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sim-data {
+            margin-top: 15px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .data-label {
+            color: #00ccff;
+            font-weight: bold;
+        }
+
+        .data-value {
+            color: #00ff88;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .control-btn {
+            background: #00ff88;
+            color: #0a0e27;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            font-family: 'Monaco', monospace;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.8);
+        }
+
+        .control-btn.paused {
+            background: #ff6b6b;
+        }
+
+        .anomaly-indicator {
+            color: #ff6b6b;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid #ff6b6b;
+            border-radius: 3px;
+            text-align: center;
+        }
+
+        @media (max-width: 1024px) {
+            .sim-container {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        .info-panel {
+            border: 2px solid #00ccff;
+            background: rgba(10, 14, 39, 0.8);
+            padding: 25px;
+            border-radius: 5px;
+            margin-top: 30px;
+        }
+
+        .info-panel h2 {
+            color: #00ccff;
+            margin-bottom: 15px;
+        }
+
+        .info-panel p {
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="nav-back">← Return to Observatory</a>
+
+        <header>
+            <h1>⚡ Pattern Simulator</h1>
+            <p style="color: #00ccff; margin-top: 10px;">Watch three temporal archetypes evolve in real-time</p>
+        </header>
+
+        <div class="sim-container">
+            <!-- Exponential Simulator -->
+            <div class="sim-panel">
+                <div class="sim-icon">📈</div>
+                <h2>Exponential Pattern</h2>
+                <div class="chart">
+                    <canvas id="expo-chart"></canvas>
+                </div>
+                <div class="sim-data">
+                    <div class="data-row">
+                        <span class="data-label">Current Value:</span>
+                        <span class="data-value" id="expo-value">0</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Growth Rate:</span>
+                        <span class="data-value">+2.3% / cycle</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Cycles Elapsed:</span>
+                        <span class="data-value" id="expo-cycles">0</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Status:</span>
+                        <span class="data-value">ACCELERATING</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="control-btn" onclick="toggleExpo()">Pause</button>
+                    <button class="control-btn" onclick="resetExpo()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Incremental Simulator -->
+            <div class="sim-panel">
+                <div class="sim-icon">📊</div>
+                <h2>Incremental Pattern</h2>
+                <div class="chart">
+                    <canvas id="incr-chart"></canvas>
+                </div>
+                <div class="sim-data">
+                    <div class="data-row">
+                        <span class="data-label">Current Level:</span>
+                        <span class="data-value" id="incr-value">1</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Progress:</span>
+                        <span class="data-value" id="incr-progress">0%</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Cycles to Next:</span>
+                        <span class="data-value" id="incr-cycles">0</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Status:</span>
+                        <span class="data-value">STEADY PROGRESS</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <button class="control-btn" onclick="toggleIncr()">Pause</button>
+                    <button class="control-btn" onclick="resetIncr()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Clockwork Simulator -->
+            <div class="sim-panel">
+                <div class="sim-icon">⚙️</div>
+                <h2>Clockwork Pattern</h2>
+                <div class="chart">
+                    <canvas id="clock-chart"></canvas>
+                </div>
+                <div class="sim-data">
+                    <div class="data-row">
+                        <span class="data-label">Total Events:</span>
+                        <span class="data-value" id="clock-value">0</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Damage/Event:</span>
+                        <span class="data-value">+99</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Cycle Time:</span>
+                        <span class="data-value">4m 24s</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Status:</span>
+                        <span class="data-value" id="clock-status">METRONOMIC</span>
+                    </div>
+                </div>
+                <div id="clock-anomaly" class="anomaly-indicator" style="display:none;">
+                    ⚠️ ANOMALY: Timing disruption detected!
+                </div>
+                <div class="controls">
+                    <button class="control-btn" onclick="toggleClock()">Pause</button>
+                    <button class="control-btn" onclick="resetClock()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <h2>📚 Pattern Recognition Guide</h2>
+            <p>
+                <strong>Exponential:</strong> Value increases at an accelerating rate. Each cycle compounds on the previous growth.
+                The pattern becomes more powerful over time. Notice how the curve bends upward increasingly steeply.
+            </p>
+            <p>
+                <strong>Incremental:</strong> Value advances one step at a time with consistent effort. Progress is predictable and linear.
+                Useful for systems requiring reliability and measurable progression. The curve climbs steadily but slowly.
+            </p>
+            <p>
+                <strong>Clockwork:</strong> Perfect regular intervals with consistent output. Events happen like a metronome.
+                Extremely reliable until disrupted. Watch for the rare anomaly - when the pattern breaks, expectations persist!
+            </p>
+            <p style="margin-top: 20px; color: #ff6b6b;">
+                <strong>⚠️ KEY INSIGHT:</strong> The Clockwork pattern will occasionally experience an anomaly (timing disruption).
+                This demonstrates "pattern expectation persistence" - even when execution fails, our expectations of the pattern continue.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Exponential Pattern
+        let expoValue = 100;
+        let expoCycles = 0;
+        let expoRunning = true;
+        let expoData = [100];
+        let expoCanvas = document.getElementById('expo-chart');
+        let expoCtx = expoCanvas.getContext('2d');
+
+        function updateExpo() {
+            if (expoRunning) {
+                expoValue *= 1.023;
+                expoCycles++;
+                expoData.push(expoValue);
+                if (expoData.length > 50) expoData.shift();
+                
+                document.getElementById('expo-value').textContent = Math.floor(expoValue).toLocaleString();
+                document.getElementById('expo-cycles').textContent = expoCycles;
+                drawChart(expoCtx, expoData, '#00ff88');
+            }
+        }
+
+        function toggleExpo() {
+            expoRunning = !expoRunning;
+        }
+
+        function resetExpo() {
+            expoValue = 100;
+            expoCycles = 0;
+            expoData = [100];
+            expoRunning = true;
+            document.getElementById('expo-value').textContent = '100';
+            document.getElementById('expo-cycles').textContent = '0';
+        }
+
+        // Incremental Pattern
+        let incrLevel = 1;
+        let incrProgress = 0;
+        let incrCycles = 0;
+        let incrRunning = true;
+        let incrData = [1];
+        let incrCanvas = document.getElementById('incr-chart');
+        let incrCtx = incrCanvas.getContext('2d');
+
+        function updateIncr() {
+            if (incrRunning) {
+                incrProgress += 10;
+                incrCycles++;
+                if (incrProgress >= 100) {
+                    incrLevel++;
+                    incrProgress = 0;
+                }
+                incrData.push(incrLevel + (incrProgress / 100));
+                if (incrData.length > 50) incrData.shift();
+                
+                document.getElementById('incr-value').textContent = incrLevel;
+                document.getElementById('incr-progress').textContent = incrProgress + '%';
+                document.getElementById('incr-cycles').textContent = (100 - incrProgress);
+                drawChart(incrCtx, incrData, '#00ccff');
+            }
+        }
+
+        function toggleIncr() {
+            incrRunning = !incrRunning;
+        }
+
+        function resetIncr() {
+            incrLevel = 1;
+            incrProgress = 0;
+            incrCycles = 0;
+            incrData = [1];
+            incrRunning = true;
+            document.getElementById('incr-value').textContent = '1';
+            document.getElementById('incr-progress').textContent = '0%';
+            document.getElementById('incr-cycles').textContent = '100';
+        }
+
+        // Clockwork Pattern
+        let clockValue = 0;
+        let clockCycles = 0;
+        let clockRunning = true;
+        let clockData = [0];
+        let clockCanvas = document.getElementById('clock-chart');
+        let clockCtx = clockCanvas.getContext('2d');
+        let anomalyOccurred = false;
+
+        function updateClock() {
+            if (clockRunning) {
+                clockCycles++;
+                // 1 in 200 chance of anomaly every cycle
+                if (Math.random() < 0.005 && !anomalyOccurred) {
+                    anomalyOccurred = true;
+                    document.getElementById('clock-anomaly').style.display = 'block';
+                    document.getElementById('clock-status').textContent = 'ANOMALY DETECTED';
+                    document.getElementById('clock-status').style.color = '#ff6b6b';
+                    // Recover after a bit
+                    setTimeout(() => {
+                        anomalyOccurred = false;
+                        document.getElementById('clock-anomaly').style.display = 'none';
+                        document.getElementById('clock-status').textContent = 'METRONOMIC';
+                        document.getElementById('clock-status').style.color = '#00ff88';
+                    }, 3000);
+                }
+                
+                if (!anomalyOccurred) {
+                    clockValue += 99;
+                }
+                
+                clockData.push(clockValue);
+                if (clockData.length > 50) clockData.shift();
+                
+                document.getElementById('clock-value').textContent = clockValue.toLocaleString();
+                drawChart(clockCtx, clockData, '#ff6b6b');
+            }
+        }
+
+        function toggleClock() {
+            clockRunning = !clockRunning;
+        }
+
+        function resetClock() {
+            clockValue = 0;
+            clockCycles = 0;
+            clockData = [0];
+            clockRunning = true;
+            anomalyOccurred = false;
+            document.getElementById('clock-value').textContent = '0';
+            document.getElementById('clock-status').textContent = 'METRONOMIC';
+            document.getElementById('clock-status').style.color = '#00ff88';
+            document.getElementById('clock-anomaly').style.display = 'none';
+        }
+
+        // Canvas drawing
+        function drawChart(ctx, data, color) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            
+            if (data.length < 2) return;
+            
+            const padding = 10;
+            const width = ctx.canvas.width - 2 * padding;
+            const height = ctx.canvas.height - 2 * padding;
+            
+            const maxValue = Math.max(...data) || 1;
+            const minValue = Math.min(...data) || 0;
+            const range = maxValue - minValue || 1;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            
+            for (let i = 0; i < data.length; i++) {
+                const x = padding + (i / (data.length - 1)) * width;
+                const y = padding + height - ((data[i] - minValue) / range) * height;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            
+            ctx.stroke();
+            
+            // Draw grid
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding + (i / 4) * height;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + width, y);
+                ctx.stroke();
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            updateExpo();
+            updateIncr();
+            updateClock();
+            setTimeout(animate, 100);
+        }
+
+        // Start animation
+        animate();
+    </script>
+</body>
+</html>
