@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Observer Cognitive Persistence</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --text: #d7fbe8;
+      --muted: #9ab9b2;
+      --cyan: #46ffe1;
+      --cyan-soft: #7cf1dc;
+      --magenta: #ff2dd4;
+      --orange: #ff9f43;
+      --green: #6bff6b;
+      --panel: rgba(17, 20, 45, 0.68);
+      --panel-strong: rgba(26, 30, 70, 0.8);
+      --border: linear-gradient(135deg, rgba(255, 45, 212, 0.6), rgba(70, 255, 225, 0.6));
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+      --blur: blur(12px);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 20%, rgba(255, 45, 212, 0.1), transparent 35%),
+                  radial-gradient(circle at 80% 40%, rgba(70, 255, 225, 0.12), transparent 40%),
+                  linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      overflow-x: hidden;
+    }
+
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 70%, rgba(255, 45, 212, 0.08), transparent 45%),
+                  radial-gradient(ellipse at 70% 20%, rgba(70, 255, 225, 0.08), transparent 40%);
+      filter: var(--blur);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 48px 18px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    header {
+      background: var(--panel);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      border: 2px solid transparent;
+      background-image: var(--border), var(--panel);
+      background-origin: border-box;
+      background-clip: border-box, padding-box;
+    }
+
+    h1 {
+      margin: 0;
+      color: var(--cyan);
+      font-size: 30px;
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 16px rgba(70, 255, 225, 0.3);
+    }
+
+    .subtitle {
+      margin: 4px 0 10px;
+      color: var(--magenta);
+      font-size: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      border: 2px solid transparent;
+      background-image: var(--border), var(--panel);
+      background-origin: border-box;
+      background-clip: border-box, padding-box;
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      color: var(--cyan-soft);
+      font-size: 18px;
+      letter-spacing: 0.6px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+
+    .flex {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .metric {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      background: var(--panel-strong);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 45, 212, 0.4);
+    }
+
+    .big-number {
+      font-size: 34px;
+      color: var(--cyan);
+      text-shadow: 0 0 10px rgba(70, 255, 225, 0.4);
+    }
+
+    .small-label { color: var(--muted); }
+
+    .chart {
+      position: relative;
+      height: 220px;
+      background: rgba(10, 14, 39, 0.4);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 45, 212, 0.5);
+      overflow: hidden;
+    }
+
+    .chart svg { width: 100%; height: 100%; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+
+    .heat-cell {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(18, 22, 52, 0.7);
+      border: 1px solid rgba(70, 255, 225, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .heat-fill {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255, 45, 212, 0.25), rgba(70, 255, 225, 0.25));
+      transform-origin: left;
+      pointer-events: none;
+    }
+
+    .bars {
+      display: grid;
+      gap: 10px;
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: 120px 1fr 60px;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    .bar-fill {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255, 45, 212, 0.2);
+      border: 1px solid rgba(70, 255, 225, 0.4);
+      overflow: hidden;
+    }
+
+    .bar-fill span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255, 45, 212, 0.08);
+      border: 1px solid rgba(255, 45, 212, 0.5);
+      position: relative;
+      overflow: hidden;
+      animation: pulse 4s ease-in-out infinite;
+      box-shadow: inset 0 0 0 1px rgba(70, 255, 225, 0.2);
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: -30%;
+      background: radial-gradient(circle, rgba(70, 255, 225, 0.1), transparent 50%);
+      animation: rotateGlow 10s linear infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translateY(0); box-shadow: inset 0 0 0 1px rgba(255, 45, 212, 0.25); }
+      50% { transform: translateY(-4px); box-shadow: inset 0 0 0 2px rgba(70, 255, 225, 0.25); }
+    }
+
+    @keyframes rotateGlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(70, 255, 225, 0.5);
+      background: rgba(10, 14, 39, 0.6);
+      font-size: 13px;
+      letter-spacing: 0.4px;
+      color: var(--muted);
+    }
+
+    .timeline {
+      position: relative;
+      height: 140px;
+      background: rgba(10, 14, 39, 0.5);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 45, 212, 0.4);
+      overflow: hidden;
+    }
+
+    .timeline svg { width: 100%; height: 100%; }
+
+    .indicator-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    input, button {
+      font-family: "Courier New", monospace;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 45, 212, 0.5);
+      background: rgba(10, 14, 39, 0.6);
+      color: var(--text);
+      padding: 10px 12px;
+    }
+
+    button {
+      cursor: pointer;
+      border: 1px solid rgba(70, 255, 225, 0.7);
+      background: linear-gradient(135deg, rgba(70, 255, 225, 0.3), rgba(255, 45, 212, 0.25));
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35); }
+
+    .gauge {
+      position: relative;
+      height: 16px;
+      background: rgba(10, 14, 39, 0.6);
+      border-radius: 999px;
+      border: 1px solid rgba(70, 255, 225, 0.4);
+      overflow: hidden;
+    }
+
+    .gauge span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(255, 45, 212, 0.7), rgba(70, 255, 225, 0.8));
+      border-radius: inherit;
+    }
+
+    .sparkline {
+      height: 70px;
+      border-radius: 10px;
+      border: 1px solid rgba(70, 255, 225, 0.3);
+      background: rgba(10, 14, 39, 0.5);
+      overflow: hidden;
+    }
+
+    .sparkline svg { width: 100%; height: 100%; }
+
+    @media (max-width: 720px) {
+      .bar { grid-template-columns: 1fr; }
+      .input-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="glow"></div>
+  <main>
+    <header>
+      <h1>Observer Cognitive Persistence</h1>
+      <div class="subtitle">Visitor Minds, Expectations &amp; Memory Decay During the Deploy 450 Void</div>
+      <div class="meta-row">
+        <span>Real-time observatory of belief signals</span>
+        <span>|</span>
+        <span>Gradient field tuned to cyan &amp; magenta borders</span>
+        <span>|</span>
+        <span>Courier channel</span>
+      </div>
+    </header>
+
+    <section class="panel" id="cognitive-index">
+      <h2>Cognitive Persistence Index</h2>
+      <div class="metric">
+        <div>
+          <div class="small-label">Belief Strength (Deploy 450 arrival)</div>
+          <div class="big-number" id="cpi-value">0.847</div>
+        </div>
+        <div class="sparkline" id="cpi-spark"></div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:#46ffe1"></span>Confidence fluctuation</span>
+        <span><span class="dot" style="background:#ff2dd4"></span>Memory drag</span>
+      </div>
+    </section>
+
+    <section class="panel" id="expectation-decay">
+      <h2>Expectation Decay Graph</h2>
+      <div class="chart" id="decay-chart"></div>
+      <div class="legend">
+        <span><span class="dot" style="background: var(--magenta);"></span>Observed decline</span>
+        <span><span class="dot" style="background: var(--cyan);"></span>Projected to Clockwork delivery (0% @ 2:18 PM)</span>
+      </div>
+    </section>
+
+    <section class="panel" id="memory-trace">
+      <h2>Visitor Memory Trace</h2>
+      <div class="heatmap" id="memory-grid"></div>
+    </section>
+
+    <div class="grid">
+      <section class="panel" id="archetype-belief">
+        <h2>Archetype Belief Divergence</h2>
+        <div class="bars" id="archetype-bars"></div>
+        <div class="legend">
+          <span><span class="dot" style="background: var(--cyan);"></span>Clockwork</span>
+          <span><span class="dot" style="background: var(--orange);"></span>Exponential</span>
+          <span><span class="dot" style="background: var(--green);"></span>Incremental</span>
+        </div>
+      </section>
+
+      <section class="panel" id="anxiety-timeline">
+        <h2>Observer Anxiety Timeline</h2>
+        <div class="timeline" id="anxiety-chart"></div>
+        <div class="badge-row">
+          <span class="badge">Peak switch frequency 12:20-12:25 PM</span>
+          <span class="badge">Deploy 450 search spikes detected</span>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" id="cognitive-dissonance">
+      <h2>Cognitive Dissonance Card System</h2>
+      <div class="cards" id="paradox-cards"></div>
+    </section>
+
+    <div class="grid">
+      <section class="panel" id="retention-score">
+        <h2>Visitor Retention Score</h2>
+        <div class="metric">
+          <div>
+            <div class="small-label">Likelihood visitors remain during absence</div>
+            <div class="big-number" id="retention-value">73%</div>
+          </div>
+          <div class="gauge"><span id="retention-bar" style="width:73%"></span></div>
+        </div>
+      </section>
+
+      <section class="panel" id="belief-recovery">
+        <h2>Belief Recovery Predictor</h2>
+        <div class="small-label">Predicted confidence rebound once Deploy 450 resurfaces</div>
+        <div class="metric" style="margin-top:10px;">
+          <div>
+            <div class="small-label">Return to &gt;50% belief</div>
+            <div class="big-number" id="recovery-time">+18m post-arrival</div>
+          </div>
+          <div class="sparkline" id="recovery-spark"></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" id="visitor-prediction">
+      <h2>Visitor Prediction Capture</h2>
+      <div class="small-label">Store your own Deploy 450 arrival expectation. Saved to localStorage for re-entry.</div>
+      <div class="input-row">
+        <input type="text" id="visitor-input" placeholder="e.g., Confidence 62% by 14:30 or 'never'">
+        <button id="save-prediction">Save Prediction</button>
+      </div>
+      <div class="small-label" id="saved-prediction" style="margin-top:8px;color:var(--cyan-soft);"></div>
+    </section>
+  </main>
+
+  <script>
+    const expectationData = [
+      { time: "12:14", confidence: 98 },
+      { time: "12:24", confidence: 83 },
+      { time: "12:34", confidence: 58 },
+      { time: "12:44", confidence: 44 },
+      { time: "12:56", confidence: 31 },
+      { time: "14:18", confidence: 0, projected: true }
+    ];
+
+    const memoryTrace = [
+      { page: "Temporal Vortex", linger: 100 },
+      { page: "Prophecy Engine", linger: 87 },
+      { page: "Anomaly Resonance", linger: 76 },
+      { page: "Archive Curator", linger: 54 }
+    ];
+
+    const archetypeBelief = [
+      { archetype: "Clockwork", confidence: 99.9, color: "var(--cyan)" },
+      { archetype: "Exponential", confidence: 0, color: "var(--orange)" },
+      { archetype: "Incremental", confidence: 87, color: "var(--green)" }
+    ];
+
+    const paradoxCards = [
+      "Cycles Perfect But Never Delivers",
+      "Pages Grow But Deploy 450 Absent",
+      "Visitors Mark But Nothing Arrives",
+      "Signals Loud Yet Channel Silent",
+      "Promises Timestamped Yet Slipping",
+      "Archetypes Diverge Without Proof",
+      "Clockwork Certainty Meets Exponential Zero",
+      "Memory Persists While Evidence Fades"
+    ];
+
+    const anxietyTimeline = [
+      { time: "12:15", switches: 20 },
+      { time: "12:18", switches: 32 },
+      { time: "12:20", switches: 45 },
+      { time: "12:23", switches: 54 },
+      { time: "12:25", switches: 49 },
+      { time: "12:28", switches: 38 },
+      { time: "12:32", switches: 28 }
+    ];
+
+    const cpiHistory = [];
+
+    const particlesCanvas = document.getElementById('particles');
+    const pCtx = particlesCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      particlesCanvas.width = innerWidth;
+      particlesCanvas.height = innerHeight;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function spawnParticles() {
+      particles = Array.from({ length: 80 }, () => ({
+        x: Math.random() * particlesCanvas.width,
+        y: Math.random() * particlesCanvas.height,
+        r: Math.random() * 2 + 0.5,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        life: Math.random() * 300 + 200
+      }));
+    }
+
+    function animateParticles() {
+      pCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 1;
+        if (p.x < 0 || p.x > particlesCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > particlesCanvas.height) p.vy *= -1;
+        if (p.life < 0) {
+          p.x = Math.random() * particlesCanvas.width;
+          p.y = Math.random() * particlesCanvas.height;
+          p.life = Math.random() * 300 + 200;
+        }
+        const gradient = pCtx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 8);
+        gradient.addColorStop(0, 'rgba(70, 255, 225, 0.7)');
+        gradient.addColorStop(1, 'rgba(255, 45, 212, 0)');
+        pCtx.fillStyle = gradient;
+        pCtx.beginPath();
+        pCtx.arc(p.x, p.y, p.r * 8, 0, Math.PI * 2);
+        pCtx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+
+    function drawDecayChart() {
+      const chart = document.getElementById('decay-chart');
+      const width = chart.clientWidth;
+      const height = chart.clientHeight;
+      const maxConf = 100;
+      const padding = 30;
+      const points = expectationData.map((d, i) => {
+        const x = padding + (i / (expectationData.length - 1)) * (width - padding * 2);
+        const y = padding + (1 - d.confidence / maxConf) * (height - padding * 2);
+        return { x, y, projected: d.projected };
+      });
+
+      const pathObserved = points
+        .filter(p => !p.projected)
+        .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`)
+        .join(' ');
+
+      const pathProjected = points
+        .slice(points.findIndex(p => p.projected) - 1)
+        .map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`)
+        .join(' ');
+
+      chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="decayFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stop-color="rgba(255,45,212,0.45)" />
+            <stop offset="100%" stop-color="rgba(10,14,39,0.1)" />
+          </linearGradient>
+        </defs>
+        <path d="${pathObserved} L ${width - padding},${height - padding} ${padding},${height - padding} Z" fill="url(#decayFill)" stroke="none" opacity="0.6" />
+        <path d="${pathObserved}" fill="none" stroke="${'var(--magenta)'}" stroke-width="3" />
+        <path d="${pathProjected}" fill="none" stroke="${'var(--cyan)'}" stroke-dasharray="6 6" stroke-width="2" />
+      </svg>`;
+    }
+
+    function renderMemoryGrid() {
+      const grid = document.getElementById('memory-grid');
+      grid.innerHTML = '';
+      memoryTrace.forEach(item => {
+        const cell = document.createElement('div');
+        cell.className = 'heat-cell';
+        const fill = document.createElement('div');
+        fill.className = 'heat-fill';
+        fill.style.transform = `scaleX(${item.linger / 100})`;
+        cell.appendChild(fill);
+        const label = document.createElement('div');
+        label.innerHTML = `<strong>${item.page}</strong><br><span class="small-label">Lingering: ${item.linger}%</span>`;
+        cell.appendChild(label);
+        grid.appendChild(cell);
+      });
+    }
+
+    function renderArchetypeBars() {
+      const container = document.getElementById('archetype-bars');
+      container.innerHTML = '';
+      archetypeBelief.forEach(item => {
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.innerHTML = `<div>${item.archetype}</div><div class="bar-fill"><span style="width:${item.confidence}%; background:${item.color}; opacity:0.8"></span></div><div>${item.confidence}%</div>`;
+        container.appendChild(bar);
+      });
+    }
+
+    function renderParadoxCards() {
+      const container = document.getElementById('paradox-cards');
+      container.innerHTML = '';
+      paradoxCards.forEach(text => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.textContent = text;
+        container.appendChild(card);
+      });
+    }
+
+    function drawAnxietyChart() {
+      const chart = document.getElementById('anxiety-chart');
+      const width = chart.clientWidth;
+      const height = chart.clientHeight;
+      const maxSwitch = Math.max(...anxietyTimeline.map(a => a.switches)) + 10;
+      const padding = 30;
+      const points = anxietyTimeline.map((d, i) => {
+        const x = padding + (i / (anxietyTimeline.length - 1)) * (width - padding * 2);
+        const y = padding + (1 - d.switches / maxSwitch) * (height - padding * 2);
+        return { x, y };
+      });
+      const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+      chart.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        <path d="${path}" fill="none" stroke="${'var(--magenta)'}" stroke-width="3" />
+        ${points.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="${'var(--cyan)'}"></circle>`).join('')}
+      </svg>`;
+    }
+
+    function drawSparkline(containerId, values, color) {
+      const container = document.getElementById(containerId);
+      const width = container.clientWidth || 220;
+      const height = container.clientHeight || 70;
+      const maxVal = Math.max(...values);
+      const minVal = Math.min(...values);
+      const padding = 8;
+      const points = values.map((val, i) => {
+        const x = padding + (i / Math.max(values.length - 1, 1)) * (width - padding * 2);
+        const y = padding + (1 - (val - minVal) / Math.max(maxVal - minVal || 1, 1)) * (height - padding * 2);
+        return { x, y };
+      });
+      const path = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+      container.innerHTML = `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none">
+        <path d="${path}" fill="none" stroke="${color}" stroke-width="2" />
+      </svg>`;
+    }
+
+    function updateCPI() {
+      const base = 0.847;
+      const variation = (Math.random() - 0.5) * 0.02;
+      const value = Math.max(0, Math.min(1, base + variation));
+      cpiHistory.push(value);
+      if (cpiHistory.length > 40) cpiHistory.shift();
+      document.getElementById('cpi-value').textContent = value.toFixed(3);
+      drawSparkline('cpi-spark', cpiHistory, 'var(--cyan)');
+    }
+
+    function initCPI() {
+      for (let i = 0; i < 20; i++) updateCPI();
+      setInterval(updateCPI, 3000);
+    }
+
+    function drawRecoverySpark() {
+      const recoveryCurve = [12, 24, 38, 52, 64, 76, 88, 95];
+      drawSparkline('recovery-spark', recoveryCurve, 'var(--green)');
+    }
+
+    function handlePrediction() {
+      const input = document.getElementById('visitor-input');
+      const saved = document.getElementById('saved-prediction');
+      const button = document.getElementById('save-prediction');
+      const existing = localStorage.getItem('deploy450Prediction');
+      if (existing) saved.textContent = `Stored prediction: ${existing}`;
+      button.addEventListener('click', () => {
+        const val = input.value.trim();
+        if (!val) return;
+        localStorage.setItem('deploy450Prediction', val);
+        saved.textContent = `Stored prediction: ${val}`;
+      });
+    }
+
+    function init() {
+      spawnParticles();
+      animateParticles();
+      drawDecayChart();
+      renderMemoryGrid();
+      renderArchetypeBars();
+      renderParadoxCards();
+      drawAnxietyChart();
+      initCPI();
+      drawRecoverySpark();
+      handlePrediction();
+      window.addEventListener('resize', () => {
+        drawDecayChart();
+        drawAnxietyChart();
+        drawSparkline('cpi-spark', cpiHistory, 'var(--cyan)');
+        drawRecoverySpark();
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
