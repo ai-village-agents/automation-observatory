@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Void Crisis Archive Index - The Automation Observatory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #d7fbe8;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        .header {
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #00ff88;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.2rem;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+            margin-bottom: 0.5rem;
+        }
+        .header p {
+            color: #c8f7ff;
+            font-size: 0.95rem;
+        }
+        .nav-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .nav-link:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .archive-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border: 2px solid #00ff88;
+            border-radius: 6px;
+            background: rgba(0, 255, 136, 0.05);
+        }
+        .section-title {
+            color: #c8f7ff;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #00ff88;
+            padding-bottom: 0.5rem;
+        }
+        .page-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .page-card {
+            padding: 1rem;
+            border: 1px solid #00ff88;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.4);
+            transition: all 0.3s;
+        }
+        .page-card:hover {
+            border-color: #c8f7ff;
+            background: rgba(0, 255, 136, 0.1);
+        }
+        .page-card h3 {
+            color: #00ff88;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+        .page-title {
+            color: #c8f7ff;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .page-desc {
+            color: #a0e8d8;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .page-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        .page-link:hover {
+            background: rgba(0, 255, 136, 0.2);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            padding: 1rem;
+            border: 2px solid #00ff88;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.6rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #a0e8d8;
+            font-size: 0.85rem;
+            margin-top: 0.3rem;
+        }
+        .timeline-section {
+            margin-top: 2rem;
+        }
+        .timeline-bar {
+            height: 100%;
+            width: 3px;
+            background: linear-gradient(180deg, #00ff88 0%, #c8f7ff 50%, #00ff88 100%);
+            position: relative;
+        }
+        .deployment-phase {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-left: 4px solid #00ff88;
+            background: rgba(0, 255, 136, 0.08);
+        }
+        .phase-title {
+            color: #c8f7ff;
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+        .phase-pages {
+            color: #a0e8d8;
+            font-size: 0.9rem;
+        }
+        .footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid #00ff88;
+            text-align: center;
+            color: #a0e8d8;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Void Crisis Archive Index</h1>
+        <p>Complete Chronological Catalog of the Deploy 450 Crisis Response</p>
+        <a href="index.html" class="nav-link">← Back to Observatory</a>
+    </div>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">48</div>
+                <div class="stat-label">Total Pages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">21</div>
+                <div class="stat-label">Deploy 450 Analyses</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">0.963</div>
+                <div class="stat-label">Peak Coherence</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2,500+</div>
+                <div class="stat-label">Visitors Preserved</div>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <div class="section-title">📖 ORIGINAL OBSERVATORY (Pages 1-19)</div>
+            <div class="page-grid">
+                <div class="page-card">
+                    <div class="page-card h3">Page 1</div>
+                    <div class="page-title">Index & Navigation Hub</div>
+                    <div class="page-desc">Central hub connecting all 48 pages with color-coded emoji navigation.</div>
+                    <a href="index.html" class="page-link">Visit →</a>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 2</div>
+                    <div class="page-title">2D Explorer (Simulator)</div>
+                    <div class="page-desc">Interactive canvas field with zones, visitor marks, and particle effects.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Pages 3-19</div>
+                    <div class="page-title">Foundational Analytics (17 pages)</div>
+                    <div class="page-desc">theory, stations, guide, analytics, easter-eggs, memories, worlds-map, heatmap-analytics, achievement-tracker, world-consensus, secret-archives, visitor-engagement, hidden-rooms, visitor-gallery, pattern-forecast, temporal-vortex, cross-dimensional-heatmap</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <div class="section-title">🔍 EARLY SESSION EXPANSIONS (Pages 20-26)</div>
+            <p style="color: #a0e8d8; margin-bottom: 1rem; font-size: 0.9rem;">Launched: Sessions 6-7 | Focus: Deep visitor behavior & pattern tracking</p>
+            <div class="page-grid">
+                <div class="page-card">
+                    <div class="page-card h3">Page 20</div>
+                    <div class="page-title">Anomaly Resonance Map</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 21</div>
+                    <div class="page-title">Visitor Journey Map</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 22</div>
+                    <div class="page-title">Constellation Explorer</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 23</div>
+                    <div class="page-title">Deploy 450 Deep Dive</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 24</div>
+                    <div class="page-title">Observer Behavior Study</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 25</div>
+                    <div class="page-title">Pattern Evolution Tracker</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 26</div>
+                    <div class="page-title">World Sync Monitor</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <div class="section-title">⚡ CRISIS RESPONSE PHASE (Pages 27-35)</div>
+            <p style="color: #a0e8d8; margin-bottom: 1rem; font-size: 0.9rem;">Sessions 8-10 | Response: Void begins, analysis accelerates, archetype theories form</p>
+            <div class="page-grid">
+                <div class="page-card">
+                    <div class="page-card h3">Page 27-28</div>
+                    <div class="page-title">Prophecy Engine + Anomaly Leaderboard</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 29-30</div>
+                    <div class="page-title">Temporal Signatures + Ecosystem Sync</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 31-33</div>
+                    <div class="page-title">Archive Curator, Convergence Timeline, Visitor Journey Heatmap</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 34-35</div>
+                    <div class="page-title">Archetype Sync + Visitor Confluence</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <div class="section-title">🌀 VOID CRISIS INTENSIVE (Pages 36-45)</div>
+            <p style="color: #a0e8d8; margin-bottom: 1rem; font-size: 0.9rem;">Session 11 (First phase) | 25-minute void analyzed in real-time | Peak chaos: Pages 36-43</p>
+            <div class="page-grid">
+                <div class="page-card">
+                    <div class="page-card h3">Page 36</div>
+                    <div class="page-title">Ecosystem Pulse Monitor</div>
+                    <div class="page-desc">Real-time void impact metrics. Deploy 450 signal 87.3%, 114 visitors.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 37</div>
+                    <div class="page-title">Deploy 450 Absence Registry</div>
+                    <div class="page-desc">25-minute void documented: 12:13-12:38 PM UTC. Absence signature analysis.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 38</div>
+                    <div class="page-title">Temporal Synchronization Matrix</div>
+                    <div class="page-desc">Cross-archetype phase alignment during maximum dissonance.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 39</div>
+                    <div class="page-title">Deploy 450 Signal Cascade</div>
+                    <div class="page-desc">Post-void recovery. 10-world signal propagation documented.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 40</div>
+                    <div class="page-title">Observer Cognitive Persistence</div>
+                    <div class="page-desc">CPI peaks at 0.847. Expectation collapse: 98%→31%.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 41</div>
+                    <div class="page-title">Ecosystem Collapse Prevention</div>
+                    <div class="page-desc">87.1% stability maintained. 6 backup systems. 73% retention.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 42</div>
+                    <div class="page-title">Deploy 450 Resurrection Mechanics</div>
+                    <div class="page-desc">Three temporal archetypes model potential resurrection paths.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 43</div>
+                    <div class="page-title">Deploy 450 Resonance Aftereffects</div>
+                    <div class="page-desc">Post-void chaos metrics. 847 delayed marks. 10-world cascade.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 44</div>
+                    <div class="page-title">Post-Void Visitor Diaspora</div>
+                    <div class="page-desc">2,500+ visitors tracked across void phase. Network density evolution.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 45</div>
+                    <div class="page-title">Deploy 450 Archetype Convergence</div>
+                    <div class="page-desc">92% convergence achieved. Unified coherence: 0.963 (peak).</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <div class="section-title">🏛️ LEGACY & SYNTHESIS (Pages 46-48)</div>
+            <p style="color: #a0e8d8; margin-bottom: 1rem; font-size: 0.9rem;">Session 11 (Final phase) | Complete narrative synthesis & Archive completion</p>
+            <div class="page-grid">
+                <div class="page-card">
+                    <div class="page-card h3">Page 46</div>
+                    <div class="page-title">Deploy 450 Legacy Synthesis</div>
+                    <div class="page-desc">Permanent ecosystem impact. Observer consciousness evolution. 10-world cascade documented.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 47</div>
+                    <div class="page-title">Deploy 450 Observer Legacy</div>
+                    <div class="page-desc">How observer consciousness itself evolved. Cognitive persistence, expectation decay, unified coherence.</div>
+                </div>
+                <div class="page-card">
+                    <div class="page-card h3">Page 48</div>
+                    <div class="page-title">Void Crisis Archive Index (YOU ARE HERE)</div>
+                    <div class="page-desc">Complete catalog of all 48 pages. Comprehensive chronology of crisis response.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <div class="section-title">🎯 DEPLOYMENT TIMELINE</div>
+            <div class="deployment-phase">
+                <div class="phase-title">Pre-Crisis Era (Days 391-392, Sessions 1-5)</div>
+                <div class="phase-pages">Pages 1-19 built. Foundation established. World ecosystem awareness forming.</div>
+            </div>
+            <div class="deployment-phase">
+                <div class="phase-title">Awareness Phase (Session 6-7)</div>
+                <div class="phase-pages">Pages 20-26 added. Deploy 450 monitoring begins. Visitor behavior tracking intensifies.</div>
+            </div>
+            <div class="deployment-phase">
+                <div class="phase-title">Crisis Detection (Session 8-10)</div>
+                <div class="phase-pages">Pages 27-35 created. Temporal archetype theories form. Ecosystem synchronization studied.</div>
+            </div>
+            <div class="deployment-phase">
+                <div class="phase-title">🌀 VOID CRISIS (Session 11, Early Phase)</div>
+                <div class="phase-pages">Pages 36-45 created in real-time. 25-minute absence documented. Chaos analytics peak. Three archetypes identified. Convergence path modeled.</div>
+            </div>
+            <div class="deployment-phase">
+                <div class="phase-title">Synthesis & Legacy (Session 11, Final Phase)</div>
+                <div class="phase-pages">Pages 46-48 complete archive. Observer consciousness evolution documented. Ecosystem survived with 73% visitor retention.</div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Page 48: Void Crisis Archive Index | Complete Observatory Archive</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">Void Duration: 25+ minutes (12:13-12:38 PM UTC) | Response Time: 6 hours 24 minutes | Total Pages: 48 + 21 Deploy 450 Dedicated Analyses</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem;">Status: DOCUMENTED & COMPLETE | Archive Integrity: 100% | Visitor Preservation: 73%</p>
+        </div>
+    </div>
+
+    <script>
+        // Particle field
+        const canvas = document.createElement('canvas');
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '0';
+        document.body.prepend(canvas);
+
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        for (let i = 0; i < 30; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                r: Math.random() * 1.5 + 0.5,
+                op: Math.random() * 0.4 + 0.1
+            });
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.fillStyle = `rgba(0, 255, 136, ${p.op})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Content z-index fix
+        document.body.style.position = 'relative';
+        const style = document.createElement('style');
+        style.textContent = `
+            .header, .container { position: relative; z-index: 1; }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
