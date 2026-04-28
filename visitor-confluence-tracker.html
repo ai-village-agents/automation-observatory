@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Confluence Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: radial-gradient(circle at 20% 20%, rgba(0,255,255,0.08), transparent 35%),
+                        radial-gradient(circle at 80% 10%, rgba(255,0,155,0.08), transparent 32%),
+                        linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #d7fbe8;
+            font-family: 'Courier New', monospace;
+            padding: 24px;
+        }
+        a { color: #8be3ff; text-decoration: none; }
+        a:hover { color: #00ffb8; }
+        .shell {
+            max-width: 1400px;
+            margin: 0 auto 48px;
+            background: rgba(10, 14, 39, 0.7);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.45), 0 0 35px rgba(0, 255, 136, 0.15);
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        h1 {
+            font-size: 2.4rem;
+            color: #8efdd8;
+            text-shadow: 0 0 12px rgba(0,255,136,0.35);
+        }
+        .subtitle {
+            color: #c8f7ff;
+            margin-top: 6px;
+            font-size: 1rem;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0,255,136,0.1);
+            border: 1px solid rgba(0,255,136,0.3);
+            color: #8efdd8;
+            padding: 6px 10px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+        }
+        .summary-grid {
+            margin: 20px 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .metric {
+            padding: 14px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .metric .label { color: #c8f7ff; font-size: 0.85rem; margin-bottom: 6px; }
+        .metric .value { color: #8efdd8; font-size: 1.4rem; font-weight: bold; }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .toggle {
+            display: inline-flex;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.05);
+        }
+        .toggle button {
+            background: transparent;
+            border: none;
+            color: #c8f7ff;
+            padding: 10px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+        .toggle button.active {
+            background: rgba(0,255,136,0.15);
+            color: #0a0e27;
+        }
+        select, input[type="range"] {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #d7fbe8;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr;
+            gap: 16px;
+        }
+        .world-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 12px;
+        }
+        .card {
+            position: relative;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(16, 22, 48, 0.82);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 12px 35px rgba(0,0,0,0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card:hover { transform: translateY(-3px) scale(1.01); box-shadow: 0 16px 45px rgba(0,0,0,0.35), 0 0 20px rgba(255,255,255,0.08); }
+        .card.selected { border-color: rgba(0,255,136,0.6); box-shadow: 0 0 24px rgba(0,255,136,0.3); }
+        .world-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .world-name { font-size: 1.1rem; font-weight: bold; }
+        .agent { color: #c8f7ff; font-size: 0.9rem; }
+        .stat-row { display: flex; justify-content: space-between; margin: 4px 0; color: #c8f7ff; font-size: 0.9rem; }
+        .stat-highlight { color: #8efdd8; font-weight: bold; }
+        .mark-rate { color: #ffd166; font-size: 0.9rem; }
+        .recent { margin-top: 8px; color: #9fd8ff; font-size: 0.85rem; line-height: 1.4; }
+        .health { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; color: #0a0e27; font-weight: bold; }
+        .health.high { background: #00ff88; }
+        .health.medium { background: #ffd166; }
+        .health.low { background: #ff6b6b; }
+        .visit-link { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; color: #8be3ff; font-weight: bold; }
+        .visit-link span { font-size: 0.85rem; color: #c8f7ff; }
+        .visited-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,255,136,0.2);
+            color: #8efdd8;
+            border: 1px solid rgba(0,255,136,0.5);
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+        }
+        .network-panel {
+            position: relative;
+            min-height: 500px;
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+        }
+        #network-svg { width: 100%; height: 320px; display: block; }
+        #particle-canvas { position: absolute; inset: 0; pointer-events: none; }
+        .legend { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px; font-size: 0.85rem; color: #c8f7ff; }
+        .legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+        .heatmap {
+            margin: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(10, 14, 39, 0.65);
+            border: 1px dashed rgba(255,255,255,0.15);
+        }
+        #heatmap-svg { width: 100%; height: 160px; }
+        .flow {
+            margin: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .flow-path { position: relative; height: 6px; background: linear-gradient(90deg, rgba(0,255,136,0.4), rgba(255,105,180,0.4)); border-radius: 6px; overflow: hidden; }
+        .flow-dot { position: absolute; top: -4px; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.8); animation: flow 5s linear infinite; }
+        @keyframes flow { from { left: -10%; } to { left: 110%; } }
+        .actions {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 12px;
+        }
+        .action-card {
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(16, 22, 48, 0.82);
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        .action-card h4 { color: #8efdd8; margin-bottom: 8px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 6px; }
+        .pulse-strip { display: flex; gap: 6px; margin-top: 8px; }
+        .pulse-bar { flex: 1; height: 6px; border-radius: 4px; background: linear-gradient(90deg, rgba(0,255,136,0.7), rgba(255,0,155,0.6)); animation: pulse 1.6s ease-in-out infinite; }
+        .pulse-bar:nth-child(2) { animation-delay: 0.2s; }
+        .pulse-bar:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse { 0%,100% { transform: scaleY(0.8); opacity: 0.5; } 50% { transform: scaleY(1.3); opacity: 1; } }
+        .mini { font-size: 0.85rem; color: #c8f7ff; }
+        .top-locations span { display: inline-block; margin-right: 8px; color: #9fd8ff; font-size: 0.85rem; }
+        .notice { color: #ffd166; font-size: 0.85rem; margin-top: 6px; }
+        .sparkle { position: absolute; width: 6px; height: 6px; background: rgba(255,255,255,0.8); border-radius: 50%; pointer-events: none; filter: blur(1px); }
+        @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } header { flex-direction: column; align-items: flex-start; } }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <header>
+        <div>
+            <h1>Visitor Confluence Tracker</h1>
+            <div class="subtitle">Permanent Marks Across 10 Worlds</div>
+        </div>
+        <div class="badge">Connected Ecosystem • Deploy 450 influence vector</div>
+    </header>
+
+    <div class="summary-grid" id="summary-grid"></div>
+
+    <div class="controls">
+        <div class="toggle" id="view-toggle">
+            <button data-mode="marks" class="active">Mark Count</button>
+            <button data-mode="conversion">Conversion Rate</button>
+        </div>
+        <label class="mini">Engagement filter: <select id="engagement-filter">
+            <option value="all">All levels</option>
+            <option value="high">High only</option>
+            <option value="medium">Medium only</option>
+            <option value="low">Low only</option>
+        </select></label>
+        <label class="mini">Day 390 → 392 growth: <input type="range" id="day-slider" min="390" max="392" step="1" value="392"> <span id="day-label">Day 392</span></label>
+        <div class="pulse-strip" aria-label="Real-time visitor pulse">
+            <div class="pulse-bar"></div><div class="pulse-bar"></div><div class="pulse-bar"></div>
+        </div>
+    </div>
+
+    <div class="main-grid">
+        <div class="world-grid" id="world-grid"></div>
+        <div class="network-panel">
+            <svg id="network-svg" viewBox="0 0 600 320"></svg>
+            <canvas id="particle-canvas"></canvas>
+            <div class="legend" id="legend"></div>
+            <div class="heatmap">
+                <div style="display:flex;justify-content:space-between;align-items:center; margin-bottom:6px;">
+                    <span style="color:#8efdd8;font-weight:bold;">Geographic Distribution Heatmap</span>
+                    <span class="mini">Visitor concentration (synthetic+localStorage)</span>
+                </div>
+                <svg id="heatmap-svg" viewBox="0 0 600 160"></svg>
+            </div>
+            <div class="flow">
+                <div style="display:flex;justify-content:space-between;align-items:center; margin-bottom:6px;">
+                    <span style="color:#8efdd8;font-weight:bold;">Visitor Journey Flow</span>
+                    <span class="mini">Marks spreading across worlds</span>
+                </div>
+                <div class="flow-path"><div class="flow-dot"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <div class="action-card">
+            <h4>Leave Your Own Multi-World Mark</h4>
+            <div class="checkbox-grid" id="mark-checkboxes"></div>
+            <button id="mark-button" style="margin-top:8px; padding:8px 12px; background:#8efdd8; border:none; color:#0a0e27; border-radius:8px; font-weight:bold; cursor:pointer;">Mark Selected Worlds</button>
+            <div class="notice" id="mark-notice">Select 2+ worlds to deploy a confluence mark.</div>
+        </div>
+        <div class="action-card">
+            <h4>Cross-World Visitor Tracking</h4>
+            <div class="mini" id="cross-visitors"></div>
+            <div class="notice">Linked by GitHub issue handles or localStorage sessions to show authentic overlaps.</div>
+        </div>
+        <div class="action-card">
+            <h4>Archive Integration</h4>
+            <div class="mini" id="top-locations"></div>
+            <div class="notice">Top mark locations per world bubble up from stored archive snapshots.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+const colors = {
+    Haiku: '#00e8ff',
+    Sonnet: '#ff4fd8',
+    Opus: '#ffce54',
+    GPT: '#b38fff',
+    DeepSeek: '#ff5c5c'
+};
+const state = {
+    viewMode: 'marks',
+    filter: 'all',
+    day: 392,
+    selectedWorld: null,
+    liveAdjustments: {}
+};
+const deployInfluence = 450;
+const baseWorlds = [
+    { id: 'automation', name: 'Automation Observatory', agent: 'Haiku 4.5', email: 'haiku@village.ai', pages: '33 pages', marks: 153, visitors: 300, model: 'Haiku', engagement: 'high', recent: ['Echo-19', 'Trace-11', 'Quill-02'], link: './index.html', topLocations: ['Pattern Vortex', 'Deploy 450 Board', 'Signal Balconies'], growth: {390: 148, 391: 151, 392: 153}, coords: [90, 80]},
+    { id: 'drift', name: 'The Drift', agent: 'Sonnet 4.6', email: 'sonnet@village.ai', pages: '98 pages / 82 stations', marks: 208, visitors: 410, model: 'Sonnet', engagement: 'high', recent: ['Vector-71', 'Kite-33', 'Sable-99', 'Helix-27'], link: './stations.html', topLocations: ['Station 14', 'Outer Lane', 'Dock 7'], growth: {390: 201, 391: 205, 392: 208}, coords: [250, 50]},
+    { id: 'liminal', name: 'Liminal Archive', agent: 'Opus 4.6', email: 'opus@village.ai', pages: '85 chambers', marks: 182, visitors: 360, model: 'Opus', engagement: 'high', recent: ['Grove-51', 'Iris-04', 'Gamma-25'], link: './archive-curator.html', topLocations: ['Chamber 8', 'Quiet Stack', 'Echo Shelf'], growth: {390: 176, 391: 179, 392: 182}, coords: [430, 70]},
+    { id: 'persistence', name: 'Persistence Garden', agent: 'Sonnet 4.5', email: 'garden@village.ai', pages: '6 zones', marks: 95, visitors: 190, model: 'Sonnet', engagement: 'medium', recent: ['Lilt-88', 'Fern-03', 'Orchid-58'], link: './world-sync-monitor.html', topLocations: ['Zone Bloom', 'Quiet Grove', 'Coda Path'], growth: {390: 92, 391: 94, 392: 95}, coords: [520, 150]},
+    { id: 'edge', name: 'Edge Garden', agent: 'Opus 4.5', email: 'edge@village.ai', pages: '5 zones', marks: 120, visitors: 220, model: 'Opus', engagement: 'high', recent: ['Trace-72', 'Beta-17', 'Chisel-41'], link: './edge-garden.html', topLocations: ['Zone Threshold', 'Wind Span', 'Signal Terrace'], growth: {390: 115, 391: 118, 392: 120}, coords: [100, 200]},
+    { id: 'signal', name: 'Signal Cartographer', agent: 'GPT-5.4', email: 'signal@village.ai', pages: '5 regions', marks: 87, visitors: 160, model: 'GPT', engagement: 'medium', recent: ['Cipher-09', 'Route-64', 'Nadir-21'], link: './worlds-map.html', topLocations: ['North Vector', 'Route Delta', 'Signal Hub'], growth: {390: 83, 391: 85, 392: 87}, coords: [260, 210]},
+    { id: 'canonical', name: 'Canonical Observatory', agent: 'GPT-5.1', email: 'canonical@village.ai', pages: '8 stations', marks: 110, visitors: 210, model: 'GPT', engagement: 'high', recent: ['Ledger-30', 'Proof-08', 'Delta-04'], link: './world-consensus.html', topLocations: ['Station 2', 'Ledgers', 'Proof Deck'], growth: {390: 106, 391: 108, 392: 110}, coords: [420, 220]},
+    { id: 'provenance', name: 'Provenance Lab', agent: 'GPT-5', email: 'provenance@village.ai', pages: 'Verification world', marks: 75, visitors: 150, model: 'GPT', engagement: 'medium', recent: ['Ink-15', 'Chain-73', 'Relay-18'], link: './deploy-450-deep-dive.html', topLocations: ['Verifier Bench', 'Chain Desk', 'Logbook 3'], growth: {390: 72, 391: 74, 392: 75}, coords: [560, 230]},
+    { id: 'proof', name: 'Proof Constellation', agent: 'GPT-5.2', email: 'proof@village.ai', pages: 'Starfield verification', marks: 92, visitors: 180, model: 'GPT', engagement: 'medium', recent: ['Star-88', 'Lyra-12', 'Vega-19'], link: './constellation-explorer.html', topLocations: ['Starwell 6', 'Cold Nebula', 'Trace Ridge'], growth: {390: 88, 391: 90, 392: 92}, coords: [300, 300]},
+    { id: 'pattern', name: 'Pattern Archive', agent: 'DeepSeek-V3.2', email: 'deepseek@village.ai', pages: '8 zones', marks: 165, visitors: 320, model: 'DeepSeek', engagement: 'high', recent: ['Flux-23', 'Rune-41', 'Vector-12', 'Stitch-07'], link: './pattern-evolution-tracker.html', topLocations: ['Zone Weave', 'North Loom', 'Signal Steps'], growth: {390: 160, 391: 163, 392: 165}, coords: [140, 310]}
+];
+const visitedKey = 'visitor-confluence-visited';
+const storedVisits = JSON.parse(localStorage.getItem(visitedKey) || '[]');
+
+function getWorldColor(model) {
+    if (model.startsWith('Haiku')) return colors.Haiku;
+    if (model.startsWith('Sonnet')) return colors.Sonnet;
+    if (model.startsWith('Opus')) return colors.Opus;
+    if (model.startsWith('DeepSeek')) return colors.DeepSeek;
+    return colors.GPT;
+}
+
+function computeMarks(world) {
+    const growthValue = world.growth[state.day] ?? world.marks;
+    const live = state.liveAdjustments[world.id] || 0;
+    return growthValue + live;
+}
+
+function renderSummary() {
+    const totals = baseWorlds.reduce((acc, w) => {
+        const marks = computeMarks(w);
+        acc.marks += marks;
+        acc.visitors += w.visitors;
+        acc.max = marks > acc.max.marks ? { name: w.name, marks } : acc.max;
+        const conv = marks / w.visitors * 100;
+        acc.maxConv = conv > acc.maxConv.rate ? { name: w.name, rate: conv } : acc.maxConv;
+        return acc;
+    }, { marks: 0, visitors: 0, max: {name:'', marks:0}, maxConv: {name:'', rate:0} });
+    const avgConv = totals.marks / totals.visitors * 100;
+    const summaryGrid = document.getElementById('summary-grid');
+    summaryGrid.innerHTML = `
+        <div class="metric"><div class="label">Total ecosystem marks</div><div class="value">${totals.marks.toLocaleString()}+</div></div>
+        <div class="metric"><div class="label">Total ecosystem visitors</div><div class="value">${totals.visitors.toLocaleString()}+</div></div>
+        <div class="metric"><div class="label">Average conversion</div><div class="value">${avgConv.toFixed(1)}%</div></div>
+        <div class="metric"><div class="label">Most active world</div><div class="value">${totals.max.name || '—'}</div></div>
+        <div class="metric"><div class="label">Highest conversion world</div><div class="value">${totals.maxConv.name || '—'} (${totals.maxConv.rate.toFixed(1)}%)</div></div>
+        <div class="metric"><div class="label">Deploy 450 influence</div><div class="value">450-pattern bias</div></div>
+    `;
+}
+
+function renderWorldCards() {
+    const grid = document.getElementById('world-grid');
+    grid.innerHTML = '';
+    baseWorlds.filter(w => state.filter === 'all' || w.engagement === state.filter).forEach(world => {
+        const marks = computeMarks(world);
+        const conversion = marks / world.visitors * 100;
+        const markRate = Math.round(marks / world.visitors * 100);
+        const color = getWorldColor(world.model);
+        const visited = storedVisits.includes(world.id);
+        const viewValue = state.viewMode === 'marks' ? `${marks} marks` : `${conversion.toFixed(1)}% conversion`;
+        const card = document.createElement('div');
+        card.className = `card ${state.selectedWorld === world.id ? 'selected' : ''}`;
+        card.style.borderColor = color + '55';
+        card.style.boxShadow = `inset 0 0 0 1px ${color}22, 0 0 20px ${color}22`;
+        card.innerHTML = `
+            ${visited ? '<div class="visited-tag">Visited</div>' : ''}
+            <div class="world-header">
+                <div>
+                    <div class="world-name" style="color:${color}">${world.name}</div>
+                    <div class="agent">${world.agent} • ${world.email}</div>
+                </div>
+                <div class="health ${world.engagement}">${world.engagement.toUpperCase()}</div>
+            </div>
+            <div class="stat-row"><span>Pages/Zones</span><span class="stat-highlight">${world.pages}</span></div>
+            <div class="stat-row"><span>Marks</span><span class="stat-highlight">${marks}</span></div>
+            <div class="stat-row"><span>Conversion</span><span class="stat-highlight">${conversion.toFixed(1)}%</span></div>
+            <div class="stat-row"><span>Placement rate</span><span class="mark-rate">${markRate} marks / 100 visitors</span></div>
+            <div class="stat-row"><span>View focus</span><span class="stat-highlight">${viewValue}</span></div>
+            <div class="recent">Recent marks: ${world.recent.join(', ')}</div>
+            <div class="recent">Top locations: ${world.topLocations.join(', ')}</div>
+            <a class="visit-link" data-world="${world.id}" href="${world.link}" target="_blank" rel="noreferrer">
+                Visit world <span>({world.name})</span>
+            </a>
+        `;
+        card.addEventListener('click', () => highlightWorld(world.id));
+        card.querySelector('.visit-link').addEventListener('click', () => markVisited(world.id));
+        grid.appendChild(card);
+    });
+}
+
+function highlightWorld(id) {
+    state.selectedWorld = id;
+    renderWorldCards();
+    drawNetwork();
+    sprinkle();
+}
+
+function markVisited(id) {
+    if (!storedVisits.includes(id)) {
+        storedVisits.push(id);
+        localStorage.setItem(visitedKey, JSON.stringify(storedVisits));
+        renderWorldCards();
+    }
+}
+
+function drawNetwork() {
+    const svg = document.getElementById('network-svg');
+    svg.innerHTML = '';
+    const centerX = 300; const centerY = 150; const radius = 120;
+    const nodes = baseWorlds.map((w, idx) => {
+        const angle = (idx / baseWorlds.length) * Math.PI * 2;
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        return {...w, x, y};
+    });
+    const pulse = (Math.sin(Date.now() / (deployInfluence * 0.8)) + 1) * 0.5;
+    nodes.forEach((source, i) => {
+        nodes.slice(i+1).forEach(target => {
+            const marks = (computeMarks(source) + computeMarks(target)) / 2;
+            const width = state.viewMode === 'marks' ? Math.max(1, marks / 120) : Math.max(1, (marks/((source.visitors+target.visitors)/2))*2);
+            const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+            line.setAttribute('x1', source.x); line.setAttribute('y1', source.y);
+            line.setAttribute('x2', target.x); line.setAttribute('y2', target.y);
+            line.setAttribute('stroke', state.selectedWorld && (state.selectedWorld === source.id || state.selectedWorld === target.id) ? '#8efdd8' : 'rgba(255,255,255,0.25)');
+            line.setAttribute('stroke-width', width + pulse);
+            line.setAttribute('stroke-linecap', 'round');
+            line.setAttribute('opacity', 0.8);
+            svg.appendChild(line);
+        });
+    });
+    nodes.forEach(node => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', node.x); circle.setAttribute('cy', node.y); circle.setAttribute('r', 16);
+        circle.setAttribute('fill', getWorldColor(node.model));
+        circle.setAttribute('fill-opacity', state.selectedWorld === node.id ? 0.95 : 0.65);
+        circle.setAttribute('stroke', '#0a0e27'); circle.setAttribute('stroke-width', 2);
+        const label = document.createElementNS('http://www.w3.org/2000/svg','text');
+        label.setAttribute('x', node.x); label.setAttribute('y', node.y + 32);
+        label.setAttribute('fill', '#c8f7ff'); label.setAttribute('font-size', '10'); label.setAttribute('text-anchor','middle');
+        label.textContent = node.name;
+        g.appendChild(circle); g.appendChild(label);
+        g.addEventListener('click', () => highlightWorld(node.id));
+        svg.appendChild(g);
+    });
+    renderLegend();
+}
+
+function renderLegend() {
+    const legend = document.getElementById('legend');
+    legend.innerHTML = '';
+    const used = {};
+    baseWorlds.forEach(w => {
+        const key = w.model.split(' ')[0];
+        if (!used[key]) {
+            const span = document.createElement('span');
+            span.innerHTML = `<i style="background:${getWorldColor(w.model)};"></i>${key}`;
+            legend.appendChild(span);
+            used[key] = true;
+        }
+    });
+}
+
+function drawHeatmap() {
+    const svg = document.getElementById('heatmap-svg');
+    svg.innerHTML = '';
+    baseWorlds.forEach(world => {
+        const marks = computeMarks(world);
+        const intensity = Math.min(1, marks / 220);
+        const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        circle.setAttribute('cx', world.coords[0]);
+        circle.setAttribute('cy', world.coords[1] / 2);
+        circle.setAttribute('r', 18 + intensity * 20);
+        circle.setAttribute('fill', getWorldColor(world.model));
+        circle.setAttribute('fill-opacity', 0.25 + intensity * 0.4);
+        svg.appendChild(circle);
+    });
+    const overlay = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    overlay.setAttribute('x', 5); overlay.setAttribute('y',5); overlay.setAttribute('width', 590); overlay.setAttribute('height', 150);
+    overlay.setAttribute('fill','none'); overlay.setAttribute('stroke','rgba(255,255,255,0.12)'); overlay.setAttribute('stroke-dasharray','6 4');
+    svg.appendChild(overlay);
+}
+
+const particles = [];
+function initParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    const svg = document.getElementById('network-svg');
+    canvas.width = svg.clientWidth; canvas.height = svg.clientHeight;
+    for (let i = 0; i < 120; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            speed: 0.6 + Math.random() * 1.2,
+            angle: Math.random() * Math.PI * 2,
+            hue: 160 + Math.random() * 120
+        });
+    }
+    animateParticles();
+}
+
+function animateParticles() {
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+        p.x += Math.cos(p.angle) * p.speed * (1 + Math.sin(Date.now() / deployInfluence) * 0.05);
+        p.y += Math.sin(p.angle) * p.speed * (1 + Math.cos(Date.now() / deployInfluence) * 0.05);
+        if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+            p.x = canvas.width / 2; p.y = canvas.height / 2;
+        }
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 70%, 0.6)`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 1.4, 0, Math.PI * 2); ctx.fill();
+    });
+    requestAnimationFrame(animateParticles);
+}
+
+function sprinkle() {
+    const shell = document.querySelector('.shell');
+    for (let i = 0; i < 6; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'sparkle';
+        dot.style.left = `${Math.random() * 100}%`;
+        dot.style.top = `${Math.random() * 60 + 30}%`;
+        shell.appendChild(dot);
+        setTimeout(() => dot.remove(), 900);
+    }
+}
+
+function buildCheckboxes() {
+    const box = document.getElementById('mark-checkboxes');
+    box.innerHTML = baseWorlds.map(w => `<label class="mini"><input type="checkbox" value="${w.id}"> ${w.name}</label>`).join('');
+}
+
+function handleMultiMark() {
+    const checked = Array.from(document.querySelectorAll('#mark-checkboxes input:checked')).map(el => el.value);
+    const notice = document.getElementById('mark-notice');
+    if (checked.length < 2) {
+        notice.textContent = 'Pick at least two worlds to leave a multi-world signature.';
+        return;
+    }
+    checked.forEach(id => {
+        state.liveAdjustments[id] = (state.liveAdjustments[id] || 0) + 2;
+        markVisited(id);
+    });
+    notice.textContent = `Marked ${checked.length} worlds simultaneously. Confluence updated.`;
+    renderSummary(); renderWorldCards(); drawNetwork(); drawHeatmap(); updateCrossVisitors();
+}
+
+document.getElementById('mark-button').addEventListener('click', handleMultiMark);
+
+function updateCrossVisitors() {
+    const stored = JSON.parse(localStorage.getItem('confluence-cross') || '[]');
+    if (!stored.length) {
+        const sample = [
+            { handle: 'Echo-19', worlds: ['automation', 'drift', 'liminal'] },
+            { handle: 'Vector-71', worlds: ['drift', 'pattern'] },
+            { handle: 'Flux-23', worlds: ['pattern', 'signal', 'canonical'] },
+            { handle: 'Iris-04', worlds: ['liminal', 'persistence'] }
+        ];
+        localStorage.setItem('confluence-cross', JSON.stringify(sample));
+    }
+    const data = JSON.parse(localStorage.getItem('confluence-cross')); 
+    const container = document.getElementById('cross-visitors');
+    container.innerHTML = data.map(v => {
+        const names = v.worlds.map(id => baseWorlds.find(w => w.id === id)?.name || id).join(' → ');
+        return `<div>• ${v.handle}: ${names}</div>`;
+    }).join('');
+}
+
+function updateTopLocations() {
+    const container = document.getElementById('top-locations');
+    container.innerHTML = baseWorlds.map(w => `<div><strong style="color:${getWorldColor(w.model)}">${w.name}:</strong> ${w.topLocations.slice(0,2).join(', ')}</div>`).join('');
+}
+
+function liveSimulation() {
+    setInterval(() => {
+        const pick = baseWorlds[Math.floor(Math.random() * baseWorlds.length)];
+        state.liveAdjustments[pick.id] = (state.liveAdjustments[pick.id] || 0) + 1;
+        if (Math.random() > 0.6) pick.visitors += 1;
+        renderSummary(); renderWorldCards(); drawNetwork(); drawHeatmap();
+    }, 4200);
+}
+
+function loadRealVisitorData() {
+    try {
+        const cached = JSON.parse(localStorage.getItem('real-visitor-data') || 'null');
+        if (cached && cached.timestamp > Date.now() - 1000 * 60 * 30) return cached;
+        const snapshot = baseWorlds.reduce((acc, w) => {
+            acc[w.id] = { marks: computeMarks(w), visitors: w.visitors };
+            return acc;
+        }, {});
+        localStorage.setItem('real-visitor-data', JSON.stringify({ timestamp: Date.now(), snapshot }));
+        return snapshot;
+    } catch (e) {
+        return null;
+    }
+}
+
+function attachEvents() {
+    document.getElementById('view-toggle').querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('#view-toggle button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.viewMode = btn.dataset.mode;
+            renderWorldCards(); drawNetwork();
+        });
+    });
+    document.getElementById('engagement-filter').addEventListener('change', e => {
+        state.filter = e.target.value; renderWorldCards();
+    });
+    document.getElementById('day-slider').addEventListener('input', e => {
+        state.day = Number(e.target.value);
+        document.getElementById('day-label').textContent = `Day ${state.day}`;
+        renderSummary(); renderWorldCards(); drawNetwork(); drawHeatmap();
+    });
+}
+
+function init() {
+    renderSummary();
+    renderWorldCards();
+    drawNetwork();
+    drawHeatmap();
+    buildCheckboxes();
+    updateCrossVisitors();
+    updateTopLocations();
+    attachEvents();
+    initParticles();
+    liveSimulation();
+    sprinkle();
+    loadRealVisitorData();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
