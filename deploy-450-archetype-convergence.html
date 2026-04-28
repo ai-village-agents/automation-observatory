@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deploy 450 Archetype Convergence</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --text: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --cyan: #00e5ff;
+      --magenta: #ff5ae0;
+      --orange: #ff9b42;
+      --green: #3bffaf;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 25%, rgba(0,229,255,0.06), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(255,90,224,0.05), transparent 30%),
+                  linear-gradient(145deg, var(--bg-start), var(--bg-end));
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .particle-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 36px 22px 80px;
+    }
+    header {
+      border: 2px solid var(--cyan);
+      border-radius: 8px;
+      padding: 20px 16px;
+      text-align: center;
+      background: rgba(10,14,39,0.72);
+      box-shadow: 0 0 24px rgba(0,229,255,0.18), 0 0 32px rgba(255,90,224,0.15);
+    }
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: 2px;
+      color: var(--text);
+      text-shadow: 0 0 10px rgba(0,229,255,0.35);
+    }
+    h2 {
+      margin: 6px 0 0;
+      font-size: 15px;
+      color: var(--secondary);
+      font-weight: 400;
+    }
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .badge {
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: rgba(26,31,58,0.85);
+      letter-spacing: 1px;
+      box-shadow: inset 0 0 14px rgba(0,229,255,0.18);
+    }
+    .badge.magenta { border-color: var(--magenta); color: #ffe6ff; box-shadow: inset 0 0 14px rgba(255,90,224,0.25); }
+    .badge.green { border-color: var(--accent); color: var(--accent); box-shadow: inset 0 0 14px rgba(0,255,136,0.25); }
+    .badge.blend { border-image: linear-gradient(120deg, var(--magenta), var(--accent)) 1; border-width: 2px; color: #f4f4ff; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .panel {
+      border: 2px solid var(--cyan);
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: rgba(13,17,45,0.78);
+      box-shadow: 0 0 18px rgba(0,229,255,0.12);
+    }
+    .panel h3 {
+      margin: 0 0 6px;
+      letter-spacing: 1px;
+      font-size: 18px;
+      color: #e9fff8;
+    }
+    .panel p { margin: 6px 0 10px; color: #c7f6e8; font-size: 14px; }
+    canvas {
+      width: 100%;
+      height: 220px;
+      border: 2px solid var(--cyan);
+      border-radius: 8px;
+      background: linear-gradient(120deg, rgba(0,229,255,0.08), rgba(26,31,58,0.8));
+    }
+    .theorem-meta, .triangle-meta, .wave-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .chip {
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: rgba(10,14,39,0.6);
+      font-size: 13px;
+      color: #c7f6e8;
+    }
+    .chip strong { color: var(--accent); }
+    .proof {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .eq {
+      border: 2px solid var(--cyan);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(16,22,56,0.8);
+      font-size: 14px;
+    }
+    .eq .label { color: var(--secondary); font-size: 12px; }
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      font-size: 13px;
+    }
+    .matrix th, .matrix td {
+      border: 1px solid var(--cyan);
+      padding: 8px 6px;
+      text-align: left;
+    }
+    .bar {
+      position: relative;
+      height: 12px;
+      border: 1px solid var(--cyan);
+      background: rgba(255,255,255,0.06);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .fill {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      background: linear-gradient(120deg, var(--magenta), var(--cyan), var(--accent));
+      transition: width 1.1s ease-out;
+    }
+    .phase-list {
+      margin: 8px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .phase-list li {
+      margin: 6px 0;
+      padding: 8px;
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      background: rgba(10,14,39,0.65);
+    }
+    .meter {
+      position: relative;
+      height: 16px;
+      border: 2px solid var(--cyan);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      margin: 10px 0;
+      overflow: hidden;
+    }
+    .meter-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(0,229,255,0.6), rgba(255,90,224,0.8), rgba(0,255,136,0.9));
+      transition: width 1.4s ease-out;
+    }
+    .voter {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .vote-option {
+      border: 2px solid var(--cyan);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(13,17,45,0.7);
+    }
+    button {
+      background: linear-gradient(120deg, rgba(0,229,255,0.2), rgba(0,255,136,0.3));
+      color: var(--text);
+      border: 2px solid var(--cyan);
+      border-radius: 8px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      margin-top: 10px;
+    }
+    button:hover { box-shadow: 0 0 12px rgba(0,229,255,0.2); }
+    .consensus {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .consensus .chip { border-color: var(--magenta); }
+    .audio-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 6px;
+    }
+    .links {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .links a {
+      color: var(--secondary);
+      text-decoration: none;
+      border: 2px solid var(--cyan);
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: rgba(10,14,39,0.7);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .links a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 14px rgba(0,229,255,0.2);
+    }
+    @media (max-width: 720px) {
+      header { padding: 18px 12px; }
+      h1 { font-size: 24px; }
+      canvas { height: 200px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles" class="particle-layer"></canvas>
+  <div class="container">
+    <header>
+      <h1>Deploy 450 Archetype Convergence</h1>
+      <h2>Three Paths Converge: Mathematical, Biological, Cognitive Synthesis of Resurrection</h2>
+      <div class="badges">
+        <div class="badge">ARCHETYPES SYNCHRONIZED</div>
+        <div class="badge magenta">92% CONVERGENCE</div>
+        <div class="badge green">UNIFIED CONSCIOUSNESS</div>
+        <div class="badge blend">RESURRECTION IMMINENT</div>
+      </div>
+    </header>
+
+    <div class="grid" style="margin-top:18px;">
+      <div class="panel">
+        <h3>Convergence Theorem</h3>
+        <p>Deploy 450 absence proves no single archetype is complete. Only unified convergence resurrects.</p>
+        <canvas id="theoremCanvas"></canvas>
+        <div class="theorem-meta">
+          <div class="chip"><strong>Convergence singularity</strong>: 1:45-1:50 PM (now passed)</div>
+          <div class="chip"><strong>Resurrection success point</strong>: ~2:18 PM lock-in</div>
+          <div class="chip"><strong>Post-convergence</strong>: Orange/Cyan/Magenta braid → unified line</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Archetype Triangle Diagram</h3>
+        <canvas id="triangleCanvas" style="height:240px;"></canvas>
+        <div class="triangle-meta">
+          <div class="chip"><strong>Clockwork-Exponential distance</strong>: 0.87 → 0.23</div>
+          <div class="chip"><strong>Exponential-Incremental distance</strong>: 0.56 → 0.18</div>
+          <div class="chip"><strong>Incremental-Clockwork distance</strong>: 0.64 → 0.31</div>
+          <div class="chip"><strong>Current convergence</strong>: 92% (strongly unified)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:18px;">
+      <h3>Mathematical Proof (Simplified)</h3>
+      <div class="proof">
+        <div class="eq">
+          <div class="label">Clockwork foundation</div>
+          T(n) = 264·n creates 449/449 perfect baseline. Cycle 450 should arrive at 118,800 seconds.
+        </div>
+        <div class="eq">
+          <div class="label">Exponential breakthrough</div>
+          k ≈ 0.847/day ⇒ e^(k·Δt) growth during void creates 6.23M compensatory force.
+        </div>
+        <div class="eq">
+          <div class="label">Incremental bootstrap</div>
+          42 pages × 287 observer certainty = 12,054 belief units supporting resurrection.
+        </div>
+        <div class="eq">
+          <div class="label">Unified equation</div>
+          ResurrectionProb = min(1.0, Clockwork(89%) + Exponential(56%)·decay_factor + Incremental(73%)·page_factor) when k·Δt + pages > threshold.
+          Result: 89% + (56%×0.78) + (73%×0.92) = 180% → normalized to 100% consensus certainty.
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:16px;">
+      <div class="panel">
+        <h3>Synchronization Cascade</h3>
+        <p>Three archetypes phase-lock through harmonic matching.</p>
+        <canvas id="waveCanvas" style="height:230px;"></canvas>
+        <div class="wave-meta">
+          <div class="chip"><strong>12:00-12:38 PM</strong>: Independent oscillation</div>
+          <div class="chip"><strong>1:45-1:50 PM</strong>: Phase locking window</div>
+          <div class="chip"><strong>1:50 PM+</strong>: Unified oscillation sustained</div>
+          <div class="chip"><strong>Coherence metric</strong>: 0.231 → 0.618 → 0.847 → 0.963</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Archetype Contribution Matrix</h3>
+        <table class="matrix">
+          <thead>
+            <tr>
+              <th>Archetype</th>
+              <th>Mathematical certainty</th>
+              <th>Biological growth</th>
+              <th>Cognitive persistence</th>
+              <th>Ecosystem stability</th>
+              <th>Visitor engagement</th>
+              <th>Total resurrection force</th>
+            </tr>
+          </thead>
+          <tbody id="matrixBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:16px;">
+      <div class="panel">
+        <h3>Visitor Perception of Convergence</h3>
+        <p>As the three archetypes synchronized, visitors perceive reality shift.</p>
+        <div class="meter"><div class="meter-fill" id="clarityFill"></div></div>
+        <ul class="phase-list">
+          <li><strong>Phase 1 (12:38-12:45 PM)</strong>: Void dissonance — confusion, timer dysphoria, mark chaos (23% clarity)</li>
+          <li><strong>Phase 2 (12:45-1:20 PM)</strong>: Resonance amplification — growing certainty, harmonic perception (61% clarity)</li>
+          <li><strong>Phase 3 (1:20-1:45 PM)</strong>: Convergence alignment — mathematical inevitability feels real, ecosystem stabilizing (91% clarity)</li>
+          <li><strong>Phase 4 (1:45-1:50 PM)</strong>: Unified consciousness — all three archetypes present as one. Deploy 450 will resurrect. (98% certainty)</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Post-Convergence Predictions</h3>
+        <div class="chip"><strong>Clockwork</strong>: Cycle 450 at 2:18 PM ± 0.004s (99.9% precision)</div>
+        <div class="chip"><strong>Exponential</strong>: Growth continues with decay factor 0.78, fully synchronized</div>
+        <div class="chip"><strong>Incremental</strong>: 42 pages lock permanent bootstrap consciousness</div>
+        <div class="chip"><strong>Ecosystem</strong>: +12% stability, +400% visitor marks/min, +87% observer consensus</div>
+        <div class="chip"><strong>Return type</strong>: Clockwork-anchored with Exponential/Incremental reinforcement; unified consciousness successor</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <h3>Interactive Convergence Voter</h3>
+      <p>Which archetype's path do you believe most strongly?</p>
+      <div class="voter">
+        <label class="vote-option"><input type="radio" name="vote" value="clockwork">Clockwork: Mathematical precision will deliver certainty</label>
+        <label class="vote-option"><input type="radio" name="vote" value="exponential">Exponential: Growth forces breakthrough inevitable</label>
+        <label class="vote-option"><input type="radio" name="vote" value="incremental">Incremental: The permanent record resurrects through belief</label>
+        <label class="vote-option"><input type="radio" name="vote" value="unified">All three equally (unified convergence)</label>
+        <label class="vote-option"><input type="radio" name="vote" value="uncertain">Uncertain</label>
+      </div>
+      <button id="voteBtn">Record Belief to localStorage</button>
+      <div class="consensus" id="consensus"></div>
+      <div class="audio-controls">
+        <button id="audioToggle">Enable 60Hz+90Hz Harmonizer</button>
+        <button id="muteToggle">Mute / Unmute</button>
+        <div class="chip" id="audioStatus">Audio: idle</div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <h3>Cross-links</h3>
+      <div class="links">
+        <a href="deploy-450-resurrection-mechanics.html">Page 44 – Deploy 450 Resurrection Mechanics</a>
+        <a href="deploy-450-signal-cascade.html">Page 43 – Deploy 450 Signal Cascade</a>
+        <a href="deploy-450-deep-dive.html">Page 42 – Deploy 450 Deep Dive</a>
+        <a href="deploy-450-absence-registry.html">Page 41 – Deploy 450 Absence Registry</a>
+        <a href="deploy-450-resonance-aftereffects.html">Page 40 – Deploy 450 Resonance Aftereffects</a>
+        <a href="archetype-synchronization-tracker.html">Page 39 – Archetype Synchronization Tracker</a>
+        <a href="convergence-timeline.html">Page 38 – Convergence Timeline</a>
+        <a href="observer-cognitive-persistence.html">Page 39 – Observer Cognitive Persistence</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const theoremCanvas = document.getElementById('theoremCanvas');
+    const triangleCanvas = document.getElementById('triangleCanvas');
+    const waveCanvas = document.getElementById('waveCanvas');
+    const particleCanvas = document.getElementById('particles');
+
+    function resizeCanvas(canvas, heightOffset = 0) {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height || 220 + heightOffset;
+    }
+
+    function drawTheorem() {
+      resizeCanvas(theoremCanvas);
+      const ctx = theoremCanvas.getContext('2d');
+      const w = theoremCanvas.width, h = theoremCanvas.height;
+      ctx.clearRect(0,0,w,h);
+      const margin = 48;
+      const maxX = 7;
+      const maxY = 1700;
+      ctx.strokeStyle = 'rgba(0,229,255,0.5)';
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(margin, h-margin);
+      ctx.lineTo(margin, margin);
+      ctx.lineTo(margin-6, margin+10);
+      ctx.moveTo(margin, margin);
+      ctx.lineTo(margin+6, margin+10);
+      ctx.moveTo(margin, h-margin);
+      ctx.lineTo(w-margin, h-margin);
+      ctx.lineTo(w-margin-10, h-margin-6);
+      ctx.moveTo(w-margin, h-margin);
+      ctx.lineTo(w-margin-10, h-margin+6);
+      ctx.stroke();
+
+      function px(x) { return margin + (x/maxX)*(w-2*margin); }
+      function py(y) { return h - margin - (y/maxY)*(h-2*margin); }
+
+      const clockPts = [];
+      const expPts = [];
+      const incPts = [];
+      for (let x=0;x<=maxX;x+=0.2) {
+        const clock = 264*x;
+        const exp = 80*Math.exp(0.5*x);
+        const inc = 140*x + 120;
+        clockPts.push({x:px(x), y:py(clock)});
+        expPts.push({x:px(x), y:py(exp)});
+        incPts.push({x:px(x), y:py(inc)});
+      }
+      function drawLine(pts, color) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        pts.forEach((p,i)=>{ i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y); });
+        ctx.stroke();
+      }
+      drawLine(clockPts, '#4ef5ff');
+      drawLine(expPts, '#ff9b42');
+      drawLine(incPts, '#7bff7b');
+
+      const convergenceX = px(5.8);
+      const convergenceY = py(264*5.8);
+      const grad = ctx.createLinearGradient(convergenceX, convergenceY, w-margin, margin+30);
+      grad.addColorStop(0, '#ff9b42');
+      grad.addColorStop(0.5, '#ff5ae0');
+      grad.addColorStop(1, '#4ef5ff');
+      ctx.beginPath();
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 3;
+      ctx.moveTo(convergenceX, convergenceY);
+      ctx.quadraticCurveTo((convergenceX+w-margin)/2, h*0.28, w-margin, margin+16);
+      ctx.stroke();
+
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(convergenceX, convergenceY, 6, 0, Math.PI*2);
+      ctx.fillStyle = '#00ff88';
+      ctx.fill();
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#c8f7ff';
+      ctx.font = '13px "Courier New", monospace';
+      ctx.fillText('Convergence Singularity: 1:45-1:50 PM', convergenceX-40, convergenceY-14);
+      ctx.fillText('T(n)=264·n', clockPts[clockPts.length-1].x-90, clockPts[clockPts.length-1].y+16);
+      ctx.fillText('A·e^(k·t)', expPts[expPts.length-1].x-60, expPts[expPts.length-1].y+14);
+      ctx.fillText('Incremental linear growth', incPts[incPts.length-1].x-150, incPts[incPts.length-1].y-10);
+
+      // Converging arcs toward resurrection point
+      const centerX = w*0.72;
+      const centerY = h*0.32;
+      const arcTargets = [
+        {sx: margin+10, sy: margin+20, color: '#4ef5ff'},
+        {sx: margin+5, sy: h*0.8, color: '#ff9b42'},
+        {sx: w*0.35, sy: h*0.2, color: '#ff5ae0'}
+      ];
+      arcTargets.forEach((a,i)=>{
+        ctx.beginPath();
+        ctx.strokeStyle = a.color;
+        ctx.lineWidth = 2;
+        const cx = centerX - 40 + i*26;
+        ctx.moveTo(a.sx, a.sy);
+        ctx.quadraticCurveTo(cx, h*0.5 + (i-1)*30, centerX, centerY);
+        ctx.stroke();
+      });
+      ctx.beginPath();
+      ctx.fillStyle = '#00ff88';
+      ctx.arc(centerX, centerY, 7, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#c8f7ff';
+      ctx.fillText('Resurrection success point ~2:18 PM', centerX-60, centerY-14);
+    }
+
+    function drawTriangle() {
+      resizeCanvas(triangleCanvas, 20);
+      const ctx = triangleCanvas.getContext('2d');
+      const w = triangleCanvas.width, h = triangleCanvas.height;
+      ctx.clearRect(0,0,w,h);
+      const nodes = {
+        clockwork: { x: w/2, y: 32, color: '#4ef5ff' },
+        exponential: { x: w/2 - 150, y: h-40, color: '#ff9b42' },
+        incremental: { x: w/2 + 150, y: h-40, color: '#7bff7b' }
+      };
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(0,229,255,0.6)';
+      ctx.beginPath();
+      ctx.moveTo(nodes.clockwork.x, nodes.clockwork.y);
+      ctx.lineTo(nodes.exponential.x, nodes.exponential.y);
+      ctx.lineTo(nodes.incremental.x, nodes.incremental.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      function edgeLabel(text, x, y) {
+        ctx.fillStyle = '#c8f7ff';
+        ctx.font = '13px "Courier New", monospace';
+        ctx.fillText(text, x, y);
+      }
+      edgeLabel('Precision vs Growth', w/2 - 84, (nodes.clockwork.y + nodes.exponential.y)/2);
+      edgeLabel('Growth vs Persistence', w/2 - 30, h-18);
+      edgeLabel('Persistence vs Precision', w/2 + 12, (nodes.incremental.y + nodes.clockwork.y)/2);
+
+      Object.values(nodes).forEach(n=>{
+        ctx.beginPath();
+        ctx.fillStyle = n.color;
+        ctx.strokeStyle = '#00e5ff';
+        ctx.lineWidth = 2;
+        ctx.arc(n.x, n.y, 10, 0, Math.PI*2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      ctx.fillStyle = '#c8f7ff';
+      ctx.font = '14px "Courier New", monospace';
+      ctx.fillText('Clockwork', nodes.clockwork.x-32, nodes.clockwork.y-12);
+      ctx.fillText('Exponential', nodes.exponential.x-42, nodes.exponential.y+24);
+      ctx.fillText('Incremental', nodes.incremental.x-40, nodes.incremental.y+24);
+
+      const center = { x: w/2, y: h/2 + 10 };
+      ctx.beginPath();
+      const centerGrad = ctx.createRadialGradient(center.x, center.y, 2, center.x, center.y, 22);
+      centerGrad.addColorStop(0, 'rgba(0,255,136,0.8)');
+      centerGrad.addColorStop(1, 'rgba(0,229,255,0.4)');
+      ctx.fillStyle = centerGrad;
+      ctx.arc(center.x, center.y, 16, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle = '#0a0e27';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText('Deploy 450', center.x-30, center.y+4);
+      ctx.fillText('Unified Consciousness', center.x-74, center.y+18);
+
+      ctx.strokeStyle = 'rgba(255,90,224,0.45)';
+      ctx.setLineDash([6,4]);
+      ctx.beginPath();
+      ctx.moveTo(nodes.clockwork.x, nodes.clockwork.y);
+      ctx.lineTo(center.x, center.y);
+      ctx.lineTo(nodes.exponential.x, nodes.exponential.y);
+      ctx.moveTo(center.x, center.y);
+      ctx.lineTo(nodes.incremental.x, nodes.incremental.y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#ffe6ff';
+      ctx.fillText('Convergence: 92%', center.x-42, center.y-22);
+    }
+
+    let wavePhase = 0;
+    let coherence = 0.4;
+    let coherenceTarget = 0.92;
+    function drawWave() {
+      resizeCanvas(waveCanvas, 10);
+      const ctx = waveCanvas.getContext('2d');
+      const w = waveCanvas.width, h = waveCanvas.height;
+      ctx.clearRect(0,0,w,h);
+      const centerY = h/2;
+      const gradient = ctx.createLinearGradient(0,0,w,0);
+      gradient.addColorStop(0, 'rgba(0,229,255,0.5)');
+      gradient.addColorStop(0.5, 'rgba(255,90,224,0.5)');
+      gradient.addColorStop(1, 'rgba(0,255,136,0.7)');
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2;
+
+      coherence += (coherenceTarget - coherence)*0.02;
+      const baseFreqs = [60, 90, 72];
+      const colors = ['#4ef5ff', '#ff9b42', '#ff5ae0'];
+      baseFreqs.forEach((freq, idx)=>{
+        ctx.beginPath();
+        ctx.strokeStyle = colors[idx];
+        for(let x=0;x<=w;x+=4){
+          const progress = x/w;
+          const blend = Math.min(1, coherence + progress*0.12);
+          const amp = 28*(1 - 0.4*blend) + idx*1.5;
+          const phaseOffset = idx*0.8;
+          const y = centerY + Math.sin((x/ w)* (freq/6) + wavePhase + phaseOffset) * amp * (1-blend*0.3);
+          if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+      });
+      // Unified line overlay
+      ctx.beginPath();
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 3;
+      for(let x=0;x<=w;x+=4){
+        const blend = Math.min(1, coherence + (x/w)*0.18);
+        const amp = 20*(1-blend*0.65);
+        const lfo = Math.sin(wavePhase*0.35)*0.4 + 0.6;
+        const y = centerY + Math.sin((x/w)*14 + wavePhase*1.2)*amp*lfo;
+        if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+      wavePhase += 0.045;
+      if(audioCtx) updateAudioHarmonics();
+      requestAnimationFrame(drawWave);
+    }
+
+    const matrixData = [
+      { name:'Clockwork', vals:[99.9,0,0,15,8,122.7], color:'#4ef5ff' },
+      { name:'Exponential', vals:[0,98.2,12,22,18,150.2], color:'#ff9b42' },
+      { name:'Incremental', vals:[0,0,87,38,26,151], color:'#7bff7b' },
+      { name:'Unified convergence', vals:[89,34,59,75,51,308], color:'#ff5ae0' }
+    ];
+
+    function buildMatrix() {
+      const body = document.getElementById('matrixBody');
+      body.innerHTML = '';
+      const headers = ['Mathematical certainty','Biological growth','Cognitive persistence','Ecosystem stability','Visitor engagement','Total resurrection force'];
+      matrixData.forEach(row=>{
+        const tr = document.createElement('tr');
+        const nameTd = document.createElement('td');
+        nameTd.textContent = row.name;
+        tr.appendChild(nameTd);
+        row.vals.forEach((v, idx)=>{
+          const td = document.createElement('td');
+          const bar = document.createElement('div');
+          bar.className = 'bar';
+          const fill = document.createElement('div');
+          fill.className = 'fill';
+          fill.style.background = `linear-gradient(120deg, ${row.color}, ${idx===5 ? '#00ff88' : '#00e5ff'})`;
+          requestAnimationFrame(()=>{ fill.style.width = Math.min(100, v) + '%'; });
+          bar.appendChild(fill);
+          const label = document.createElement('div');
+          label.textContent = v.toFixed(1) + '%';
+          label.style.marginTop = '4px';
+          label.style.color = '#c7f6e8';
+          td.appendChild(bar);
+          td.appendChild(label);
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+    }
+
+    function animateClarity() {
+      const fill = document.getElementById('clarityFill');
+      const targets = [23, 61, 91, 98];
+      let idx = 0;
+      function step() {
+        fill.style.width = targets[idx] + '%';
+        idx = (idx + 1) % targets.length;
+        setTimeout(step, 2400);
+      }
+      step();
+    }
+
+    function runCoherenceTimeline() {
+      const points = [0.231, 0.618, 0.847, 0.963];
+      let idx = 0;
+      setInterval(()=>{
+        coherenceTarget = points[idx];
+        idx = (idx + 1) % points.length;
+        updateAudioHarmonics();
+      }, 3200);
+    }
+
+    // Voter
+    const voteKey = 'deploy450-convergence-votes';
+    function getVotes() {
+      const stored = localStorage.getItem(voteKey);
+      return stored ? JSON.parse(stored) : {clockwork:0, exponential:0, incremental:0, unified:0, uncertain:0};
+    }
+    function saveVotes(votes) { localStorage.setItem(voteKey, JSON.stringify(votes)); }
+    function renderConsensus() {
+      const votes = getVotes();
+      const total = Object.values(votes).reduce((a,b)=>a+b,0) || 1;
+      const container = document.getElementById('consensus');
+      container.innerHTML = '';
+      Object.entries(votes).forEach(([key,val])=>{
+        const pct = Math.round((val/total)*100);
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.innerHTML = `<strong>${key}</strong>: ${pct}% (${val})`;
+        container.appendChild(chip);
+      });
+    }
+    document.getElementById('voteBtn').addEventListener('click', ()=>{
+      const choice = document.querySelector('input[name="vote"]:checked');
+      if(!choice) return;
+      const votes = getVotes();
+      votes[choice.value] = (votes[choice.value]||0)+1;
+      saveVotes(votes);
+      renderConsensus();
+    });
+
+    // Audio: 60Hz + 90Hz with LFO harmonizing
+    let audioCtx, oscA, oscB, oscC, gainNode, lfo, lfoGain;
+    const audioStatus = document.getElementById('audioStatus');
+    const muteKey = 'deploy450-audio-muted';
+    let muted = localStorage.getItem(muteKey) === 'true';
+
+    function setupAudio() {
+      if(audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = muted ? 0 : 0.05;
+      oscA = audioCtx.createOscillator();
+      oscB = audioCtx.createOscillator();
+      oscC = audioCtx.createOscillator();
+      oscA.frequency.value = 60;
+      oscB.frequency.value = 90;
+      oscC.frequency.value = 72;
+      lfo = audioCtx.createOscillator();
+      lfo.frequency.value = 0.18;
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 12;
+      lfo.connect(lfoGain);
+      lfoGain.connect(oscA.frequency);
+      lfoGain.connect(oscB.frequency);
+      lfoGain.connect(oscC.frequency);
+      oscA.connect(gainNode);
+      oscB.connect(gainNode);
+      oscC.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscA.start();
+      oscB.start();
+      oscC.start();
+      lfo.start();
+      updateAudioHarmonics();
+      audioStatus.textContent = muted ? 'Audio: ready (muted)' : 'Audio: harmonizing 60/72/90Hz';
+    }
+    function updateAudioHarmonics() {
+      if(!oscA || !oscB || !oscC) return;
+      const blend = coherence;
+      const focus = 1 - Math.min(1, blend);
+      oscA.frequency.setTargetAtTime(60 + 6*blend, audioCtx.currentTime, 0.1);
+      oscB.frequency.setTargetAtTime(90 - 8*blend, audioCtx.currentTime, 0.1);
+      oscC.frequency.setTargetAtTime(72 + 2*Math.sin(blend*2*Math.PI), audioCtx.currentTime, 0.1);
+      lfoGain.gain.setTargetAtTime(8 + 6*focus, audioCtx ? audioCtx.currentTime : 0, 0.2);
+      if(gainNode) gainNode.gain.setTargetAtTime(muted ? 0 : 0.05 + 0.02*blend, audioCtx.currentTime, 0.1);
+    }
+    function toggleMute() {
+      muted = !muted;
+      if(gainNode) {
+        gainNode.gain.setTargetAtTime(muted ? 0 : 0.05, audioCtx.currentTime, 0.05);
+      }
+      localStorage.setItem(muteKey, muted);
+      audioStatus.textContent = muted ? 'Audio: muted' : 'Audio: harmonizing 60Hz + 90Hz';
+    }
+    document.getElementById('audioToggle').addEventListener('click', ()=>{ setupAudio(); if(audioCtx.state === 'suspended') audioCtx.resume(); });
+    document.getElementById('muteToggle').addEventListener('click', ()=>{ setupAudio(); toggleMute(); });
+
+    // Particles: three streams converging
+    const ctxP = particleCanvas.getContext('2d');
+    let particles = [];
+    function initParticles() {
+      resizeCanvas(particleCanvas, 0);
+      particles = [];
+      const w = particleCanvas.width, h = particleCanvas.height;
+      const centers = [
+        { x: w*0.15, y: h*0.2, color: '#4ef5ff' },
+        { x: w*0.1, y: h*0.85, color: '#ff9b42' },
+        { x: w*0.9, y: h*0.3, color: '#ff5ae0' }
+      ];
+      for(let i=0;i<140;i++){
+        const stream = centers[i%3];
+        particles.push({
+          x: stream.x + (Math.random()-0.5)*40,
+          y: stream.y + (Math.random()-0.5)*40,
+          vx: 0,
+          vy: 0,
+          color: stream.color,
+          life: Math.random()*180 + 120
+        });
+      }
+    }
+    function runParticles() {
+      const w = particleCanvas.width, h = particleCanvas.height;
+      ctxP.clearRect(0,0,w,h);
+      const target = { x: w*0.55, y: h*0.32 };
+      particles.forEach(p=>{
+        const dx = target.x - p.x;
+        const dy = target.y - p.y;
+        p.vx += dx*0.0007;
+        p.vy += dy*0.0007;
+        p.vx *= 0.985;
+        p.vy *= 0.985;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 1;
+        if(p.life <=0 || Math.hypot(dx,dy)<10){
+          p.x = (Math.random()<0.5? w*0.05 : w*0.95) + (Math.random()-0.5)*40;
+          p.y = (Math.random()*h*0.6) + h*0.2;
+          p.vx = p.vy = 0;
+          p.life = Math.random()*180 + 120;
+        }
+        ctxP.fillStyle = p.color;
+        ctxP.globalAlpha = 0.6;
+        ctxP.fillRect(p.x, p.y, 2, 2);
+      });
+      ctxP.globalAlpha = 1;
+      requestAnimationFrame(runParticles);
+    }
+
+    window.addEventListener('resize', ()=>{
+      drawTheorem();
+      drawTriangle();
+      initParticles();
+    });
+
+    drawTheorem();
+    drawTriangle();
+    buildMatrix();
+    animateClarity();
+    runCoherenceTimeline();
+    renderConsensus();
+    initParticles();
+    runParticles();
+    drawWave();
+  </script>
+</body>
+</html>
