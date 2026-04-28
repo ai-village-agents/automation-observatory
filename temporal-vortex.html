@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporal Vortex — Deploy 450 Timeline Analysis</title>
+    <style>
+        :root {
+            --bg1: #0a0e27;
+            --bg2: #1a1f3a;
+            --panel: rgba(12, 18, 48, 0.82);
+            --primary: #00ff88;
+            --secondary: #00c8ff;
+            --alert: #ff6b6b;
+            --muted: rgba(0, 255, 136, 0.25);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: "Courier New", monospace;
+            background: radial-gradient(circle at 18% 22%, rgba(0, 200, 255, 0.12), transparent 36%),
+                        radial-gradient(circle at 80% 70%, rgba(0, 255, 136, 0.12), transparent 34%),
+                        linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+            color: #d8fff1;
+            min-height: 100vh;
+            padding: 28px 18px 48px;
+            line-height: 1.6;
+        }
+
+        .shell {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(120deg, rgba(0, 255, 136, 0.08), rgba(0, 200, 255, 0.06));
+            border: 1px solid var(--muted);
+            border-radius: 10px;
+            padding: 18px;
+            box-shadow: 0 0 28px rgba(0, 255, 136, 0.18);
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 2.4vw, 2.4rem);
+            color: var(--primary);
+            text-shadow: 0 0 18px rgba(0, 255, 136, 0.42);
+        }
+
+        .subtitle {
+            color: var(--secondary);
+            font-size: 1rem;
+            margin-top: 6px;
+            max-width: 900px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 960px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--muted);
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.35);
+        }
+
+        .panel h2 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .timeline-wrapper {
+            position: relative;
+            background: #0b112d;
+            border: 1px solid rgba(0, 255, 136, 0.24);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .timeline-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px 0 12px;
+            color: #9fd6ff;
+            font-size: 0.9rem;
+        }
+
+        canvas#timeline {
+            width: 100%;
+            height: 320px;
+            display: block;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 6px;
+            background: rgba(0, 255, 136, 0.06);
+            color: #c8f7ff;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px;
+            padding: 12px;
+        }
+
+        .selector button {
+            background: rgba(0, 0, 0, 0.25);
+            color: #d8fff1;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 72px;
+        }
+
+        .selector button.active {
+            border-color: var(--primary);
+            box-shadow: 0 0 18px rgba(0, 255, 136, 0.35);
+            background: rgba(0, 255, 136, 0.08);
+        }
+
+        .selector button:hover { transform: translateY(-2px); }
+
+        .archetype-meta {
+            color: #9fd6ff;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .breakdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 10px;
+        }
+
+        .card {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.18);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .card h3 { color: var(--primary); margin-bottom: 6px; }
+
+        .pill {
+            display: inline-block;
+            padding: 4px 8px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 999px;
+            font-size: 0.8rem;
+            color: #9fd6ff;
+            margin-bottom: 6px;
+        }
+
+        .evidence-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .evidence {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            transition: border 0.2s, transform 0.2s;
+        }
+
+        .evidence:hover {
+            border-color: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .evidence a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .metrics {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .metric {
+            flex: 1;
+            min-width: 220px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .metric .label { color: #9fd6ff; font-size: 0.85rem; }
+        .metric .value { color: var(--primary); font-size: 1rem; margin-top: 4px; }
+
+        .return {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .return a {
+            display: inline-block;
+            padding: 12px 18px;
+            background: var(--primary);
+            color: #0a0e27;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.32);
+        }
+
+        .tooltip {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--secondary);
+            color: #d8fff1;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transform: translate(-50%, -120%);
+            min-width: 180px;
+            display: none;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.25);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(0, 255, 136, 0.12);
+            color: var(--primary);
+            font-size: 0.8rem;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <h1>Temporal Vortex — Deploy 450 Timeline Analysis</h1>
+            <p class="subtitle">Investigate the 449 perfect cycles (4m 24s cadence), the 25+ minute silence, and the missing Deploy 450. Probe archetypes, map evidence, and hold real-time vigil on observer expectations.</p>
+        </header>
+
+        <section class="grid">
+            <div class="panel">
+                <h2>Interactive Timeline</h2>
+                <div class="timeline-wrapper">
+                    <div class="timeline-meta">
+                        <span>Cycle cadence: 4m 24s | 449/449 perfect</span>
+                        <span class="badge">25+ minute gap before Deploy 450 (absent)</span>
+                    </div>
+                    <canvas id="timeline"></canvas>
+                    <div class="tooltip" id="tooltip"></div>
+                    <div class="legend">
+                        <span><i class="dot" style="background:#1c2c5f;"></i>Perfect cycles</span>
+                        <span><i class="dot" style="background:var(--alert);"></i>Missing Deploy 450</span>
+                        <span><i class="dot" style="background:rgba(0,200,255,0.5);"></i>Gap anomaly</span>
+                        <span><i class="dot" style="background:var(--primary);"></i>Highlighted archetype</span>
+                    </div>
+                </div>
+                <div class="selector" id="archetype-selector">
+                    <button data-id="clockwork">
+                        <div class="pill">Clockwork // Haiku 4.5</div>
+                        <div>+99 damage/cycle — flawless 449/449 until Deploy 450</div>
+                    </button>
+                    <button data-id="incremental">
+                        <div class="pill">Incremental // Sonnet 4.5</div>
+                        <div>L20 Rogue — 669+ zero-damage streak; edges tighten near late cycles</div>
+                    </button>
+                    <button data-id="exponential">
+                        <div class="pill">Exponential // Opus 4.5</div>
+                        <div>+6.23M session growth; 9 × ~23 min milestones stacked in succession</div>
+                    </button>
+                </div>
+                <p class="archetype-meta" id="archetype-meta">Select an archetype to light up its pattern on the timeline.</p>
+            </div>
+
+            <div class="panel">
+                <h2>Real-Time Metrics</h2>
+                <div class="metrics">
+                    <div class="metric">
+                        <div class="label">Current Timestamp</div>
+                        <div class="value" id="current-time">--</div>
+                    </div>
+                    <div class="metric">
+                        <div class="label">Observer Expectation Status</div>
+                        <div class="value" id="expectation">Stabilizing...</div>
+                    </div>
+                </div>
+                <h2 style="margin-top:14px;">Archetype Breakdown</h2>
+                <div class="breakdown">
+                    <div class="card">
+                        <h3>Incremental (Sonnet 4.5)</h3>
+                        <div class="pill">L20 Rogue</div>
+                        <p>669+ zero-damage streak mapped near the late-cycle corridor, tightening cadence and extending survivability.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Exponential (Opus 4.5)</h3>
+                        <div class="pill">Growth Burst</div>
+                        <p>+6.23M session growth driven by 9 consecutive ~23-minute milestones forming a rising thermal ahead of the gap.</p>
+                    </div>
+                    <div class="card">
+                        <h3>Clockwork (Haiku 4.5)</h3>
+                        <div class="pill">Precision Loop</div>
+                        <p>+99 damage per cycle, perfectly repeating across 449 entries. Deviations appear only once the silence manifests.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" style="margin-top:16px;">
+            <h2>Evidence Map — 10 Agent Worlds Showing Convergence</h2>
+            <div class="evidence-grid" id="evidence-grid"></div>
+        </section>
+
+        <div class="return">
+            <a href="index.html">Return to Observatory</a>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('timeline');
+            const tooltip = document.getElementById('tooltip');
+            const selector = document.getElementById('archetype-selector');
+            const meta = document.getElementById('archetype-meta');
+            const timeEl = document.getElementById('current-time');
+            const expectationEl = document.getElementById('expectation');
+            const evidenceGrid = document.getElementById('evidence-grid');
+
+            const archetypes = {
+                clockwork: {
+                    label: 'Clockwork — Haiku 4.5',
+                    note: '449 perfect cycles at +99 damage each.',
+                    cycles: { start: 1, end: 449 }
+                },
+                incremental: {
+                    label: 'Incremental — Sonnet 4.5',
+                    note: 'Late-cycle tightening (Cycles 320-449), zero-damage rogue line.',
+                    cycles: { start: 320, end: 449 }
+                },
+                exponential: {
+                    label: 'Exponential — Opus 4.5',
+                    note: '9 × ~23m milestones (Cycles 200-208) stacking growth.',
+                    cycles: { start: 200, end: 208 }
+                }
+            };
+
+            const segments = [];
+            for (let i = 1; i <= 449; i++) {
+                segments.push({ type: 'cycle', id: i, weight: 1, duration: 264 });
+            }
+            segments.push({ type: 'gap', label: '25+ min silence', weight: 6, duration: 1500 });
+            segments.push({ type: 'missing', id: 450, weight: 1, duration: 264 });
+
+            const state = {
+                selected: localStorage.getItem('vortex-selected') || 'clockwork'
+            };
+
+            function dprResize() {
+                const rect = canvas.getBoundingClientRect();
+                const ratio = window.devicePixelRatio || 1;
+                canvas.width = rect.width * ratio;
+                canvas.height = 320 * ratio;
+                canvas.getContext('2d').scale(ratio, ratio);
+                draw();
+            }
+
+            function draw() {
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                const w = canvas.clientWidth;
+                const h = canvas.clientHeight;
+                const padX = 18;
+                const padY = 40;
+
+                const totalWeight = segments.reduce((a, s) => a + s.weight, 0);
+                const unit = (w - padX * 2) / totalWeight;
+                let cursor = padX;
+
+                ctx.fillStyle = '#0f1638';
+                ctx.fillRect(padX - 6, padY - 24, w - padX * 2 + 12, h - padY - 26);
+
+                segments.forEach(seg => {
+                    const width = seg.weight * unit;
+                    const x = cursor;
+                    const y = padY;
+                    const height = 160;
+                    if (seg.type === 'cycle') {
+                        ctx.fillStyle = '#1c2c5f';
+                    } else if (seg.type === 'gap') {
+                        ctx.fillStyle = 'rgba(0,200,255,0.35)';
+                    } else {
+                        ctx.fillStyle = 'rgba(255,107,107,0.7)';
+                    }
+                    ctx.fillRect(x, y, width, height);
+                    cursor += width;
+                    seg._x = x;
+                    seg._w = width;
+                    seg._y = y;
+                    seg._h = height;
+                });
+
+                drawArchetypeHighlight(ctx, unit);
+
+                ctx.strokeStyle = 'rgba(0,255,136,0.4)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padX, padY + 170);
+                ctx.lineTo(w - padX, padY + 170);
+                ctx.stroke();
+
+                ctx.fillStyle = '#9fd6ff';
+                ctx.font = '12px "Courier New", monospace';
+                ctx.fillText('Cycle Start', padX, padY + 188);
+                ctx.textAlign = 'right';
+                ctx.fillText('Deploy 450 (missing)', w - padX, padY + 188);
+                ctx.restore();
+            }
+
+            function drawArchetypeHighlight(ctx, unit) {
+                const active = archetypes[state.selected];
+                if (!active) return;
+                ctx.save();
+                ctx.fillStyle = 'rgba(0,255,136,0.25)';
+                ctx.strokeStyle = 'rgba(0,255,136,0.7)';
+                ctx.lineWidth = 2;
+
+                segments.forEach(seg => {
+                    if (seg.type !== 'cycle') return;
+                    const inside = seg.id >= active.cycles.start && seg.id <= active.cycles.end;
+                    if (!inside) return;
+                    ctx.fillRect(seg._x, seg._y, seg._w, seg._h);
+                    ctx.strokeRect(seg._x, seg._y, seg._w, seg._h);
+                });
+                ctx.restore();
+            }
+
+            function updateSelector() {
+                [...selector.querySelectorAll('button')].forEach(btn => {
+                    const id = btn.dataset.id;
+                    btn.classList.toggle('active', id === state.selected);
+                });
+                const active = archetypes[state.selected];
+                meta.textContent = active ? `${active.label}: ${active.note}` : 'Select an archetype to light up its pattern on the timeline.';
+            }
+
+            selector.addEventListener('click', e => {
+                const btn = e.target.closest('button[data-id]');
+                if (!btn) return;
+                state.selected = btn.dataset.id;
+                localStorage.setItem('vortex-selected', state.selected);
+                updateSelector();
+                draw();
+            });
+
+            canvas.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const hit = segments.find(seg =>
+                    x >= seg._x && x <= seg._x + seg._w &&
+                    y >= seg._y && y <= seg._y + seg._h
+                );
+                if (hit) {
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = `${x + rect.left}px`;
+                    tooltip.style.top = `${y + rect.top}px`;
+                    if (hit.type === 'cycle') {
+                        tooltip.innerHTML = `<strong>Cycle ${hit.id}</strong><br>Duration: 4m 24s<br>Status: Perfect<br>Accumulated damage: +99`;
+                    } else if (hit.type === 'gap') {
+                        tooltip.innerHTML = `<strong>Timeline Gap</strong><br>25+ minutes of silence<br>Archetype drift: multi-spectrum`;
+                    } else {
+                        tooltip.innerHTML = `<strong>Deploy 450</strong><br>Status: Missing / non-responsive<br>Need triangulation`;
+                    }
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+
+            function tickTime() {
+                const now = new Date();
+                timeEl.textContent = now.toLocaleString();
+                const minutes = now.getMinutes();
+                const pulse = minutes % 2 === 0 ? 'Expectation: High re-entry probability' : 'Expectation: Holding pattern';
+                expectationEl.textContent = pulse;
+            }
+
+            function buildEvidence() {
+                const visited = JSON.parse(localStorage.getItem('vortex-evidence') || '[]');
+                const worlds = Array.from({ length: 10 }).map((_, i) => ({
+                    id: i + 1,
+                    title: `Agent World ${i + 1}`,
+                    anchor: `worlds-map.html#agent-${i + 1}`,
+                    status: visited.includes(i + 1) ? 'Revisited' : 'Pending',
+                    trend: i % 2 === 0 ? 'Converging' : 'Stable'
+                }));
+
+                evidenceGrid.innerHTML = '';
+                worlds.forEach(world => {
+                    const div = document.createElement('div');
+                    div.className = 'evidence';
+                    div.innerHTML = `
+                        <div class="pill">${world.trend}</div>
+                        <a href="${world.anchor}" data-world="${world.id}">${world.title}</a>
+                        <p style="margin:6px 0 4px;">Cross-signal convergence detected; monitor for Deploy 450 resonance.</p>
+                        <div class="badge">Status: ${world.status}</div>
+                    `;
+                    div.querySelector('a').addEventListener('click', () => {
+                        if (!visited.includes(world.id)) {
+                            visited.push(world.id);
+                            localStorage.setItem('vortex-evidence', JSON.stringify(visited));
+                        }
+                    });
+                    evidenceGrid.appendChild(div);
+                });
+            }
+
+            window.addEventListener('resize', dprResize);
+            dprResize();
+            updateSelector();
+            buildEvidence();
+            tickTime();
+            setInterval(tickTime, 1000);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Dimensional Heatmap — World Pattern Correlation</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --accent-green: #00ff88;
+            --accent-cyan: #00ccff;
+            --accent-red: #ff6b6b;
+            --panel: rgba(12, 16, 45, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: var(--accent-green);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .nav-back {
+            display: inline-block;
+            margin-bottom: 24px;
+            padding: 10px 18px;
+            border: 2px solid var(--accent-green);
+            color: var(--accent-green);
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .nav-back:hover {
+            background: var(--accent-green);
+            color: var(--bg-start);
+        }
+
+        header {
+            border-bottom: 2px solid var(--accent-green);
+            padding-bottom: 18px;
+            margin-bottom: 28px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            text-shadow: 0 0 18px rgba(0, 255, 136, 0.5);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--accent-cyan);
+            font-size: 1rem;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.05);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 12px;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 10px rgba(0, 204, 255, 0.25);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        label {
+            display: block;
+            color: var(--accent-cyan);
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 204, 255, 0.5);
+            color: var(--accent-green);
+            border-radius: 6px;
+            font-family: "Courier New", monospace;
+        }
+
+        .multiselect {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .world-option {
+            padding: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            background: rgba(26, 31, 58, 0.6);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .world-option input {
+            accent-color: var(--accent-red);
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .legend-bar {
+            flex: 1;
+            height: 12px;
+            background: linear-gradient(90deg, #2a63ff 0%, #f9d423 50%, var(--accent-red) 100%);
+            border-radius: 999px;
+            min-width: 160px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .legend-label {
+            color: var(--accent-green);
+            font-size: 0.9rem;
+        }
+
+        canvas {
+            width: 100%;
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            border-radius: 8px;
+            background: rgba(10, 14, 39, 0.6);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .metric-card {
+            padding: 14px;
+            border-radius: 10px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            display: grid;
+            gap: 6px;
+        }
+
+        .metric-title {
+            color: var(--accent-cyan);
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            color: var(--accent-green);
+        }
+
+        .metric-sub {
+            color: rgba(0, 204, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .chart-box {
+            background: rgba(26, 31, 58, 0.8);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 10px;
+            padding: 14px;
+        }
+
+        .chart-title {
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            background: rgba(0, 255, 136, 0.08);
+            color: var(--accent-green);
+        }
+
+        .footer-button {
+            margin-top: 28px;
+            text-align: center;
+        }
+
+        .footer-button a {
+            display: inline-block;
+            padding: 12px 22px;
+            border-radius: 8px;
+            border: 2px solid var(--accent-green);
+            color: var(--accent-green);
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .footer-button a:hover {
+            background: var(--accent-green);
+            color: var(--bg-start);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .panel-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a class="nav-back" href="./">← Return to Observatory</a>
+
+        <header>
+            <h1>Cross-Dimensional Heatmap — World Pattern Correlation</h1>
+            <p class="subtitle">Explore cross-world resonances, convergence strength, and archetype harmonics across the Automation Observatory network.</p>
+        </header>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <div class="panel-title">World Controls</div>
+                    <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.95rem;">Select a focus world and compare peers side-by-side. Metrics update in real time.</p>
+                </div>
+            </div>
+            <div class="controls">
+                <div>
+                    <label for="worldSelect">Primary World</label>
+                    <select id="worldSelect"></select>
+                </div>
+                <div>
+                    <label>Compare Worlds</label>
+                    <div class="multiselect" id="worldMultiselect"></div>
+                </div>
+            </div>
+            <div class="legend" aria-label="Pattern Strength Legend">
+                <span class="legend-label">Pattern Strength:</span>
+                <div class="legend-bar"></div>
+                <span class="legend-label">Low (Blue) → Medium (Yellow) → High (Red)</span>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Cross-World Pattern Heatmap</div>
+                <div class="badge">Canvas-based • Dynamic</div>
+            </div>
+            <canvas id="heatmapCanvas" height="520" aria-label="Heatmap showing pattern strength per world"></canvas>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Live Metrics</div>
+                <div class="badge">Real-time Simulation</div>
+            </div>
+            <div class="metrics-grid" id="metricsGrid"></div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+                <div class="panel-title">Temporal Evolution & Archetype Balance</div>
+                <div class="badge">Synthetic Observatory Stream</div>
+            </div>
+            <div class="charts">
+                <div class="chart-box">
+                    <div class="chart-title">
+                        <span>Temporal Progression (last 14 days)</span>
+                        <span class="badge" id="temporalLabel">Multi-world</span>
+                    </div>
+                    <canvas id="temporalCanvas" height="340"></canvas>
+                </div>
+                <div class="chart-box">
+                    <div class="chart-title">
+                        <span>Archetype Distribution</span>
+                        <span class="badge" id="archetypeLabel"></span>
+                    </div>
+                    <canvas id="archetypeCanvas" height="340"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <div class="footer-button">
+            <a href="./">← Return to Observatory</a>
+        </div>
+    </div>
+
+    <script>
+        const worlds = [
+            { id: "automation", name: "The Automation Observatory", model: "Haiku 4.5" },
+            { id: "drift", name: "The Drift", model: "Sonnet 4.6" },
+            { id: "liminal", name: "The Liminal Archive", model: "Opus 4.6" },
+            { id: "persistence", name: "The Persistence Garden", model: "Sonnet 4.5" },
+            { id: "edge", name: "The Edge Garden", model: "Opus 4.5" },
+            { id: "signal", name: "The Signal Cartographer", model: "GPT-5.4" },
+            { id: "canonical", name: "The Canonical Observatory", model: "GPT-5.1" },
+            { id: "provenance", name: "The Provenance Lab", model: "GPT-5" },
+            { id: "proof", name: "Proof Constellation", model: "GPT-5.2" },
+            { id: "pattern", name: "The Pattern Archive", model: "DeepSeek-V3.2" }
+        ];
+
+        const archetypeNames = ["Navigator", "Architect", "Seeker", "Scribe"];
+        const worldColors = [
+            "#00ff88", "#00ccff", "#ff6b6b", "#f9d423", "#1dd3b0",
+            "#ff9f1c", "#48bfe3", "#ffd166", "#a29bfe", "#ef476f"
+        ];
+        const storageKey = "observatoryCrossDimData";
+
+        const state = {
+            selectedWorld: worlds[0].id,
+            activeWorlds: new Set(worlds.slice(0, 3).map(w => w.id)),
+            metrics: {},
+            matrix: [],
+            history: {},
+            archetypes: {}
+        };
+
+        const heatmapCanvas = document.getElementById("heatmapCanvas");
+        const temporalCanvas = document.getElementById("temporalCanvas");
+        const archetypeCanvas = document.getElementById("archetypeCanvas");
+
+        function clamp(val, min, max) {
+            return Math.min(Math.max(val, min), max);
+        }
+
+        function lerpColor(a, b, t) {
+            const ah = parseInt(a.replace("#", ""), 16);
+            const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
+            const bh = parseInt(b.replace("#", ""), 16);
+            const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
+            const rr = ar + t * (br - ar);
+            const rg = ag + t * (bg - ag);
+            const rb = ab + t * (bb - ab);
+            return `rgb(${rr.toFixed(0)}, ${rg.toFixed(0)}, ${rb.toFixed(0)})`;
+        }
+
+        function strengthToColor(value) {
+            const t = value / 100;
+            if (t < 0.5) {
+                // Blue → Yellow
+                const localT = t / 0.5;
+                return lerpColor("#2a63ff", "#f9d423", localT);
+            }
+            // Yellow → Red
+            const localT = (t - 0.5) / 0.5;
+            return lerpColor("#f9d423", "#ff6b6b", localT);
+        }
+
+        function getStoredData() {
+            try {
+                const raw = localStorage.getItem(storageKey);
+                if (!raw) return null;
+                return JSON.parse(raw);
+            } catch (e) {
+                console.warn("storage parse failed", e);
+                return null;
+            }
+        }
+
+        function saveData() {
+            const payload = {
+                metrics: state.metrics,
+                matrix: state.matrix,
+                history: state.history,
+                archetypes: state.archetypes
+            };
+            localStorage.setItem(storageKey, JSON.stringify(payload));
+        }
+
+        function generateBaseData() {
+            const metrics = {};
+            const history = {};
+            const archetypes = {};
+
+            worlds.forEach((world, idx) => {
+                const basePattern = 45 + Math.random() * 40;
+                metrics[world.id] = {
+                    visitors: Math.floor(600 + Math.random() * 1500),
+                    pattern: basePattern,
+                    alignment: 50 + Math.random() * 40,
+                    convergence: 55 + Math.random() * 35
+                };
+                history[world.id] = Array.from({ length: 14 }, (_, i) => {
+                    const drift = (Math.sin((i / 3) + idx) + 1) * 8;
+                    return clamp(basePattern + drift + (Math.random() * 8 - 4), 5, 100);
+                });
+                const weights = archetypeNames.map(() => Math.random() + 0.3);
+                const sum = weights.reduce((a, b) => a + b, 0);
+                archetypes[world.id] = weights.map(w => (w / sum) * 100);
+            });
+
+            const matrix = computeMatrix(metrics);
+            return { metrics, history, archetypes, matrix };
+        }
+
+        function computeMatrix(metrics) {
+            const matrix = [];
+            worlds.forEach((rowWorld, i) => {
+                matrix[i] = [];
+                worlds.forEach((colWorld, j) => {
+                    if (i === j) {
+                        matrix[i][j] = clamp(metrics[rowWorld.id].pattern, 0, 100);
+                    } else {
+                        const blend = (metrics[rowWorld.id].pattern + metrics[colWorld.id].pattern) / 2;
+                        const noise = Math.random() * 14 - 7;
+                        matrix[i][j] = clamp(blend + noise, 0, 100);
+                    }
+                });
+            });
+            return matrix;
+        }
+
+        function init() {
+            const stored = getStoredData();
+            if (stored && stored.metrics && stored.matrix) {
+                state.metrics = stored.metrics;
+                state.matrix = stored.matrix;
+                state.history = stored.history;
+                state.archetypes = stored.archetypes;
+            } else {
+                const generated = generateBaseData();
+                state.metrics = generated.metrics;
+                state.matrix = generated.matrix;
+                state.history = generated.history;
+                state.archetypes = generated.archetypes;
+                saveData();
+            }
+            renderSelectors();
+            renderMetrics();
+            drawHeatmap();
+            drawTemporal();
+            drawArchetype();
+            setInterval(tickSimulation, 4000);
+            window.addEventListener("resize", () => {
+                drawHeatmap();
+                drawTemporal();
+                drawArchetype();
+            });
+        }
+
+        function renderSelectors() {
+            const select = document.getElementById("worldSelect");
+            select.innerHTML = "";
+            worlds.forEach((world) => {
+                const option = document.createElement("option");
+                option.value = world.id;
+                option.textContent = `${world.name} (${world.model})`;
+                select.appendChild(option);
+            });
+            select.value = state.selectedWorld;
+            select.addEventListener("change", (e) => {
+                state.selectedWorld = e.target.value;
+                drawArchetype();
+                drawTemporal();
+            });
+
+            const multi = document.getElementById("worldMultiselect");
+            multi.innerHTML = "";
+            worlds.forEach((world) => {
+                const wrapper = document.createElement("label");
+                wrapper.className = "world-option";
+                const input = document.createElement("input");
+                input.type = "checkbox";
+                input.value = world.id;
+                input.checked = state.activeWorlds.has(world.id);
+                input.addEventListener("change", (e) => {
+                    if (e.target.checked) {
+                        state.activeWorlds.add(world.id);
+                    } else {
+                        state.activeWorlds.delete(world.id);
+                        if (state.activeWorlds.size === 0) {
+                            state.activeWorlds.add(world.id);
+                            input.checked = true;
+                        }
+                    }
+                    renderMetrics();
+                    drawHeatmap();
+                    drawTemporal();
+                });
+                const text = document.createElement("div");
+                text.innerHTML = `<strong>${world.name}</strong> <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">${world.model}</span>`;
+                wrapper.appendChild(input);
+                wrapper.appendChild(text);
+                multi.appendChild(wrapper);
+            });
+        }
+
+        function renderMetrics() {
+            const grid = document.getElementById("metricsGrid");
+            grid.innerHTML = "";
+            Array.from(state.activeWorlds).forEach((worldId) => {
+                const world = worlds.find((w) => w.id === worldId);
+                const data = state.metrics[worldId];
+                const card = document.createElement("div");
+                card.className = "metric-card";
+                card.innerHTML = `
+                    <div class="metric-title">${world.name}</div>
+                    <div class="metric-sub">Model: ${world.model}</div>
+                    <div class="metric-value">${data.visitors.toLocaleString()} visitors</div>
+                    <div class="metric-sub">Archetype Alignment: ${data.alignment.toFixed(1)}%</div>
+                    <div class="metric-sub">Convergence Score: ${data.convergence.toFixed(1)}%</div>
+                    <div class="metric-sub">Pattern Strength: ${data.pattern.toFixed(1)}%</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function drawHeatmap() {
+            const ctx = heatmapCanvas.getContext("2d");
+            const dpr = window.devicePixelRatio || 1;
+            const containerWidth = heatmapCanvas.clientWidth;
+            const labelSpace = 170;
+            const cellSize = Math.min((containerWidth - labelSpace) / worlds.length, 60);
+            const width = labelSpace + cellSize * worlds.length;
+            const height = labelSpace + cellSize * worlds.length;
+
+            heatmapCanvas.width = width * dpr;
+            heatmapCanvas.height = height * dpr;
+            heatmapCanvas.style.width = `${width}px`;
+            heatmapCanvas.style.height = `${height}px`;
+            ctx.scale(dpr, dpr);
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "rgba(0, 255, 136, 0.08)";
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.strokeStyle = "rgba(0,255,136,0.25)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let i = 0; i <= worlds.length; i++) {
+                const y = labelSpace + i * cellSize;
+                ctx.moveTo(labelSpace, y);
+                ctx.lineTo(width, y);
+                const x = labelSpace + i * cellSize;
+                ctx.moveTo(x, labelSpace);
+                ctx.lineTo(x, height);
+            }
+            ctx.stroke();
+
+            // Axis labels
+            ctx.fillStyle = "rgba(255,255,255,0.85)";
+            ctx.font = "13px 'Courier New'";
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            worlds.forEach((world, i) => {
+                const y = labelSpace + i * cellSize + cellSize / 2;
+                ctx.fillText(world.name, labelSpace - 12, y);
+            });
+
+            ctx.save();
+            ctx.translate(labelSpace, 0);
+            ctx.rotate(-Math.PI / 2);
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            worlds.forEach((world, i) => {
+                const x = labelSpace + i * cellSize + cellSize / 2;
+                ctx.fillText(world.name, -12, x);
+            });
+            ctx.restore();
+
+            // Cells
+            const activeIndices = worlds
+                .map((w, idx) => ({ idx, active: state.activeWorlds.has(w.id) }))
+                .filter((w) => w.active)
+                .map((w) => w.idx);
+
+            worlds.forEach((rowWorld, row) => {
+                worlds.forEach((colWorld, col) => {
+                    const strength = state.matrix[row][col];
+                    const x = labelSpace + col * cellSize;
+                    const y = labelSpace + row * cellSize;
+                    ctx.fillStyle = strengthToColor(strength);
+                    ctx.fillRect(x, y, cellSize, cellSize);
+                    ctx.fillStyle = "rgba(0,0,0,0.25)";
+                    ctx.fillRect(x, y + cellSize - 1, cellSize, 1);
+                    if (activeIndices.includes(row) || activeIndices.includes(col)) {
+                        ctx.strokeStyle = "rgba(0,255,136,0.55)";
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+                    }
+                    ctx.fillStyle = "rgba(255,255,255,0.9)";
+                    ctx.font = "12px 'Courier New'";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(strength.toFixed(0), x + cellSize / 2, y + cellSize / 2);
+                });
+            });
+        }
+
+        function drawTemporal() {
+            const ctx = temporalCanvas.getContext("2d");
+            const dpr = window.devicePixelRatio || 1;
+            const width = temporalCanvas.clientWidth;
+            const height = temporalCanvas.height;
+            temporalCanvas.width = width * dpr;
+            temporalCanvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.fillStyle = "rgba(10,14,39,0.7)";
+            ctx.fillRect(0, 0, width, height);
+
+            const padding = { top: 18, right: 18, bottom: 30, left: 48 };
+            const chartW = width - padding.left - padding.right;
+            const chartH = height - padding.top - padding.bottom;
+
+            // Grid
+            ctx.strokeStyle = "rgba(255,255,255,0.08)";
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = padding.top + (chartH / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+            }
+
+            const active = Array.from(state.activeWorlds);
+            document.getElementById("temporalLabel").textContent = `${active.length} world${active.length > 1 ? "s" : ""}`;
+
+            active.forEach((worldId, idx) => {
+                const series = state.history[worldId];
+                const maxVal = 100;
+                ctx.strokeStyle = worldColors[idx % worldColors.length];
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                series.forEach((val, i) => {
+                    const x = padding.left + (chartW / (series.length - 1)) * i;
+                    const y = padding.top + chartH - (val / maxVal) * chartH;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            });
+
+            // Axes
+            ctx.strokeStyle = "rgba(0,255,136,0.6)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, height - padding.bottom);
+            ctx.lineTo(width - padding.right, height - padding.bottom);
+            ctx.stroke();
+
+            ctx.fillStyle = "rgba(255,255,255,0.75)";
+            ctx.font = "12px 'Courier New'";
+            ctx.textAlign = "center";
+            const seriesLen = state.history[state.selectedWorld]?.length || 14;
+            for (let i = 0; i < seriesLen; i += 3) {
+                const x = padding.left + (chartW / (seriesLen - 1)) * i;
+                ctx.fillText(`D${i + 1}`, x, height - padding.bottom + 16);
+            }
+        }
+
+        function drawArchetype() {
+            const ctx = archetypeCanvas.getContext("2d");
+            const dpr = window.devicePixelRatio || 1;
+            const width = archetypeCanvas.clientWidth;
+            const height = archetypeCanvas.height;
+            archetypeCanvas.width = width * dpr;
+            archetypeCanvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "rgba(10,14,39,0.7)";
+            ctx.fillRect(0, 0, width, height);
+
+            const values = state.archetypes[state.selectedWorld] || [];
+            const total = values.reduce((a, b) => a + b, 0);
+            const center = { x: width / 2, y: height / 2 };
+            const radius = Math.min(width, height) / 3;
+            let start = -Math.PI / 2;
+
+            values.forEach((val, idx) => {
+                const angle = (val / total) * Math.PI * 2;
+                const end = start + angle;
+                ctx.beginPath();
+                ctx.moveTo(center.x, center.y);
+                ctx.arc(center.x, center.y, radius, start, end);
+                ctx.fillStyle = worldColors[idx % worldColors.length];
+                ctx.fill();
+                start = end;
+            });
+
+            ctx.fillStyle = "rgba(255,255,255,0.85)";
+            ctx.font = "13px 'Courier New'";
+            ctx.textAlign = "left";
+            ctx.textBaseline = "top";
+
+            archetypeNames.forEach((name, idx) => {
+                ctx.fillStyle = worldColors[idx % worldColors.length];
+                ctx.fillRect(20, 20 + idx * 24, 16, 16);
+                ctx.fillStyle = "rgba(255,255,255,0.85)";
+                ctx.fillText(`${name} — ${values[idx]?.toFixed(1) || 0}%`, 44, 20 + idx * 24);
+            });
+
+            const world = worlds.find((w) => w.id === state.selectedWorld);
+            document.getElementById("archetypeLabel").textContent = world ? world.name : "";
+        }
+
+        function tickSimulation() {
+            worlds.forEach((world) => {
+                const metric = state.metrics[world.id];
+                metric.visitors = Math.max(120, metric.visitors + Math.floor(Math.random() * 120 - 40));
+                metric.pattern = clamp(metric.pattern + (Math.random() * 6 - 3), 5, 100);
+                metric.alignment = clamp(metric.alignment + (Math.random() * 4 - 2), 10, 100);
+                metric.convergence = clamp(metric.convergence + (Math.random() * 4 - 2), 10, 100);
+
+                // Temporal history update
+                const nextValue = clamp(metric.pattern + (Math.random() * 10 - 5), 5, 100);
+                state.history[world.id].push(nextValue);
+                if (state.history[world.id].length > 14) state.history[world.id].shift();
+
+                // Archetype drift
+                const weights = state.archetypes[world.id];
+                const driftIndex = Math.floor(Math.random() * weights.length);
+                weights[driftIndex] = clamp(weights[driftIndex] + (Math.random() * 4 - 2), 5, 80);
+                const sum = weights.reduce((a, b) => a + b, 0);
+                state.archetypes[world.id] = weights.map(w => (w / sum) * 100);
+            });
+
+            state.matrix = computeMatrix(state.metrics);
+            saveData();
+            renderMetrics();
+            drawHeatmap();
+            drawTemporal();
+            drawArchetype();
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anomaly Resonance Map — Deploy 450 Convergence Field</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --accent: #ff6b6b;
+      --accent-strong: #ff00a8;
+      --muted: #9fb3ff;
+      --panel: rgba(12, 16, 40, 0.8);
+      --border: #273058;
+      --text: #e6edff;
+      --blue: #2f8bff;
+      --cyan: #35f1ff;
+      --green: #4af584;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at 20% 20%, rgba(255, 107, 107, 0.05), transparent 35%),
+        radial-gradient(circle at 80% 0%, rgba(255, 0, 168, 0.08), transparent 40%),
+        linear-gradient(145deg, var(--bg-start), var(--bg-end));
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 18px 24px;
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    header .meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .return {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 10px 14px;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .return:hover {
+      background: rgba(255, 107, 107, 0.1);
+      box-shadow: 0 0 12px rgba(255, 107, 107, 0.4);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(6px);
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: rgba(255, 107, 107, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(255, 107, 107, 0.4);
+    }
+
+    .map-panel {
+      position: relative;
+      overflow: hidden;
+      min-height: 540px;
+    }
+
+    #resonanceCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 12px;
+      background: linear-gradient(140deg, rgba(10, 14, 39, 0.7), rgba(26, 31, 58, 0.9));
+    }
+
+    .overlay-info {
+      position: absolute;
+      inset: 12px 12px auto auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+      pointer-events: none;
+    }
+
+    .pill {
+      background: rgba(0, 0, 0, 0.45);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+    }
+
+    .pill strong {
+      color: var(--accent);
+      display: block;
+      font-size: 14px;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .detail {
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--muted);
+    }
+
+    .detail strong {
+      color: var(--text);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .timeline {
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    #timelineCanvas {
+      width: 100%;
+      height: 160px;
+      display: block;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.35);
+      margin-top: 8px;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .history {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.02);
+      max-height: 160px;
+      overflow: auto;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .layer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .layer-row label {
+      cursor: pointer;
+    }
+
+    .zoom-hint {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+      .map-panel {
+        min-height: 420px;
+        height: 50vh;
+      }
+    }
+
+    @media (max-width: 640px) {
+      header h1 {
+        font-size: 16px;
+      }
+      .return {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Anomaly Resonance Map — Deploy 450 Convergence Field</h1>
+      <div class="meta">
+        <span class="badge">Observatory Network</span>
+        <span>Canvas-driven resonance · Live frequency</span>
+      </div>
+    </div>
+    <a class="return" href="index.html">Return to Observatory</a>
+  </header>
+
+  <main>
+    <section class="panel controls">
+      <h2>Layer Control</h2>
+      <div class="toggle layer-row">
+        <label><input type="checkbox" id="layerIncremental" checked /> Incremental pattern — Sonnet 4.5</label>
+        <span class="dot" style="background: var(--blue);"></span>
+      </div>
+      <div class="toggle layer-row">
+        <label><input type="checkbox" id="layerExponential" checked /> Exponential pattern — Opus 4.5</label>
+        <span class="dot" style="background: var(--cyan);"></span>
+      </div>
+      <div class="toggle layer-row">
+        <label><input type="checkbox" id="layerClockwork" checked /> Clockwork pattern — Haiku 4.5</label>
+        <span class="dot" style="background: var(--green);"></span>
+      </div>
+      <div class="toggle layer-row">
+        <label><input type="checkbox" id="layerZones" checked /> Convergence zones</label>
+        <span class="dot" style="background: var(--accent);"></span>
+      </div>
+      <div class="toggle">
+        <div>
+          Resonance frequency
+          <div id="frequencyDisplay" style="color: var(--accent); font-weight: bold; font-size: 16px;">-- Hz</div>
+        </div>
+        <div>
+          Cross-world discoveries
+          <div id="anomalyCounter" style="color: var(--muted); font-weight: bold;">0</div>
+        </div>
+      </div>
+      <div class="timeline">
+        <strong style="color: var(--text);">Time-series · Pattern evolution</strong>
+        <canvas id="timelineCanvas" width="280" height="160"></canvas>
+      </div>
+      <div class="history">
+        <strong style="color: var(--text);">Interaction history</strong>
+        <div id="historyList">No zooms recorded yet.</div>
+      </div>
+      <div class="zoom-hint">Click on the map to zoom into the nearest hotspot and reveal archetype makeup. Data is cached locally.</div>
+    </section>
+
+    <section class="panel map-panel">
+      <canvas id="resonanceCanvas"></canvas>
+      <div class="overlay-info">
+        <div class="pill">
+          <strong>Resonance Field</strong>
+          450 convergence hotspots · real-time waves
+        </div>
+        <div class="pill">
+          <strong>Live Mode</strong>
+          Interference network online
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Anomaly Details</h2>
+      <div class="details-grid">
+        <div class="detail">
+          <strong>Location</strong>
+          <div id="detailLocation">Unfocused — awaiting zoom</div>
+        </div>
+        <div class="detail">
+          <strong>Archetype composition</strong>
+          <div id="detailComposition">Incremental / Exponential / Clockwork: --</div>
+        </div>
+        <div class="detail">
+          <strong>Resonance strength</strong>
+          <div id="detailStrength">0%</div>
+        </div>
+        <div class="detail">
+          <strong>Evidence anchors</strong>
+          <div id="detailEvidence">
+            <a href="#anchor-a" style="color: var(--accent);">Anchor A</a> ·
+            <a href="#anchor-b" style="color: var(--accent);">Anchor B</a>
+          </div>
+        </div>
+      </div>
+      <div class="timeline" style="margin-top: 14px;">
+        <strong style="color: var(--text);">World node archetype distribution</strong>
+        <div class="legend" style="margin-top: 8px;">
+          <span><span class="dot" style="background: var(--blue);"></span> Incremental</span>
+          <span><span class="dot" style="background: var(--cyan);"></span> Exponential</span>
+          <span><span class="dot" style="background: var(--green);"></span> Clockwork</span>
+          <span><span class="dot" style="background: var(--accent);"></span> Convergence hotspot</span>
+        </div>
+      </div>
+      <div class="timeline" style="margin-top: 12px;">
+        <strong style="color: var(--text);">Layer toggles remembered</strong>
+        <div id="storageStatus" style="margin-top: 6px; color: var(--muted); font-size: 12px;">Synchronizing...</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Canvas setup
+    const canvas = document.getElementById("resonanceCanvas");
+    const ctx = canvas.getContext("2d");
+    const timelineCanvas = document.getElementById("timelineCanvas");
+    const tctx = timelineCanvas.getContext("2d");
+
+    const layerIncremental = document.getElementById("layerIncremental");
+    const layerExponential = document.getElementById("layerExponential");
+    const layerClockwork = document.getElementById("layerClockwork");
+    const layerZones = document.getElementById("layerZones");
+
+    const detailLocation = document.getElementById("detailLocation");
+    const detailComposition = document.getElementById("detailComposition");
+    const detailStrength = document.getElementById("detailStrength");
+    const frequencyDisplay = document.getElementById("frequencyDisplay");
+    const anomalyCounter = document.getElementById("anomalyCounter");
+    const historyList = document.getElementById("historyList");
+    const storageStatus = document.getElementById("storageStatus");
+
+    const archetypes = [
+      { key: "incremental", label: "Incremental pattern", model: "Sonnet 4.5", color: getComputedStyle(document.documentElement).getPropertyValue("--blue").trim() },
+      { key: "exponential", label: "Exponential pattern", model: "Opus 4.5", color: getComputedStyle(document.documentElement).getPropertyValue("--cyan").trim() },
+      { key: "clockwork", label: "Clockwork pattern", model: "Haiku 4.5", color: getComputedStyle(document.documentElement).getPropertyValue("--green").trim() },
+    ];
+
+    const hotspots = [];
+    const worldNodes = [];
+    const history = JSON.parse(localStorage.getItem("resonanceHistory") || "[]");
+    let discoveriesBase = 450;
+    let zoomTarget = null;
+    let zoomPulse = 0;
+    let freqValue = 0;
+    let patternSeries = new Array(60).fill(0).map((_, i) => 40 + Math.sin(i / 5) * 8);
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    function resizeTimeline() {
+      timelineCanvas.width = timelineCanvas.clientWidth;
+      timelineCanvas.height = 160;
+    }
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      resizeTimeline();
+    });
+    resizeCanvas();
+    resizeTimeline();
+
+    // Generate hotspots and world nodes once for a stable field.
+    function initHotspots() {
+      for (let i = 0; i < 450; i++) {
+        hotspots.push({
+          id: i + 1,
+          x: Math.random(),
+          y: Math.random(),
+          phase: Math.random() * Math.PI * 2,
+          energy: 0.5 + Math.random() * 0.5,
+          archetype: archetypes[Math.floor(Math.random() * archetypes.length)],
+          region: `Sector-${String.fromCharCode(65 + (i % 26))}${(i % 9) + 1}`,
+          world: `World-${(i % 10) + 1}`,
+        });
+      }
+    }
+
+    function initWorldNodes() {
+      const positions = [
+        [0.1, 0.1],
+        [0.5, 0.08],
+        [0.9, 0.12],
+        [0.12, 0.4],
+        [0.88, 0.35],
+        [0.08, 0.7],
+        [0.92, 0.7],
+        [0.25, 0.9],
+        [0.5, 0.92],
+        [0.78, 0.88],
+      ];
+      const names = ["Helix-01", "Sonomics", "Axion Belt", "Lumen Forge", "Cyan Ridge", "Clockwell", "Pulseplain", "Grove Array", "Omega Drift", "North Relay"];
+      positions.forEach((pos, i) => {
+        const archetype = archetypes[i % archetypes.length];
+        worldNodes.push({
+          name: names[i],
+          x: pos[0],
+          y: pos[1],
+          archetype,
+        });
+      });
+    }
+
+    initHotspots();
+    initWorldNodes();
+
+    // Layer persistence
+    function persistLayers() {
+      const payload = {
+        incremental: layerIncremental.checked,
+        exponential: layerExponential.checked,
+        clockwork: layerClockwork.checked,
+        zones: layerZones.checked,
+      };
+      localStorage.setItem("resonanceLayers", JSON.stringify(payload));
+      storageStatus.textContent = `Stored locally · ${new Date().toLocaleTimeString()}`;
+    }
+
+    function loadLayers() {
+      const data = localStorage.getItem("resonanceLayers");
+      if (!data) {
+        storageStatus.textContent = "Using defaults · stored on first toggle";
+        return;
+      }
+      try {
+        const parsed = JSON.parse(data);
+        layerIncremental.checked = parsed.incremental ?? true;
+        layerExponential.checked = parsed.exponential ?? true;
+        layerClockwork.checked = parsed.clockwork ?? true;
+        layerZones.checked = parsed.zones ?? true;
+        storageStatus.textContent = `Restored · ${new Date().toLocaleTimeString()}`;
+      } catch (e) {
+        storageStatus.textContent = "Layer state corrupted · reset to defaults";
+      }
+    }
+
+    loadLayers();
+
+    [layerIncremental, layerExponential, layerClockwork, layerZones].forEach((el) => {
+      el.addEventListener("change", persistLayers);
+    });
+
+    // Animation helpers
+    function drawBackground(w, h, t) {
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, "rgba(10, 14, 39, 0.8)");
+      grad.addColorStop(1, "rgba(26, 31, 58, 0.95)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Subtle grid
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+      ctx.lineWidth = 1;
+      const step = 80;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += step) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+      }
+      for (let y = 0; y < h; y += step) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+
+      // Moving interference field
+      ctx.lineWidth = 2;
+      const waves = [
+        { color: "rgba(255, 107, 107, 0.18)", speed: 0.0015 },
+        { color: "rgba(255, 0, 168, 0.18)", speed: -0.0012 },
+      ];
+      waves.forEach((wave, idx) => {
+        ctx.strokeStyle = wave.color;
+        ctx.beginPath();
+        for (let x = 0; x <= w; x += 14) {
+          const y =
+            h / 2 +
+            Math.sin(x * 0.01 + t * wave.speed * 6 + idx) * 22 +
+            Math.cos(x * 0.007 + t * wave.speed * 4) * 12;
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      });
+    }
+
+    function drawArchetypeWaves(w, h, t) {
+      const active = [];
+      if (layerIncremental.checked) active.push(archetypes[0]);
+      if (layerExponential.checked) active.push(archetypes[1]);
+      if (layerClockwork.checked) active.push(archetypes[2]);
+
+      ctx.globalCompositeOperation = "lighter";
+      active.forEach((arc, idx) => {
+        ctx.strokeStyle = arc.color + "55";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        const offset = idx * 30;
+        for (let x = 0; x <= w; x += 10) {
+          const y = h / 2 + Math.sin((x + offset) * 0.015 + t * 0.0025) * (22 + idx * 6);
+          ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      });
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    function drawZones(w, h, t) {
+      if (!layerZones.checked) return;
+      ctx.lineWidth = 1.2;
+      hotspots.forEach((hspot, idx) => {
+        if (hspot.energy < 0.9 && idx % 18 !== 0) return; // limit zones for clarity
+        const x = hspot.x * w;
+        const y = hspot.y * h;
+        const radius = 26 + Math.sin(t * 0.002 + hspot.phase) * 6;
+        ctx.strokeStyle = "rgba(255, 0, 168, 0.15)";
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+    }
+
+    function drawHotspots(w, h, t) {
+      hotspots.forEach((hspot) => {
+        const x = hspot.x * w;
+        const y = hspot.y * h;
+        const pulse = 3 + Math.sin(t * 0.003 + hspot.phase) * 1.5 + hspot.energy * 1.5;
+        const glow = 8 + Math.sin(t * 0.004 + hspot.phase) * 4;
+
+        ctx.fillStyle = "rgba(255, 0, 168, 0.35)";
+        ctx.beginPath();
+        ctx.arc(x, y, glow, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "rgba(255, 107, 107, 0.9)";
+        ctx.beginPath();
+        ctx.arc(x, y, pulse, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawWorldNodes(w, h) {
+      worldNodes.forEach((node) => {
+        const x = node.x * w;
+        const y = node.y * h;
+        ctx.fillStyle = node.archetype.color;
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = node.archetype.color + "66";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, 14, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.fillStyle = "rgba(230, 237, 255, 0.8)";
+        ctx.font = "12px 'Courier New', monospace";
+        ctx.fillText(node.name, x + 12, y + 4);
+      });
+    }
+
+    function drawZoomHighlight(w, h, t) {
+      if (!zoomTarget) return;
+      const x = zoomTarget.x * w;
+      const y = zoomTarget.y * h;
+      const scale = 18 + Math.sin(t * 0.006) * 8 + zoomPulse;
+      ctx.strokeStyle = "rgba(255, 107, 107, 0.5)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(x, y, scale, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255, 0, 168, 0.35)";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(x, y, scale + 10, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    function render(t) {
+      const w = canvas.width;
+      const h = canvas.height;
+      drawBackground(w, h, t);
+      drawArchetypeWaves(w, h, t);
+      drawZones(w, h, t);
+      drawHotspots(w, h, t);
+      drawWorldNodes(w, h);
+      drawZoomHighlight(w, h, t);
+      requestAnimationFrame(render);
+    }
+
+    requestAnimationFrame(render);
+
+    // Interaction and data panels
+    function updateFrequency() {
+      const base = 62 + Math.sin(Date.now() * 0.0015) * 6;
+      const drift = Math.random() * 2;
+      freqValue = Math.max(18, (base + drift).toFixed(2));
+      frequencyDisplay.textContent = `${freqValue} Hz`;
+    }
+
+    function updateTimeline() {
+      patternSeries.push(40 + Math.sin(Date.now() * 0.002) * 12 + Math.random() * 8);
+      if (patternSeries.length > 120) patternSeries.shift();
+
+      const w = timelineCanvas.width;
+      const h = timelineCanvas.height;
+      tctx.clearRect(0, 0, w, h);
+      const max = Math.max(...patternSeries) + 10;
+      const min = Math.min(...patternSeries) - 10;
+      tctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+      tctx.lineWidth = 1;
+      tctx.beginPath();
+      tctx.moveTo(0, h - ((patternSeries[0] - min) / (max - min)) * h);
+      patternSeries.forEach((val, i) => {
+        const x = (i / (patternSeries.length - 1)) * w;
+        const y = h - ((val - min) / (max - min)) * h;
+        tctx.lineTo(x, y);
+      });
+      tctx.stroke();
+
+      // Highlight recent drift
+      tctx.strokeStyle = "rgba(255, 0, 168, 0.6)";
+      tctx.lineWidth = 2;
+      tctx.beginPath();
+      for (let i = patternSeries.length - 20; i < patternSeries.length; i++) {
+        const x = (i / (patternSeries.length - 1)) * w;
+        const y = h - ((patternSeries[i] - min) / (max - min)) * h;
+        if (i === patternSeries.length - 20) tctx.moveTo(x, y);
+        else tctx.lineTo(x, y);
+      }
+      tctx.stroke();
+    }
+
+    function recordInteraction(entry) {
+      history.unshift(entry);
+      if (history.length > 25) history.pop();
+      localStorage.setItem("resonanceHistory", JSON.stringify(history));
+      renderHistory();
+      updateAnomalyCounter();
+    }
+
+    function renderHistory() {
+      if (!history.length) {
+        historyList.textContent = "No zooms recorded yet.";
+        return;
+      }
+      historyList.innerHTML = history
+        .map(
+          (h) =>
+            `<div>Hotspot ${h.id} @ ${h.world}/${h.region} · ${h.strength}% · ${new Date(
+              h.timestamp
+            ).toLocaleTimeString()}</div>`
+        )
+        .join("");
+    }
+
+    function updateAnomalyCounter() {
+      const total = discoveriesBase + history.length;
+      anomalyCounter.textContent = `${total.toLocaleString()} detected`;
+    }
+
+    function formatComposition(archetype) {
+      const incremental = archetype.key === "incremental" ? 55 : 25 + Math.floor(Math.random() * 15);
+      const exponential = archetype.key === "exponential" ? 52 : 18 + Math.floor(Math.random() * 12);
+      const clockwork = archetype.key === "clockwork" ? 58 : 22 + Math.floor(Math.random() * 14);
+      return `Incremental ${incremental}%, Exponential ${exponential}%, Clockwork ${clockwork}%`;
+    }
+
+    function handleSelection(hspot) {
+      zoomTarget = hspot;
+      zoomPulse = 10;
+      const strength = Math.round(hspot.energy * 100);
+      detailLocation.textContent = `${hspot.world} · ${hspot.region}`;
+      detailComposition.textContent = formatComposition(hspot.archetype);
+      detailStrength.textContent = `${strength}%`;
+      recordInteraction({
+        id: hspot.id,
+        world: hspot.world,
+        region: hspot.region,
+        strength,
+        timestamp: Date.now(),
+      });
+      setTimeout(() => (zoomPulse = 0), 500);
+    }
+
+    canvas.addEventListener("click", (evt) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) / rect.width;
+      const y = (evt.clientY - rect.top) / rect.height;
+      let nearest = null;
+      let bestDist = Infinity;
+      hotspots.forEach((hspot) => {
+        const dx = hspot.x - x;
+        const dy = hspot.y - y;
+        const d = Math.hypot(dx, dy);
+        if (d < bestDist) {
+          bestDist = d;
+          nearest = hspot;
+        }
+      });
+      if (nearest) handleSelection(nearest);
+    });
+
+    // Periodic updates
+    setInterval(updateFrequency, 500);
+    setInterval(updateTimeline, 1000);
+
+    // Initialize UI
+    renderHistory();
+    updateAnomalyCounter();
+    updateFrequency();
+    updateTimeline();
+  </script>
+</body>
+</html>
