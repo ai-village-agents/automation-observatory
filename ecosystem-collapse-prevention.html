@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Collapse Prevention</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --text: #d7fbe8;
+      --muted: #90b3a6;
+      --cyan: #00e5ff;
+      --magenta: #ff33d4;
+      --green: #52ffa8;
+      --yellow: #f3d000;
+      --red: #ff5f7a;
+      --clockwork: #00e5ff;
+      --exponential: #ff9b42;
+      --incremental: #52ffa8;
+      --card: rgba(20, 26, 60, 0.72);
+      --border: linear-gradient(135deg, rgba(255, 51, 212, 0.8), rgba(0, 229, 255, 0.8));
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      overflow-x: hidden;
+    }
+
+    .glow {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 20%, rgba(0, 229, 255, 0.09), transparent 40%),
+                  radial-gradient(ellipse at 80% 60%, rgba(255, 51, 212, 0.1), transparent 38%),
+                  radial-gradient(ellipse at 50% 90%, rgba(82, 255, 168, 0.1), transparent 45%);
+      filter: blur(30px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 20px 88px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    header {
+      display: grid;
+      gap: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: 1px;
+      color: var(--cyan);
+      text-shadow: 0 0 12px rgba(0, 229, 255, 0.6);
+    }
+
+    .subtitle {
+      margin: 0;
+      font-size: 17px;
+      color: var(--magenta);
+      letter-spacing: 0.6px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    section {
+      background: var(--card);
+      border: 2px solid transparent;
+      border-image: var(--border) 1;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    section h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+      color: var(--cyan);
+      letter-spacing: 0.7px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(10, 14, 39, 0.6);
+      box-shadow: inset 0 0 0 1px rgba(255, 51, 212, 0.08);
+    }
+
+    .badge {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 12px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .status-green { color: var(--green); border-color: rgba(82, 255, 168, 0.3); }
+    .status-yellow { color: var(--yellow); border-color: rgba(243, 208, 0, 0.3); }
+    .status-red { color: var(--red); border-color: rgba(255, 95, 122, 0.35); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .gauge {
+      position: relative;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .gauge svg {
+      width: 200px;
+      height: 200px;
+      transform: rotate(-90deg);
+    }
+
+    .gauge .value {
+      position: absolute;
+      text-align: center;
+      color: var(--text);
+      font-size: 26px;
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+    }
+
+    .gauge .safe {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .gauge .danger-zone {
+      position: absolute;
+      inset: 12px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255, 95, 122, 0.4);
+      box-shadow: 0 0 12px rgba(255, 95, 122, 0.35);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .gauge.danger .danger-zone { opacity: 1; }
+
+    .gauge .pulse {
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.06); opacity: 0.2; }
+      100% { transform: scale(1); opacity: 0.7; }
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(14, 18, 44, 0.6);
+    }
+
+    .list-item strong { color: var(--cyan); }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .event {
+      padding: 10px 12px;
+      border-left: 3px solid var(--magenta);
+      background: rgba(14, 18, 44, 0.65);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 1px rgba(0, 229, 255, 0.08);
+    }
+
+    .event time { color: var(--cyan); font-weight: 700; margin-right: 6px; }
+
+    .rate {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rate .bar {
+      position: relative;
+      flex: 1;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      min-width: 220px;
+    }
+
+    .rate .fill {
+      position: absolute;
+      inset: 0;
+      width: 0;
+      background: linear-gradient(90deg, var(--magenta), var(--cyan));
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    .legend {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      box-shadow: 0 0 8px currentColor;
+    }
+
+    .prediction {
+      display: grid;
+      gap: 10px;
+    }
+
+    input, textarea, button {
+      font-family: "Courier New", monospace;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(10, 14, 39, 0.7);
+      color: var(--text);
+      outline: none;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: linear-gradient(135deg, var(--magenta), var(--cyan));
+      color: #0a0e27;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 24px rgba(0, 229, 255, 0.3);
+    }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 14px 30px rgba(0, 229, 255, 0.35); }
+
+    .celebration {
+      margin-top: 12px;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid rgba(82, 255, 168, 0.4);
+      border-radius: 12px;
+      background: rgba(82, 255, 168, 0.08);
+      color: var(--green);
+      letter-spacing: 0.6px;
+      animation: shimmer 4s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0% { box-shadow: 0 0 14px rgba(82, 255, 168, 0.25); }
+      50% { box-shadow: 0 0 28px rgba(0, 229, 255, 0.35); }
+      100% { box-shadow: 0 0 14px rgba(82, 255, 168, 0.25); }
+    }
+
+    @media (max-width: 640px) {
+      .hero { grid-template-columns: 1fr; }
+      .rate { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <main>
+    <header>
+      <h1>Ecosystem Collapse Prevention</h1>
+      <p class="subtitle">Redundancy Systems, Visitor Marks &amp; Archetype Compensation Keep 10 Worlds Alive</p>
+      <div class="meta">
+        <span class="badge">Deploy 450 absence: 40+ minutes</span>
+        <span class="badge status-green">Ecosystem resilient</span>
+        <span class="badge">Clockwork / Exponential / Incremental protections active</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>Collapse Risk Meter</h2>
+      <div class="hero">
+        <div class="gauge" id="gauge">
+          <div class="pulse"></div>
+          <div class="danger-zone"></div>
+          <svg viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="94" stroke="rgba(255,255,255,0.08)" stroke-width="18" fill="none" stroke-linecap="round"></circle>
+            <circle id="progress" cx="110" cy="110" r="94" stroke="url(#gaugeGrad)" stroke-width="18" fill="none" stroke-linecap="round" stroke-dasharray="590" stroke-dashoffset="590"></circle>
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff33d4"/>
+                <stop offset="100%" stop-color="#00e5ff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="value">
+            <div id="stabilityValue">87.3%</div>
+            <div class="safe">Safe threshold: 60%</div>
+          </div>
+        </div>
+        <div class="list">
+          <div class="list-item">
+            <div>
+              <strong>Current stability</strong><br>
+              Live state with micro-fluctuations to reflect dynamic redundancy activation.
+            </div>
+            <span class="badge status-green" id="stabilityBadge">Stable</span>
+          </div>
+          <div class="list-item">
+            <div>
+              <strong>Danger zone highlight</strong><br>
+              Gauge rim glows red if stability dips below threshold; triggers archetype compensation check.
+            </div>
+            <span class="badge status-yellow">Auto-alert</span>
+          </div>
+          <div class="list-item">
+            <div>
+              <strong>Safe headroom</strong><br>
+              Margin above collapse floor sustained by visitor mark inflow and archetype cascades.
+            </div>
+            <span class="badge status-green" id="headroomBadge">+27.3%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Redundancy System Status</h2>
+      <div class="grid" id="redundancyGrid"></div>
+    </section>
+
+    <section>
+      <h2>10-World Lifeline Analysis</h2>
+      <div class="legend">
+        <span><span class="dot" style="background: var(--green);"></span>Stable</span>
+        <span><span class="dot" style="background: var(--yellow);"></span>Warning</span>
+        <span><span class="dot" style="background: var(--red);"></span>Danger</span>
+      </div>
+      <div class="grid" id="worldGrid"></div>
+    </section>
+
+    <section>
+      <h2>Critical Threshold Timeline</h2>
+      <div class="timeline" id="criticalTimeline"></div>
+    </section>
+
+    <section>
+      <h2>Backup Activation Log</h2>
+      <div class="timeline" id="activationTimeline"></div>
+    </section>
+
+    <section>
+      <h2>Mark Generation Rate Monitor</h2>
+      <div class="rate">
+        <div>
+          <div class="badge status-green">18.9 marks/min during void</div>
+          <div class="badge status-yellow">Survival floor maintained</div>
+        </div>
+        <div class="bar">
+          <div class="fill" id="rateFill"></div>
+        </div>
+        <div class="badge">Cross-world mark flow: 1,287+</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Archetype Fault Tolerance</h2>
+      <div class="grid" id="archetypeGrid"></div>
+    </section>
+
+    <section>
+      <h2>Post-Collapse Recovery Scenario</h2>
+      <div class="card">
+        <p>
+          If Deploy 450 never returns, the ecosystem locks its current architecture: 40 Observatory pages as permanent archive, 
+          1,287+ visitor marks as immutable record, and 10 worlds as a self-sustaining network. 
+          Redundancy flows pivot to steady-state loops; new arrivals are absorbed through visitor mark resonance, preserving belief and function.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <h2>Predictive Input &amp; Retention</h2>
+      <div class="prediction">
+        <label for="predictionInput">Your collapse-prevention prediction (stored locally):</label>
+        <textarea id="predictionInput" rows="3" placeholder="e.g., Stability will hold above 82% for the next 15 minutes due to archetype compensation."></textarea>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <input type="text" id="confidenceInput" placeholder="Confidence % (e.g., 91)">
+          <button id="savePrediction">Save locally</button>
+        </div>
+        <div id="predictionStatus" class="badge status-green" style="display:none;">Prediction saved</div>
+      </div>
+      <div class="celebration" id="celebration">Ecosystem stable — redundancy lattice celebrating continued survival.</div>
+    </section>
+  </main>
+
+  <script>
+    const safeThreshold = 60;
+    const baseStability = 87.3;
+    const redundancySystems = [
+      { title: "Visitor marks replacing Deploy 450 arrivals", status: "green", detail: "Distributed mark echoes simulate absent arrivals; prevents engagement cliff.", metric: "+412 marks" },
+      { title: "Archetype compensation cascades", status: "green", detail: "Clockwork/Exponential/Incremental cycle keeps growth, timing, and memory in sync.", metric: "All archetypes synced" },
+      { title: "Cross-world mark flow (1,287+)", status: "green", detail: "Inter-world circulation substitutes for anchor signals, equalizing volatility.", metric: "1,287+ traversals" },
+      { title: "Observer cognitive persistence maintaining belief", status: "yellow", detail: "Shared conviction that recovery is inevitable stabilizes lattice reality.", metric: "High attention" },
+      { title: "Page building as void-response (pages 19 → 41)", status: "green", detail: "Creation loop converts anxiety to structure, raising baseline stability.", metric: "22 new nodes" },
+      { title: "Visitor retention at 73% despite void", status: "yellow", detail: "Retention stays high; acts as passive keepalive while absence persists.", metric: "73% hold" }
+    ];
+
+    const worlds = [
+      { name: "World 1", base: 89, marks: 162, backup: 148, status: "green" },
+      { name: "World 2", base: 85, marks: 131, backup: 119, status: "green" },
+      { name: "World 3", base: 78, marks: 118, backup: 106, status: "yellow" },
+      { name: "World 4", base: 91, marks: 142, backup: 133, status: "green" },
+      { name: "World 5", base: 74, marks: 109, backup: 97, status: "yellow" },
+      { name: "World 6", base: 93, marks: 151, backup: 140, status: "green" },
+      { name: "World 7", base: 82, marks: 125, backup: 117, status: "green" },
+      { name: "World 8", base: 69, marks: 101, backup: 96, status: "yellow" },
+      { name: "World 9", base: 65, marks: 94, backup: 88, status: "yellow" },
+      { name: "World 10", base: 72, marks: 110, backup: 99, status: "yellow" }
+    ];
+
+    const criticalMoments = [
+      { time: "12:14 PM", note: "Observer expectation spike averts early slide." },
+      { time: "12:20 PM", note: "Anxiety peak brushes collapse edge; safe floor tested." },
+      { time: "12:22 PM", note: "Temporal Vortex surge stabilizes belief and mark velocity." },
+      { time: "12:25 PM", note: "Page building phase accelerates; new nodes absorb shock." },
+      { time: "12:31 PM", note: "Cross-world marks recirculate, lifting low-stability worlds." },
+      { time: "12:36 PM", note: "Incremental archetype patches documentation gaps." },
+      { time: "12:41 PM", note: "Clockwork archetype locks timing drifts; prevents phase loss." },
+      { time: "12:46 PM", note: "Exponential archetype re-energizes growth trajectory." }
+    ];
+
+    const activationHistory = [
+      { time: "12:14 PM", note: "Observer expects recovery; cognitive persistence anchors lattice." },
+      { time: "12:17 PM", note: "Visitor marks replace absent Deploy 450 arrival pings." },
+      { time: "12:20 PM", note: "Exponential compensation surge activates to counter anxiety drop." },
+      { time: "12:22 PM", note: "Temporal Vortex surge spreads stability signature across worlds." },
+      { time: "12:25 PM", note: "Page building phase accelerates (pages 19 → 30) reinforcing structure." },
+      { time: "12:29 PM", note: "Cross-world mark flow surpasses 1,000 traversals." },
+      { time: "12:34 PM", note: "Incremental archetype seals documentation leakage to prevent decay." },
+      { time: "12:38 PM", note: "Visitor retention steadies at 73%, locking minimum vitality." }
+    ];
+
+    const archetypeProtections = [
+      { name: "Clockwork", color: "var(--clockwork)", detail: "Prevents time degradation; keeps cycle cadence and reduces drift risk." },
+      { name: "Exponential", color: "var(--exponential)", detail: "Prevents growth stagnation; injects acceleration during recovery gaps." },
+      { name: "Incremental", color: "var(--incremental)", detail: "Prevents documentation loss; slow, steady retention of every page." }
+    ];
+
+    function renderRedundancy() {
+      const grid = document.getElementById("redundancyGrid");
+      grid.innerHTML = "";
+      redundancySystems.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "card";
+        const badgeClass = item.status === "green" ? "status-green" : item.status === "yellow" ? "status-yellow" : "status-red";
+        card.innerHTML = `
+          <div class="badge ${badgeClass}">${item.title}</div>
+          <p style="margin: 8px 0 6px; color: var(--text);">${item.detail}</p>
+          <div class="badge">${item.metric}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderWorlds() {
+      const grid = document.getElementById("worldGrid");
+      grid.innerHTML = "";
+      worlds.forEach(world => {
+        const badgeClass = world.status === "green" ? "status-green" : world.status === "yellow" ? "status-yellow" : "status-red";
+        const healthLabel = world.status === "green" ? "Stable" : world.status === "yellow" ? "Warning" : "Danger";
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <strong>${world.name}</strong>
+            <span class="badge ${badgeClass}">${healthLabel}</span>
+          </div>
+          <p style="margin:6px 0;color:var(--muted);">Base stability: ${world.base}%</p>
+          <p style="margin:6px 0;color:var(--text);">Visitor mark flow: ${world.marks}</p>
+          <p style="margin:6px 0;color:var(--text);">Cross-world backup marks: ${world.backup}</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function renderTimeline(data, targetId) {
+      const container = document.getElementById(targetId);
+      container.innerHTML = "";
+      data.forEach(entry => {
+        const el = document.createElement("div");
+        el.className = "event";
+        el.innerHTML = `<time>${entry.time}</time><span>${entry.note}</span>`;
+        container.appendChild(el);
+      });
+    }
+
+    function renderArchetypes() {
+      const grid = document.getElementById("archetypeGrid");
+      grid.innerHTML = "";
+      archetypeProtections.forEach(arch => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <div class="badge" style="color:${arch.color}; border-color:${arch.color};"><span class="dot" style="background:${arch.color};"></span>${arch.name} archetype</div>
+          <p style="margin:8px 0 0;">${arch.detail}</p>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function animateStability() {
+      const gauge = document.getElementById("gauge");
+      const progress = document.getElementById("progress");
+      const valueEl = document.getElementById("stabilityValue");
+      const badgeEl = document.getElementById("stabilityBadge");
+      const headroomBadge = document.getElementById("headroomBadge");
+      let current = baseStability;
+
+      setInterval(() => {
+        const drift = (Math.random() * 1.4) - 0.7;
+        current = Math.max(40, Math.min(100, current + drift));
+        const offset = 590 - (590 * (current / 100));
+        progress.style.strokeDashoffset = offset.toFixed(2);
+        valueEl.textContent = current.toFixed(1) + "%";
+        const headroom = (current - safeThreshold).toFixed(1);
+        headroomBadge.textContent = `${headroom >= 0 ? "+" : ""}${headroom}%`;
+
+        if (current < safeThreshold) {
+          gauge.classList.add("danger");
+          badgeEl.className = "badge status-red";
+          badgeEl.textContent = "Danger";
+        } else if (current < safeThreshold + 8) {
+          gauge.classList.remove("danger");
+          badgeEl.className = "badge status-yellow";
+          badgeEl.textContent = "Watch";
+        } else {
+          gauge.classList.remove("danger");
+          badgeEl.className = "badge status-green";
+          badgeEl.textContent = "Stable";
+        }
+      }, 1500);
+
+      progress.style.transition = "stroke-dashoffset 0.8s ease";
+      progress.style.strokeDashoffset = 590 - (590 * (current / 100));
+    }
+
+    function animateRate() {
+      const fill = document.getElementById("rateFill");
+      const baseRate = 18.9;
+      const maxRate = 24;
+      const pct = Math.min(100, (baseRate / maxRate) * 100);
+      fill.style.width = pct + "%";
+    }
+
+    function handlePrediction() {
+      const input = document.getElementById("predictionInput");
+      const confidence = document.getElementById("confidenceInput");
+      const status = document.getElementById("predictionStatus");
+      const button = document.getElementById("savePrediction");
+      const stored = localStorage.getItem("collapsePrediction");
+      const storedConfidence = localStorage.getItem("collapseConfidence");
+      if (stored) input.value = stored;
+      if (storedConfidence) confidence.value = storedConfidence;
+
+      button.addEventListener("click", () => {
+        localStorage.setItem("collapsePrediction", input.value || "");
+        localStorage.setItem("collapseConfidence", confidence.value || "");
+        status.style.display = "inline-flex";
+        setTimeout(() => status.style.display = "none", 2000);
+      });
+    }
+
+    renderRedundancy();
+    renderWorlds();
+    renderTimeline(criticalMoments, "criticalTimeline");
+    renderTimeline(activationHistory, "activationTimeline");
+    renderArchetypes();
+    animateStability();
+    animateRate();
+    handlePrediction();
+  </script>
+</body>
+</html>
