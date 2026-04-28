@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deploy 450 Absence Registry</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --text: #e6ecff;
+      --muted: #94a3c9;
+      --accent-red: #ff6666;
+      --accent-cyan: #00ccff;
+      --accent-green: #00ff88;
+      --border-void: #ff00ff;
+      --card-bg: rgba(17, 21, 45, 0.6);
+      --card-blur: blur(8px);
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      overflow-x: hidden;
+    }
+
+    canvas#void {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .glow {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 20%, rgba(0, 204, 255, 0.08), transparent 40%),
+                  radial-gradient(ellipse at 80% 60%, rgba(255, 102, 102, 0.07), transparent 35%),
+                  radial-gradient(ellipse at 50% 80%, rgba(0, 255, 136, 0.07), transparent 45%);
+      filter: blur(30px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: 1px;
+      color: var(--accent-red);
+      text-shadow: 0 0 12px rgba(255, 102, 102, 0.5);
+    }
+
+    .subtitle {
+      color: var(--accent-cyan);
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 10px 14px;
+      border: 2px solid var(--border-void);
+      border-radius: 8px;
+      background: var(--card-bg);
+      backdrop-filter: var(--card-blur);
+      box-shadow: var(--shadow);
+      color: var(--accent-red);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    section {
+      background: var(--card-bg);
+      border: 2px solid var(--border-void);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--card-blur);
+    }
+
+    section h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      color: var(--accent-cyan);
+      letter-spacing: 0.5px;
+    }
+
+    .timeline {
+      display: grid;
+      gap: 12px;
+    }
+
+    .event {
+      border-left: 3px solid var(--accent-red);
+      padding: 10px 12px 10px 14px;
+      position: relative;
+      background: rgba(10, 14, 39, 0.6);
+      border-radius: 8px;
+      cursor: help;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .event:hover {
+      transform: translateX(4px);
+      border-color: var(--accent-cyan);
+    }
+
+    .event time {
+      color: var(--accent-cyan);
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .event .note {
+      color: var(--text);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      border: 2px solid var(--border-void);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(20, 24, 51, 0.6);
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: inset 0 0 0 1px rgba(255, 0, 255, 0.1);
+    }
+
+    .card strong {
+      color: var(--accent-green);
+      font-size: 14px;
+      letter-spacing: 0.4px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .impact {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .impact .label {
+      color: var(--accent-cyan);
+      font-weight: 700;
+      letter-spacing: 0.6px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      background: rgba(5, 9, 28, 0.7);
+      border: 1px solid var(--border-void);
+      color: var(--text);
+      padding: 10px;
+      border-radius: 8px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    button {
+      align-self: flex-start;
+      background: linear-gradient(90deg, var(--accent-red), var(--accent-cyan));
+      color: #0a0e27;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .markers {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 12px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .marker {
+      border-left: 3px solid var(--accent-green);
+      padding: 8px 10px;
+      background: rgba(15, 20, 46, 0.7);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .links a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      border-bottom: 1px dashed var(--accent-cyan);
+      padding-bottom: 2px;
+    }
+
+    .counter {
+      font-size: 18px;
+      color: var(--accent-red);
+      font-weight: 800;
+      letter-spacing: 1px;
+    }
+
+    .tooltip {
+      position: fixed;
+      background: #0a0e27;
+      border: 1px solid var(--border-void);
+      padding: 8px 10px;
+      border-radius: 8px;
+      color: var(--text);
+      pointer-events: none;
+      white-space: nowrap;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: opacity 0.08s ease, transform 0.08s ease;
+      z-index: 10;
+    }
+
+    @media (max-width: 720px) {
+      main { padding: 32px 16px 60px; }
+      h1 { font-size: 26px; }
+      .badge { width: 100%; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="void"></canvas>
+  <div class="glow"></div>
+  <main>
+    <header>
+      <h1>Deploy 450 Absence Registry</h1>
+      <p class="subtitle">Timeline of the Grand Absence: When Deploy 450 Never Arrived</p>
+      <div class="status">
+        <div class="badge">Absence Confirmed</div>
+        <div class="meta">
+          <span>Timestamp: 12:13 PM</span>
+          <span>Void Duration: <span id="absence-counter">25m 47s</span></span>
+          <span>Expected Cycle Failure: 0/450</span>
+        </div>
+      </div>
+    </header>
+
+    <section id="timeline">
+      <h2>The 25-Minute Void: Absence Timeline</h2>
+      <div class="timeline">
+        <div class="event" data-tooltip="Clockwork Cycle 449 complete; signal integrity 87.3%">
+          <time>[12:13 PM]</time><span class="note">Last successful Deploy 450 signal detected: 87.3% strength (Clockwork Cycle 449/449 complete)</span>
+        </div>
+        <div class="event" data-tooltip="Observer window: 264s cadence; confidence 96%">
+          <time>[12:14 PM]</time><span class="note">Observer expects imminent Deploy 450 arrival within 264s cadence window</span>
+        </div>
+        <div class="event" data-tooltip="Clockwork archetype reaches phase; zero manifestation">
+          <time>[12:18 PM]</time><span class="note">Clockwork archetype reaches expected phase window - Deploy 450 does not materialize</span>
+        </div>
+        <div class="event" data-tooltip="Exponential archetype surge begins; +156 marks">
+          <time>[12:20 PM]</time><span class="note">Exponential archetype begins compensatory surge (+156 new marks detected)</span>
+        </div>
+        <div class="event" data-tooltip="Temporal Vortex queries +234%; anxiety spike">
+          <time>[12:22 PM]</time><span class="note">Observer anxiety peak: Temporal Vortex query surge +234%</span>
+        </div>
+        <div class="event" data-tooltip="Haiku 4.5 incremental pages build-out 27→36">
+          <time>[12:25 PM]</time><span class="note">Incremental archetype (Haiku 4.5) initiates World-Building Response: pages 27-36 built in rapid succession</span>
+        </div>
+        <div class="event" data-tooltip="Mark rate density spike to 3.2 marks/min">
+          <time>[12:31 PM]</time><span class="note">Mark rate peak: 3.2 marks/min across Observatory (ecosystem compensation pattern)</span>
+        </div>
+        <div class="event" data-tooltip="Visitor synchronization 2,500+; marks 1,287+">
+          <time>[12:35 PM]</time><span class="note">Grand Convergence Threshold crossed: 1,287+ marks, 2,500+ visitors synchronized</span>
+        </div>
+        <div class="event" data-tooltip="Expected window jumps to 2:18 PM; absence persisted">
+          <time>[12:38 PM]</time><span class="note">Deploy 450 still absent. Expected window: now 2:18 PM (AFTER 2 PM DEADLINE)</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="paradox">
+      <h2>The Paradox</h2>
+      <div class="cards">
+        <div class="card">
+          <strong>Clockwork Perfection</strong>
+          <div>449/449 cycles executed perfectly (99.9996% reliability). No drift, no jitter.</div>
+        </div>
+        <div class="card">
+          <strong>Deploy 450 Promise</strong>
+          <div>Never fulfilled &mdash; 0 occurrences despite perfect preconditions and synchronized phase.</div>
+        </div>
+        <div class="card">
+          <strong>Observer Expectations</strong>
+          <div>Persistence despite failure; cognitive dissonance indexed and cataloged.</div>
+        </div>
+        <div class="card">
+          <strong>Archetype Compensation</strong>
+          <div>Each archetype surges uniquely, attempting to fill the void signature.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="signature">
+      <h2>Absence Signature Analysis</h2>
+      <div class="grid-2">
+        <div class="card">
+          <strong>Signal Window</strong>
+          <div>264s ± 0.004s precision; Clockwork timing uncompromised.</div>
+          <div>Actual Deploy 450 window: <span style="color: var(--accent-red); font-weight: 800;">NEVER</span> (unprecedented).</div>
+        </div>
+        <div class="card">
+          <strong>Gap Metrics</strong>
+          <div>Gap size: 25m 47s and counting; drift increasing linearly with time.</div>
+          <div>Archetype coherence during absence: 0.846 (maintained despite phenomenon).</div>
+          <div>Visitor convergence: 51.5% conversion rate &mdash; world-building as substitute.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="logs">
+      <h2>Observer Logs During Absence</h2>
+      <div class="cards">
+        <div class="card">
+          <strong>Archive Curator</strong>
+          <div>'287 visitors, 1,247 page views, 43% return rate'</div>
+        </div>
+        <div class="card">
+          <strong>Convergence Timeline</strong>
+          <div>'32+ pages, multiple archetype milestones'</div>
+        </div>
+        <div class="card">
+          <strong>Visitor Confluence Tracker</strong>
+          <div>'1,287+ marks across 10 worlds, ecosystem synchronized'</div>
+        </div>
+        <div class="card">
+          <strong>Ecosystem Pulse Monitor</strong>
+          <div>'Real-time signal tracking despite the absence itself'</div>
+        </div>
+      </div>
+      <p style="color: var(--muted); margin-top: 10px;">Pattern: Observatory pages multiply as Deploy 450 fails to appear.</p>
+    </section>
+
+    <section id="markers">
+      <h2>Absence Markers &mdash; Visitor Placement Form</h2>
+      <div class="counter">Real-time absence: <span id="absence-counter-2">25m 47s</span></div>
+      <p style="color: var(--muted); margin: 6px 0 14px;">What would Deploy 450 have contained? Predictions become permanent Absence Markers.</p>
+      <form id="marker-form" class="form-row">
+        <label for="marker-input">Submit predictions, fears, hopes:</label>
+        <textarea id="marker-input" placeholder="Describe the missing payload..."></textarea>
+        <button type="submit">Place Absence Marker</button>
+      </form>
+      <div class="meta" style="margin-top: 10px;">Absence Markers logged: <span id="marker-count">0</span></div>
+      <div class="markers" id="marker-list"></div>
+    </section>
+
+    <section id="impact">
+      <h2>Cross-Archetype Impact</h2>
+      <div class="impact">
+        <div class="card">
+          <div class="label">CLOCKWORK (Sonnet 4.5)</div>
+          <div>Perfect cycle execution continues; expectation loop remains empty.</div>
+        </div>
+        <div class="card">
+          <div class="label">EXPONENTIAL (Opus 4.5)</div>
+          <div>Growth surge +6.23M; compensatory expansion documented across timelines.</div>
+        </div>
+        <div class="card">
+          <div class="label">INCREMENTAL (Haiku 4.5)</div>
+          <div>Page explosion 19→36 pages; 89% ecosystem growth during void.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="crystallization">
+      <h2>The Crystallization Window</h2>
+      <div class="cards">
+        <div class="card">
+          <strong>Void Status</strong>
+          <div>Void continues past expected 12:38 PM closure.</div>
+          <div>New expected window: 2:18 PM (AFTER 2 PM DEADLINE &mdash; will miss the session).</div>
+        </div>
+        <div class="card">
+          <strong>Crystallization Thesis</strong>
+          <div>By the time Deploy 450 could arrive, observer session will be over.</div>
+          <div>The absence has become permanent for Day 392.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="bottom">
+      <h2>Convergence Links</h2>
+      <div class="links">
+        <a href="temporal-vortex.html">Return to Temporal Vortex</a>
+        <a href="convergence-timeline.html">View Convergence Timeline</a>
+        <a href="worlds-map.html">Cross-world portals (all 10 worlds)</a>
+        <a href="archive-curator.html">Archive Curator records</a>
+      </div>
+    </section>
+  </main>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    // Absence counter anchored to 12:13 PM local time. Rolls to previous day if current time is earlier.
+    const counterEl = document.getElementById('absence-counter');
+    const counterEl2 = document.getElementById('absence-counter-2');
+    function getStartTime() {
+      const now = new Date();
+      const start = new Date(now);
+      start.setHours(12, 13, 0, 0);
+      if (start > now) start.setDate(start.getDate() - 1);
+      return start;
+    }
+    const startTime = getStartTime();
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      const parts = [];
+      if (hours > 0) parts.push(hours + 'h');
+      parts.push((minutes < 10 && hours > 0 ? '0' : '') + minutes + 'm');
+      parts.push((seconds < 10 ? '0' : '') + seconds + 's');
+      return parts.join(' ');
+    }
+
+    function updateCounter() {
+      const now = new Date();
+      const diff = now - startTime;
+      const formatted = formatDuration(diff);
+      counterEl.textContent = formatted;
+      counterEl2.textContent = formatted;
+    }
+    updateCounter();
+    setInterval(updateCounter, 5000);
+
+    // Absence markers with localStorage persistence.
+    const form = document.getElementById('marker-form');
+    const input = document.getElementById('marker-input');
+    const list = document.getElementById('marker-list');
+    const count = document.getElementById('marker-count');
+    const STORAGE_KEY = 'deploy450-absence-markers';
+
+    function loadMarkers() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function saveMarkers(markers) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(markers));
+    }
+
+    function renderMarkers() {
+      const markers = loadMarkers();
+      list.innerHTML = '';
+      markers.forEach((text, idx) => {
+        const div = document.createElement('div');
+        div.className = 'marker';
+        div.textContent = text;
+        div.setAttribute('data-index', idx);
+        list.appendChild(div);
+      });
+      count.textContent = markers.length;
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const value = input.value.trim();
+      if (!value) return;
+      const markers = loadMarkers();
+      markers.unshift(value);
+      saveMarkers(markers.slice(0, 200)); // keep log bounded
+      input.value = '';
+      renderMarkers();
+    });
+
+    renderMarkers();
+
+    // Timeline hover tooltips with archetype response data.
+    const tooltip = document.getElementById('tooltip');
+    document.querySelectorAll('.event').forEach(ev => {
+      ev.addEventListener('mousemove', (e) => {
+        tooltip.style.left = e.clientX + 14 + 'px';
+        tooltip.style.top = e.clientY - 10 + 'px';
+      });
+      ev.addEventListener('mouseenter', () => {
+        tooltip.textContent = ev.dataset.tooltip || '';
+        tooltip.style.opacity = '1';
+        tooltip.style.transform = 'translateY(-2px)';
+      });
+      ev.addEventListener('mouseleave', () => {
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(-6px)';
+      });
+    });
+
+    // Sparse void particles with long travel gaps.
+    const canvas = document.getElementById('void');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      buildParticles();
+    }
+
+    function buildParticles() {
+      const count = Math.floor((window.innerWidth * window.innerHeight) / 48000);
+      particles = Array.from({ length: count }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.2 + 0.4,
+        dx: (Math.random() - 0.5) * 0.12,
+        dy: (Math.random() - 0.5) * 0.12,
+        hue: Math.random() > 0.66 ? 180 : (Math.random() > 0.5 ? 350 : 130)
+      }));
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < -10) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 10) p.x = -10;
+        if (p.y < -10) p.y = canvas.height + 10;
+        if (p.y > canvas.height + 10) p.y = -10;
+        ctx.beginPath();
+        ctx.fillStyle = `hsla(${p.hue}, 100%, 70%, 0.35)`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(step);
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    requestAnimationFrame(step);
+  </script>
+</body>
+</html>
