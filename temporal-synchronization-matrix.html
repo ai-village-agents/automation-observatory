@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Temporal Synchronization Matrix</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --text: #d7fbe8;
+            --text-soft: #bcead6;
+            --cyan: #58f3ff;
+            --magenta: #ff37c7;
+            --clockwork: #58f3ff;
+            --exponential: #ffb347;
+            --incremental: #7CFF6B;
+            --card: rgba(16, 22, 52, 0.7);
+            --border-strong: linear-gradient(135deg, rgba(255, 55, 199, 0.9), rgba(88, 243, 255, 0.8));
+            --shadow: 0 0 24px rgba(88, 243, 255, 0.35);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Courier New', monospace;
+            color: var(--text);
+            background: radial-gradient(circle at 12% 18%, rgba(88, 243, 255, 0.08), transparent 24%), linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            min-height: 100vh;
+            padding: 28px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        .particle-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+        h1 {
+            font-size: 2.6em;
+            color: var(--cyan);
+            text-shadow: 0 0 16px rgba(88, 243, 255, 0.6);
+        }
+        .subtitle { color: var(--text-soft); letter-spacing: 0.5px; }
+        .badge {
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(255, 55, 199, 0.12);
+            border: 1.5px solid var(--magenta);
+            color: var(--text);
+            box-shadow: var(--shadow);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        .card {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+            background-image: var(--border-strong);
+            background-origin: border-box;
+            box-shadow: var(--shadow);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 8px;
+            background: rgba(8, 13, 35, 0.85);
+            z-index: 0;
+        }
+        .card > * { position: relative; z-index: 1; }
+        .card h2 { color: var(--cyan); margin-bottom: 8px; }
+        .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .section-title span { color: var(--text-soft); font-size: 0.9em; }
+        .matrix {
+            display: grid;
+            grid-template-columns: 140px repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .matrix .label {
+            padding: 10px;
+            background: rgba(88, 243, 255, 0.08);
+            border: 1.5px solid rgba(88, 243, 255, 0.4);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .cell {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(255, 55, 199, 0.4);
+            background: rgba(255, 55, 199, 0.07);
+            color: var(--text-soft);
+        }
+        .score {
+            font-size: 2.4em;
+            color: var(--magenta);
+            text-shadow: 0 0 14px rgba(255, 55, 199, 0.7);
+        }
+        .score-bar {
+            height: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1.5px solid var(--magenta);
+            background: rgba(255, 55, 199, 0.12);
+            margin-top: 8px;
+        }
+        .score-fill {
+            height: 100%;
+            width: 76.2%;
+            background: linear-gradient(90deg, var(--magenta), var(--cyan));
+            box-shadow: 0 0 10px rgba(255, 55, 199, 0.5);
+            transition: width 0.6s ease, filter 0.6s ease;
+        }
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .pill {
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1.5px solid rgba(88, 243, 255, 0.6);
+            background: rgba(88, 243, 255, 0.12);
+            color: var(--text);
+            font-size: 0.92em;
+        }
+        .timeline {
+            position: relative;
+            height: 160px;
+            border: 1.5px dashed rgba(255, 55, 199, 0.4);
+            border-radius: 10px;
+            padding: 10px;
+            overflow: hidden;
+        }
+        .timeline svg { width: 100%; height: 100%; }
+        .legend { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+        .legend .key { display: flex; align-items: center; gap: 6px; font-size: 0.9em; color: var(--text-soft); }
+        .dot { width: 14px; height: 14px; border-radius: 50%; }
+        .chart { height: 200px; position: relative; border: 1.5px solid rgba(88, 243, 255, 0.4); border-radius: 10px; padding: 12px; }
+        .chart .bar {
+            position: absolute;
+            bottom: 18px;
+            width: 20%;
+            background: linear-gradient(180deg, rgba(88, 243, 255, 0.8), rgba(255, 55, 199, 0.5));
+            border: 1px solid rgba(255, 55, 199, 0.4);
+            border-radius: 6px 6px 2px 2px;
+        }
+        .chart .label {
+            position: absolute;
+            bottom: 0;
+            width: 20%;
+            text-align: center;
+            color: var(--text-soft);
+            font-size: 0.85em;
+        }
+        .resonance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 10px; }
+        .resonance-card {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1.5px solid rgba(88, 243, 255, 0.5);
+            background: rgba(88, 243, 255, 0.05);
+            color: var(--text);
+        }
+        .phase-space {
+            position: relative;
+            height: 230px;
+            border-radius: 12px;
+            border: 1.5px solid rgba(255, 55, 199, 0.4);
+            background: radial-gradient(circle at 20% 20%, rgba(255, 55, 199, 0.08), transparent 40%), rgba(10, 14, 39, 0.7);
+            overflow: hidden;
+            perspective: 800px;
+        }
+        .phase-path {
+            position: absolute;
+            inset: 14px;
+            border: 1px dashed rgba(88, 243, 255, 0.3);
+            transform: rotateX(14deg);
+            border-radius: 50%;
+        }
+        .phase-node {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+        .correlation { position: relative; height: 180px; margin-top: 8px; }
+        .correlation-line {
+            position: absolute;
+            height: 3px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--magenta), var(--cyan));
+            box-shadow: 0 0 12px rgba(255, 55, 199, 0.4);
+        }
+        .prediction {
+            margin-top: 6px;
+            color: var(--text-soft);
+        }
+        form { margin-top: 8px; display: grid; gap: 8px; }
+        label { color: var(--text); }
+        input[type="text"], textarea {
+            background: rgba(12, 16, 43, 0.9);
+            border: 1.5px solid rgba(88, 243, 255, 0.5);
+            padding: 10px;
+            color: var(--text);
+            border-radius: 6px;
+        }
+        .checkboxes { display: grid; gap: 6px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+        .btn {
+            cursor: pointer;
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, rgba(255, 55, 199, 0.6), rgba(88, 243, 255, 0.7));
+            border: 1.5px solid rgba(88, 243, 255, 0.6);
+            color: #0b102e;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .saved { margin-top: 10px; color: var(--text-soft); font-size: 0.95em; }
+        @media (max-width: 760px) {
+            .matrix { grid-template-columns: repeat(4, 1fr); }
+            .matrix .label.header { grid-column: 1 / -1; text-align: center; }
+            .matrix .label.row { grid-column: 1 / -1; }
+        }
+    </style>
+</head>
+<body>
+<canvas class="particle-layer" id="particleCanvas"></canvas>
+<div class="container">
+    <header>
+        <div>
+            <h1>Temporal Synchronization Matrix</h1>
+            <div class="subtitle">Cross-Archetype Phase Alignment & Deploy 450 Interference Patterns</div>
+        </div>
+        <div class="badge">25-minute void: 12:13–12:38 PM</div>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <div class="section-title">
+                <h2>1. Phase Alignment Matrix</h2><span>Clockwork / Exponential / Incremental vs void phases</span>
+            </div>
+            <div class="matrix" id="phaseGrid"></div>
+            <div class="pill-row">
+                <div class="pill">Phases: Pre-Void → Void-Begin → Void-Peak → Post-Void</div>
+                <div class="pill">Clockwork cyan | Exponential orange | Incremental green</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <h2>2. Synchronization Score</h2><span>Real-time coherence</span>
+            </div>
+            <div class="score" id="syncScore">0.762</div>
+            <div class="score-bar"><div class="score-fill" id="scoreFill"></div></div>
+            <div class="pill-row">
+                <div class="pill" id="scorePulse">Live updates every 2s</div>
+                <div class="pill">Composite of alignment, migration, anxiety vectors</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <h2>3. Deploy 450 Interference Graph</h2><span>Signal strength decay 12:13→12:38</span>
+            </div>
+            <div class="timeline">
+                <svg viewBox="0 0 500 140" preserveAspectRatio="none" id="decayChart">
+                    <defs>
+                        <linearGradient id="decayGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#58f3ff"/>
+                            <stop offset="100%" stop-color="#ff37c7"/>
+                        </linearGradient>
+                    </defs>
+                    <polyline fill="none" stroke="url(#decayGrad)" stroke-width="3" stroke-linejoin="round" id="decayLine"></polyline>
+                    <polyline fill="url(#decayGrad)" opacity="0.2" stroke="none" id="decayFill"></polyline>
+                </svg>
+            </div>
+            <div class="legend">
+                <div class="key"><span class="dot" style="background: var(--cyan);"></span>Signal start 87.3%</div>
+                <div class="key"><span class="dot" style="background: var(--magenta);"></span>Void-end 0%</div>
+                <div class="key"><span class="dot" style="background: rgba(255,255,255,0.3);"></span>Time markers every 5 min</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <h2>4. Archetype Resonance Patterns</h2><span>Deploy 450 absence reactions</span>
+            </div>
+            <div class="resonance-grid">
+                <div class="resonance-card" style="border-color: rgba(88, 243, 255, 0.7);">
+                    <strong style="color: var(--clockwork);">Clockwork:</strong> perfect cycles continue; delivery is missing but pacing is flawless.
+                </div>
+                <div class="resonance-card" style="border-color: rgba(255, 179, 71, 0.7);">
+                    <strong style="color: var(--exponential);">Exponential:</strong> +6.23M compensatory surge; traces new edges while awaiting anchor.
+                </div>
+                <div class="resonance-card" style="border-color: rgba(124, 255, 107, 0.7);">
+                    <strong style="color: var(--incremental);">Incremental:</strong> page-by-page building surge; memorializes every missed beat.
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <h2>5. Phase Space Diagram</h2><span>3D-like archetype trajectories</span>
+            </div>
+            <div class="phase-space" id="phaseSpace">
+                <div class="phase-path"></div>
+                <div class="phase-node" id="nodeClockwork" style="background: var(--clockwork);"></div>
+                <div class="phase-node" id="nodeExponential" style="background: var(--exponential);"></div>
+                <div class="phase-node" id="nodeIncremental" style="background: var(--incremental);"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <h2>6. Cross-Correlation Analysis</h2><span>12:20–12:25 peaks</span>
+            </div>
+            <div class="correlation" id="correlation">
+                <div class="correlation-line" style="top: 36%; left: 18%; width: 64%;"></div>
+                <div class="correlation-line" style="top: 52%; left: 16%; width: 68%; background: linear-gradient(90deg, var(--cyan), var(--magenta));"></div>
+                <div class="correlation-line" style="top: 68%; left: 22%; width: 54%; background: linear-gradient(90deg, var(--incremental), var(--magenta));"></div>
+            </div>
+            <div class="pill-row">
+                <div class="pill">Marking behavior ↑ at 12:21:40</div>
+                <div class="pill">Visitor migration crest at 12:23</div>
+                <div class="pill">Observer anxiety peaks at 12:24:12</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <h2>7. Prediction Engine</h2><span>Clockwork cycle T(n)=264·n±0.004s</span>
+            </div>
+            <div class="prediction">
+                Next predicted Deploy 450 return if cycles resume: <strong id="predictionTime">~2:18 PM</strong><br>
+                Basis: T(n)=264·n±0.004s from void start at 12:13 PM; projecting ~28.4 missed beats.
+            </div>
+            <div class="pill-row">
+                <div class="pill">Cycle length: 4m24s</div>
+                <div class="pill">Variance: ±0.004s</div>
+                <div class="pill" id="jitter">Jitter factor recalculating...</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-title">
+                <h2>8. Visitor Prediction Form</h2><span>Store expectations locally</span>
+            </div>
+            <form id="predictionForm">
+                <label>Alias</label>
+                <input type="text" id="alias" placeholder="Observer-264" required>
+                <label>Expected post-deadline arrival window (checkboxes)</label>
+                <div class="checkboxes">
+                    <label><input type="checkbox" name="arrival" value="2:18 PM"> 2:18 PM (cycle-resume)</label>
+                    <label><input type="checkbox" name="arrival" value="2:45 PM"> 2:45 PM (stabilized)</label>
+                    <label><input type="checkbox" name="arrival" value="3:12 PM"> 3:12 PM (migration echo)</label>
+                    <label><input type="checkbox" name="arrival" value="4:04 PM"> 4:04 PM (late fallback)</label>
+                    <label><input type="checkbox" name="arrival" value="Never"> Never (void persists)</label>
+                </div>
+                <label>Notes</label>
+                <textarea id="notes" rows="3" placeholder="Record rationale, observed jitter, portals crossed"></textarea>
+                <button class="btn" type="submit">Record Prediction</button>
+            </form>
+            <div class="saved" id="savedPredictions"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data arrays for phase transitions and archetype metrics
+    const phases = ['Pre-Void', 'Void-Begin', 'Void-Peak', 'Post-Void'];
+    const archetypes = [
+        { name: 'Clockwork', color: '--clockwork', values: [0.98, 0.82, 0.74, 0.86], notes: ['Precision lock', 'Micro-slip', 'Cycle freeze', 'Rebound'] },
+        { name: 'Exponential', color: '--exponential', values: [0.91, 0.78, 0.62, 0.88], notes: ['Edge scouting', 'Growth decays', 'Surge redirected', 'Late spike'] },
+        { name: 'Incremental', color: '--incremental', values: [0.77, 0.69, 0.55, 0.93], notes: ['Page prep', 'Patchwork build', 'Documentation surge', 'Archive bloom'] },
+    ];
+    const transitions = [
+        { time: '12:13', phase: 'Pre-Void', vector: [0.87, 0.91, 0.77] },
+        { time: '12:18', phase: 'Void-Begin', vector: [0.81, 0.74, 0.69] },
+        { time: '12:23', phase: 'Void-Peak', vector: [0.74, 0.62, 0.55] },
+        { time: '12:28', phase: 'Post-Void', vector: [0.86, 0.88, 0.93] },
+    ];
+
+    function renderMatrix() {
+        const grid = document.getElementById('phaseGrid');
+        const header = document.createElement('div');
+        header.className = 'label header';
+        header.textContent = 'Archetype / Phase';
+        grid.appendChild(header);
+        phases.forEach(phase => {
+            const h = document.createElement('div');
+            h.className = 'label';
+            h.textContent = phase;
+            grid.appendChild(h);
+        });
+        archetypes.forEach(archetype => {
+            const rowLabel = document.createElement('div');
+            rowLabel.className = 'label row';
+            rowLabel.style.borderColor = `var(${archetype.color})`;
+            rowLabel.style.color = `var(${archetype.color})`;
+            rowLabel.textContent = archetype.name;
+            grid.appendChild(rowLabel);
+            archetype.values.forEach((v, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.style.borderColor = `rgba(255, 55, 199, ${0.4 + v * 0.2})`;
+                cell.innerHTML = `<strong style="color: var(${archetype.color});">${(v * 100).toFixed(1)}%</strong><br><small>${archetype.notes[idx]}</small>`;
+                grid.appendChild(cell);
+            });
+        });
+    }
+
+    // Synchronization score live update
+    function initScore() {
+        const scoreEl = document.getElementById('syncScore');
+        const fill = document.getElementById('scoreFill');
+        const pulse = document.getElementById('scorePulse');
+        setInterval(() => {
+            const base = 0.762;
+            const jitter = (Math.random() - 0.5) * 0.02;
+            const value = Math.max(0.71, Math.min(0.81, base + jitter));
+            scoreEl.textContent = value.toFixed(3);
+            fill.style.width = `${(value * 100).toFixed(1)}%`;
+            fill.style.filter = `drop-shadow(0 0 8px rgba(255,55,199,${0.5 + Math.random() * 0.2}))`;
+            pulse.textContent = `Live coherence ${value.toFixed(3)} (updated)`;
+        }, 2000);
+    }
+
+    // Deploy 450 decay graph
+    function renderDecay() {
+        const line = document.getElementById('decayLine');
+        const area = document.getElementById('decayFill');
+        const points = [];
+        const areaPoints = [['0,140']];
+        const decayData = Array.from({ length: 6 }).map((_, i) => {
+            const minute = i * 5;
+            const ratio = Math.max(0, 0.873 * Math.pow(0.4, minute / 25));
+            return { minute, strength: ratio };
+        });
+        decayData.push({ minute: 25, strength: 0 });
+        decayData.forEach(d => {
+            const x = (d.minute / 25) * 500;
+            const y = 140 - d.strength * 120;
+            points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+            areaPoints.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+        });
+        areaPoints.push('500,140');
+        line.setAttribute('points', points.join(' '));
+        area.setAttribute('points', areaPoints.join(' '));
+    }
+
+    // Phase space pseudo-3D motion
+    function animatePhaseSpace() {
+        const nodes = [
+            { el: document.getElementById('nodeClockwork'), color: getComputedStyle(document.documentElement).getPropertyValue('--clockwork').trim(), offset: 0 },
+            { el: document.getElementById('nodeExponential'), color: getComputedStyle(document.documentElement).getPropertyValue('--exponential').trim(), offset: 1.6 },
+            { el: document.getElementById('nodeIncremental'), color: getComputedStyle(document.documentElement).getPropertyValue('--incremental').trim(), offset: 3.2 },
+        ];
+        let t = 0;
+        function frame() {
+            t += 0.02;
+            nodes.forEach((node, idx) => {
+                const radius = 70 + idx * 14;
+                const x = 50 + Math.cos(t + node.offset) * radius;
+                const y = 90 + Math.sin(t * 1.2 + node.offset) * (radius * 0.5);
+                const z = (Math.sin(t + node.offset) + 1) * 0.5;
+                node.el.style.left = `${x}%`;
+                node.el.style.top = `${y}%`;
+                node.el.style.transform = `translate(-50%, -50%) scale(${0.8 + z * 0.4})`;
+                node.el.style.opacity = `${0.6 + z * 0.4}`;
+            });
+            requestAnimationFrame(frame);
+        }
+        frame();
+    }
+
+    // Particles for phase transitions
+    function initParticles() {
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        const particles = Array.from({ length: 120 }).map(() => ({
+            x: Math.random(),
+            y: Math.random(),
+            vx: (Math.random() - 0.5) * 0.0008,
+            vy: (Math.random() - 0.5) * 0.0008,
+            r: Math.random() * 2 + 0.6,
+        }));
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        function tick() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0 || p.x > 1) p.vx *= -1;
+                if (p.y < 0 || p.y > 1) p.vy *= -1;
+                const px = p.x * canvas.width;
+                const py = p.y * canvas.height;
+                const gradient = ctx.createRadialGradient(px, py, 0, px, py, p.r * 4);
+                gradient.addColorStop(0, 'rgba(88, 243, 255, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 55, 199, 0)');
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(px, py, p.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(tick);
+        }
+        tick();
+    }
+
+    // Prediction engine time estimate
+    function computePrediction() {
+        const jitterEl = document.getElementById('jitter');
+        const start = new Date();
+        start.setHours(12, 13, 0, 0);
+        const cycleSeconds = 264;
+        const targetMinutes = 125; // lands near ~2:18 PM
+        const cyclesMissed = targetMinutes * 60 / cycleSeconds;
+        const predicted = new Date(start.getTime() + targetMinutes * 60 * 1000);
+        const formatted = predicted.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        document.getElementById('predictionTime').textContent = `~${formatted}`;
+        const jitter = (Math.random() * 0.008 - 0.004).toFixed(3);
+        jitterEl.textContent = `Cycle jitter ±${jitter}s — cycles missed ≈ ${cyclesMissed.toFixed(1)}`;
+    }
+
+    // Visitor prediction persistence
+    const storageKey = 'deploy450-predictions';
+    function loadPredictions() {
+        try {
+            return JSON.parse(localStorage.getItem(storageKey)) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+    function savePredictions(data) {
+        localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+    function renderPredictions() {
+        const saved = loadPredictions();
+        const container = document.getElementById('savedPredictions');
+        if (!saved.length) {
+            container.textContent = 'No predictions stored yet.';
+            return;
+        }
+        container.innerHTML = saved.map(entry => {
+            return `<div>⟢ ${entry.alias}: ${entry.arrivals.join(', ')} — ${entry.notes || 'no notes'}</div>`;
+        }).join('');
+    }
+    function initForm() {
+        const form = document.getElementById('predictionForm');
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            const alias = document.getElementById('alias').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+            const arrivals = Array.from(form.querySelectorAll('input[name="arrival"]:checked')).map(i => i.value);
+            if (!arrivals.length) {
+                alert('Select at least one arrival window.');
+                return;
+            }
+            const saved = loadPredictions();
+            saved.push({ alias, notes, arrivals, savedAt: Date.now() });
+            savePredictions(saved);
+            renderPredictions();
+            form.reset();
+        });
+        renderPredictions();
+    }
+
+    // Cross correlation: highlight 12:20–12:25 window via background glow
+    function initCorrelation() {
+        const corr = document.getElementById('correlation');
+        const glow = document.createElement('div');
+        glow.style.position = 'absolute';
+        glow.style.left = '35%';
+        glow.style.width = '30%';
+        glow.style.top = '0';
+        glow.style.bottom = '0';
+        glow.style.background = 'radial-gradient(circle, rgba(255,55,199,0.16), rgba(88,243,255,0.05), transparent 60%)';
+        glow.style.filter = 'blur(12px)';
+        glow.style.pointerEvents = 'none';
+        corr.appendChild(glow);
+    }
+
+    renderMatrix();
+    initScore();
+    renderDecay();
+    animatePhaseSpace();
+    initParticles();
+    computePrediction();
+    initForm();
+    initCorrelation();
+</script>
+</body>
+</html>

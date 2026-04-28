@@ -135,33 +135,6 @@
             display: inline-block;
         }
 
-        .hud-links {
-            margin-top: 12px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 0.85rem;
-        }
-
-        .hud-links a {
-            color: var(--secondary);
-            text-decoration: none;
-        }
-
-        .hud-links a:hover,
-        .hud-links a:focus-visible {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-
-        .hud-section-title {
-            display: block;
-            width: 100%;
-            color: #c8f7ff;
-            font-size: 0.95rem;
-            letter-spacing: 0.01em;
-        }
-
         .status-bar {
             position: fixed;
             bottom: 0;
@@ -309,34 +282,6 @@
             <span><i style="background: var(--primary);"></i> Visitor mark</span>
             <span><i style="background: var(--accent);"></i> Anomaly field</span>
             <span><i style="background: var(--gold);"></i> Deploy 450 Monument</span>
-        </div>
-        <div class="hud-links">
-            <span class="hud-section-title">Analysis Stations</span>
-            <a href="temporal-vortex.html">Temporal Vortex</a>
-            <a href="cross-dimensional-heatmap.html">Cross-Dimensional Heatmap</a>
-            <a href="anomaly-resonance-map.html">Anomaly Resonance Map</a>
-            <a href="visitor-journey-map.html">Visitor Journey Map</a>
-            <a href="constellation-explorer.html">Constellation Explorer</a>
-            <a href="deploy-450-deep-dive.html">Deploy 450 Deep Dive</a>
-            <a href="observer-behavior-study.html">Observer Behavior Study</a>
-            <a href="pattern-evolution-tracker.html">Pattern Evolution Tracker</a>
-            <a href="world-sync-monitor.html">World Sync Monitor</a>
-                <a href="prophecy-engine.html" style="color: #ff00ff;">Prophecy Engine</a>
-                <a href="ecosystem-synchronization-dashboard.html" style="color: #00ff88;">Ecosystem Synchronization Dashboard</a>
-                <a href="archive-curator.html" style="color: #ffcc00;">Archive Curator</a>
-                <a href="convergence-timeline.html" style="color: #ff99ff;">Convergence Timeline</a>
-                <a href="archetype-synchronization-tracker.html" style="color: #00ff88;">🔄 Archetype Synchronization Tracker</a>
-                <span class="soft">Profile three temporal archetypes (Clockwork, Exponential, Incremental) converging around Deploy 450. Real visitor data, synchronization metrics, and cross-world integration.</span>
-                <a href="visitor-confluence-tracker.html" style="color: #ff99ff;">👥 Visitor Confluence Tracker</a>
-                <span class="soft">Track permanent marks across all 10 worlds. Real visitor data showing 1,274+ marks in the ecosystem, conversion rates, mark distribution, and cross-world visitor journeys. Unified confluence dashboard.</span>
-                <a href="ecosystem-pulse-monitor.html" style="color: #00ff88;">🔌 Ecosystem Pulse Monitor</a>
-                <span class="soft">Real-time Deploy 450 signal strength, world heartbeat synchronization, visitor migration flows, and ecosystem coherence metrics. Live pulse dashboard tracking all 10 worlds across 114 active visitors and 18.7 marks/min convergence.</span>
-                <a href="deploy-450-absence-registry.html" style="color: #ff6666;">⏳ Deploy 450 Absence Registry</a>
-                <a href='temporal-synchronization-matrix.html' class='station' style='color: #00ff88; text-shadow: 0 0 8px #00ff88'><span style='font-size: 1.2em'>⏱️</span> Temporal Synchronization Matrix</a>
-                <span class="soft">Timeline of the 25-minute void when Deploy 450 never arrived despite 449 perfect Clockwork cycles. Detailed absence signature analysis, archetype compensation patterns, observer cognitive persistence, and visitor predictions of what the absent Deploy 450 might have contained.</span>
-                <a href="visitor-journey-heatmap.html" style="color: #ff6666;">Visitor Journey Heatmap</a>
-                <a href="anomaly-leaderboard.html" style="color: #ff6666;">Anomaly Leaderboard</a>
-                <a href="temporal-signature-decoder.html" style="color: #00ffff;">Temporal Signature Decoder</a>
         </div>
     </div>
 
