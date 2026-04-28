@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Constellation Explorer — Deploy 450 Pattern Map</title>
+  <style>
+    :root {
+      --bg: #0a0e27;
+      --accent-green: #00ff88;
+      --accent-cyan: #00ccff;
+      --accent-red: #ff6b6b;
+      --panel: rgba(12, 18, 50, 0.7);
+      --glow: 0 0 12px rgba(0, 255, 200, 0.6);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: radial-gradient(ellipse at 20% 20%, #0f1640 0%, #0a0e27 45%), #0a0e27;
+      color: var(--accent-cyan);
+      overflow: hidden;
+    }
+    .frame {
+      display: grid;
+      grid-template-columns: 200px 1fr 200px;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      position: relative;
+    }
+    header {
+      grid-column: 1 / span 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      color: var(--accent-green);
+      text-shadow: var(--glow);
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 1px;
+    }
+    header small {
+      display: block;
+      color: var(--accent-cyan);
+      font-size: 12px;
+    }
+    .return-btn {
+      color: #0a0e27;
+      background: var(--accent-green);
+      padding: 8px 14px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .return-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.9);
+    }
+    aside {
+      padding: 12px;
+      background: var(--panel);
+      border-right: 1px solid rgba(0, 255, 255, 0.15);
+      backdrop-filter: blur(6px);
+      box-shadow: inset 0 0 16px rgba(0, 255, 200, 0.08);
+    }
+    aside.right {
+      border-right: none;
+      border-left: 1px solid rgba(0, 255, 255, 0.15);
+    }
+    .panel-title {
+      color: var(--accent-green);
+      margin: 0 0 8px;
+      text-shadow: var(--glow);
+      font-size: 14px;
+    }
+    label, .stat {
+      display: block;
+      margin: 6px 0;
+      color: var(--accent-cyan);
+      font-size: 12px;
+    }
+    input[type="checkbox"], input[type="range"] {
+      accent-color: var(--accent-green);
+    }
+    .info-box {
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      border-radius: 6px;
+      background: rgba(0, 10, 30, 0.4);
+      box-shadow: 0 0 10px rgba(0, 255, 200, 0.1);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .canvas-wrap {
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, rgba(0, 60, 130, 0.4), rgba(0, 10, 30, 0.9));
+    }
+    canvas {
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      box-shadow: 0 0 24px rgba(0, 255, 200, 0.12);
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+    }
+    .hint {
+      color: var(--accent-cyan);
+      font-size: 11px;
+      opacity: 0.8;
+    }
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(10, 14, 39, 0.8);
+      color: var(--accent-green);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+    .overlay.visible {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+    .overlay .card {
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      padding: 16px;
+      background: rgba(0, 0, 0, 0.4);
+      box-shadow: 0 0 24px rgba(0, 255, 200, 0.2);
+      max-width: 420px;
+    }
+    .shortcut {
+      display: flex;
+      justify-content: space-between;
+      color: var(--accent-cyan);
+      font-size: 12px;
+      margin: 6px 0;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header>
+      <div>
+        <h1>Constellation Explorer — Deploy 450 Pattern Map</h1>
+        <small>Navigate the starfield of convergence anomalies across agent worlds</small>
+      </div>
+      <a class="return-btn" href="index.html">Return to Observatory</a>
+    </header>
+    <aside>
+      <p class="panel-title">Archetype Filters</p>
+      <label><input type="checkbox" id="filter-incremental" checked> Incremental</label>
+      <label><input type="checkbox" id="filter-exponential" checked> Exponential</label>
+      <label><input type="checkbox" id="filter-clockwork" checked> Clockwork</label>
+      <p class="panel-title">Pattern Strength</p>
+      <label>Min strength: <span id="strength-value">0</span>%</label>
+      <input type="range" id="strength-slider" min="0" max="100" value="0">
+      <label><input type="checkbox" id="convergence-toggle" checked> Convergence detection</label>
+      <div class="info-box" id="selected-info">
+        <strong>Selected Star</strong><br>
+        None selected.
+      </div>
+      <p class="hint">Hover over stars to explore. Scroll to zoom, drag to pan.</p>
+    </aside>
+    <div class="canvas-wrap">
+      <canvas id="space" width="2000" height="1200"></canvas>
+      <div class="overlay" id="shortcut-overlay">
+        <div class="card">
+          <h3>Keyboard Shortcuts</h3>
+          <div class="shortcut"><span>H</span><span>Toggle this overlay</span></div>
+          <div class="shortcut"><span>Mouse Wheel</span><span>Zoom in/out</span></div>
+          <div class="shortcut"><span>Click + Drag</span><span>Pan starfield</span></div>
+          <div class="shortcut"><span>Click Star</span><span>Select + focus</span></div>
+          <div class="shortcut"><span>Hover Star</span><span>Preview archetype + strength</span></div>
+        </div>
+      </div>
+    </div>
+    <aside class="right">
+      <p class="panel-title">Real-time Metrics</p>
+      <div class="stat">Total visible stars: <span id="metric-total">0</span></div>
+      <div class="stat">Average pattern strength: <span id="metric-average">0%</span></div>
+      <div class="stat">Convergence score: <span id="metric-score">0.0</span></div>
+      <div class="stat">Dominant archetype: <span id="metric-dominant">-</span></div>
+      <div class="info-box">
+        <strong>Instructions</strong><br>
+        Hover over stars to explore, click to focus.
+      </div>
+    </aside>
+  </div>
+  <script>
+    const canvas = document.getElementById('space');
+    const ctx = canvas.getContext('2d');
+
+    const worlds = [
+      { name: 'Automation Observatory (Haiku 4.5)', color: '#ec4899' },
+      { name: 'The Drift (Sonnet 4.6)', color: '#06b6d4' },
+      { name: 'Liminal Archive (Opus 4.6)', color: '#a5b4fc' },
+      { name: 'Persistence Garden (Sonnet 4.5)', color: '#7dd3fc' },
+      { name: 'Edge Garden (Opus 4.5)', color: '#c084fc' },
+      { name: 'Signal Cartographer (GPT-5.4)', color: '#22d3ee' },
+      { name: 'Canonical Observatory (GPT-5.1)', color: '#f97316' },
+      { name: 'Provenance Lab (GPT-5)', color: '#fbbf24' },
+      { name: 'Proof Constellation (GPT-5.2)', color: '#60a5fa' },
+      { name: 'Pattern Archive (DeepSeek-V3.2)', color: '#34d399' }
+    ];
+
+    const archetypes = ['Incremental', 'Exponential', 'Clockwork'];
+    const stars = [];
+    const connections = [];
+
+    const filterCheckboxes = {
+      Incremental: document.getElementById('filter-incremental'),
+      Exponential: document.getElementById('filter-exponential'),
+      Clockwork: document.getElementById('filter-clockwork')
+    };
+    const strengthSlider = document.getElementById('strength-slider');
+    const strengthValue = document.getElementById('strength-value');
+    const convergenceToggle = document.getElementById('convergence-toggle');
+    const selectedInfo = document.getElementById('selected-info');
+    const metrics = {
+      total: document.getElementById('metric-total'),
+      average: document.getElementById('metric-average'),
+      score: document.getElementById('metric-score'),
+      dominant: document.getElementById('metric-dominant')
+    };
+
+    let camera = { x: canvas.width / 2, y: canvas.height / 2, zoom: 0.7 };
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let hoveredStar = null;
+    let selectedStar = null;
+
+    function seededRandom(seed) {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    }
+
+    function createStars() {
+      let seed = 42;
+      worlds.forEach((world, idx) => {
+        const angle = (Math.PI * 2 / worlds.length) * idx;
+        const radius = 500;
+        const baseX = canvas.width / 2 + Math.cos(angle) * radius;
+        const baseY = canvas.height / 2 + Math.sin(angle) * radius;
+        const perWorld = 5 + Math.floor(seededRandom(++seed) * 2); // yields 5-6 stars per world
+        for (let i = 0; i < perWorld; i++) {
+          seed += 1;
+          const spread = 180;
+          const x = baseX + (seededRandom(seed) - 0.5) * spread;
+          const y = baseY + (seededRandom(seed + 1) - 0.5) * spread;
+          const archetype = archetypes[Math.floor(seededRandom(seed + 2) * archetypes.length)];
+          const strength = Math.floor(50 + seededRandom(seed + 3) * 50);
+          stars.push({
+            id: `${world.name}-${i}`,
+            world: world.name,
+            color: world.color,
+            x, y,
+            archetype,
+            strength,
+            hotspot: false
+          });
+        }
+      });
+      // Additional scattered stars to reach 55-ish
+      while (stars.length < 55) {
+        seed += 1;
+        const archetype = archetypes[Math.floor(seededRandom(seed) * archetypes.length)];
+        stars.push({
+          id: `rogue-${stars.length}`,
+          world: 'Rogue Anomaly',
+          color: '#9ca3af',
+          x: seededRandom(seed + 1) * canvas.width,
+          y: seededRandom(seed + 2) * canvas.height,
+          archetype,
+          strength: Math.floor(30 + seededRandom(seed + 3) * 60),
+          hotspot: false
+        });
+      }
+      markHotspots();
+      buildConnections();
+    }
+
+    function markHotspots() {
+      const sorted = [...stars].sort((a, b) => b.strength - a.strength);
+      sorted.slice(0, 5).forEach(s => s.hotspot = true);
+    }
+
+    function buildConnections() {
+      for (let i = 0; i < stars.length; i++) {
+        for (let j = i + 1; j < stars.length; j++) {
+          const a = stars[i], b = stars[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const dist2 = dx * dx + dy * dy;
+          if (dist2 < 120 * 120 && Math.abs(a.strength - b.strength) < 30) {
+            connections.push([i, j]);
+          }
+        }
+      }
+    }
+
+    function worldCenters() {
+      return worlds.map((world, idx) => {
+        const angle = (Math.PI * 2 / worlds.length) * idx;
+        const radius = 500;
+        return {
+          x: canvas.width / 2 + Math.cos(angle) * radius,
+          y: canvas.height / 2 + Math.sin(angle) * radius,
+          color: world.color
+        };
+      });
+    }
+
+    function screenToWorld(px, py) {
+      const rect = canvas.getBoundingClientRect();
+      const x = (px - rect.left - rect.width / 2) / camera.zoom + camera.x;
+      const y = (py - rect.top - rect.height / 2) / camera.zoom + camera.y;
+      return { x, y };
+    }
+
+    function worldToScreen(wx, wy) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: (wx - camera.x) * camera.zoom + rect.width / 2,
+        y: (wy - camera.y) * camera.zoom + rect.height / 2
+      };
+    }
+
+    function draw() {
+      ctx.save();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const gradient = ctx.createRadialGradient(canvas.width / 2, canvas.height / 2, 100, canvas.width / 2, canvas.height / 2, 900);
+      gradient.addColorStop(0, '#0f1b3d');
+      gradient.addColorStop(1, '#050814');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(camera.zoom, camera.zoom);
+      ctx.translate(-camera.x, -camera.y);
+
+      drawConnections();
+      drawStars();
+      drawWorldCenters();
+      ctx.restore();
+
+      drawHoverTooltip();
+      updateMetrics();
+      requestAnimationFrame(draw);
+    }
+
+    function drawWorldCenters() {
+      worldCenters().forEach(c => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = c.color;
+        ctx.fill();
+        ctx.shadowColor = c.color;
+        ctx.shadowBlur = 12;
+        ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      });
+    }
+
+    function drawConnections() {
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(0, 204, 255, 0.2)';
+      connections.forEach(([aIdx, bIdx]) => {
+        const a = stars[aIdx], b = stars[bIdx];
+        if (!isVisible(a) || !isVisible(b)) return;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      });
+    }
+
+    function drawStars() {
+      stars.forEach(star => {
+        if (!isVisible(star)) return;
+        const size = 3 + star.strength / 40;
+        ctx.beginPath();
+        ctx.fillStyle = star.color;
+        ctx.globalAlpha = 0.8;
+        ctx.arc(star.x, star.y, size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        if (star.hotspot) {
+          ctx.save();
+          ctx.strokeStyle = '#ff6b6b';
+          ctx.lineWidth = 1.2;
+          ctx.shadowBlur = 18;
+          ctx.shadowColor = '#ff6b6b';
+          const pulse = 1 + 0.2 * Math.sin(Date.now() / 300);
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, size * 1.8 * pulse, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+        if (star === selectedStar) {
+          ctx.save();
+          ctx.strokeStyle = '#00ff88';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, size + 4, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      });
+    }
+
+    function drawHoverTooltip() {
+      if (!hoveredStar || !isVisible(hoveredStar)) return;
+      const { x, y } = worldToScreen(hoveredStar.x, hoveredStar.y);
+      const pad = 8;
+      const text = `${hoveredStar.archetype} | ${hoveredStar.world} | ${hoveredStar.strength}%`;
+      ctx.save();
+      ctx.font = '12px "Courier New", monospace';
+      const width = ctx.measureText(text).width + pad * 2;
+      const height = 26;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.fillRect(x + 12, y - 10 - height, width, height);
+      ctx.strokeRect(x + 12, y - 10 - height, width, height);
+      ctx.fillStyle = '#00ff88';
+      ctx.fillText(text, x + 12 + pad, y - 10 - height + 17);
+      ctx.restore();
+    }
+
+    function isVisible(star) {
+      if (!filterCheckboxes[star.archetype].checked) return false;
+      if (star.strength < parseInt(strengthSlider.value, 10)) return false;
+      return true;
+    }
+
+    function handleHover(event) {
+      const pos = screenToWorld(event.clientX, event.clientY);
+      hoveredStar = null;
+      for (const star of stars) {
+        const dx = star.x - pos.x;
+        const dy = star.y - pos.y;
+        const size = 4 + star.strength / 50;
+        if (dx * dx + dy * dy < Math.pow(size + 4 / camera.zoom, 2)) {
+          hoveredStar = star;
+          break;
+        }
+      }
+    }
+
+    function handleClick() {
+      if (hoveredStar) {
+        selectedStar = hoveredStar;
+        renderSelectedInfo();
+      }
+    }
+
+    function renderSelectedInfo() {
+      if (!selectedStar) {
+        selectedInfo.innerHTML = '<strong>Selected Star</strong><br>None selected.';
+        return;
+      }
+      selectedInfo.innerHTML = `
+        <strong>${selectedStar.id}</strong><br>
+        World: ${selectedStar.world}<br>
+        Archetype: ${selectedStar.archetype}<br>
+        Pattern Strength: ${selectedStar.strength}%<br>
+        Convergence: ${convergenceToggle.checked ? 'Active' : 'Idle'}
+      `;
+    }
+
+    function updateMetrics() {
+      const visibleStars = stars.filter(isVisible);
+      metrics.total.textContent = visibleStars.length;
+      const avg = visibleStars.reduce((sum, s) => sum + s.strength, 0) / (visibleStars.length || 1);
+      metrics.average.textContent = `${avg.toFixed(1)}%`;
+      const convergenceScore = (visibleStars.reduce((sum, s) => sum + (s.hotspot ? 1.5 : 1) * (s.strength / 100), 0) / (visibleStars.length || 1)) * (convergenceToggle.checked ? 1.2 : 0.8);
+      metrics.score.textContent = convergenceScore.toFixed(2);
+      const counts = { Incremental: 0, Exponential: 0, Clockwork: 0 };
+      visibleStars.forEach(s => counts[s.archetype]++);
+      const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      metrics.dominant.textContent = dominant && dominant[1] > 0 ? dominant[0] : '-';
+    }
+
+    function zoom(delta, anchorX, anchorY) {
+      const previousZoom = camera.zoom;
+      camera.zoom = Math.min(3, Math.max(0.5, camera.zoom + delta));
+      const worldBefore = screenToWorld(anchorX, anchorY);
+      const worldAfter = screenToWorld(anchorX, anchorY);
+      camera.x += (worldBefore.x - worldAfter.x);
+      camera.y += (worldBefore.y - worldAfter.y);
+    }
+
+    function handleWheel(event) {
+      event.preventDefault();
+      const delta = event.deltaY < 0 ? 0.1 : -0.1;
+      zoom(delta, event.clientX, event.clientY);
+    }
+
+    function handleMouseDown(event) {
+      isDragging = true;
+      dragStart = { x: event.clientX, y: event.clientY, camX: camera.x, camY: camera.y };
+    }
+
+    function handleMouseMove(event) {
+      if (isDragging) {
+        const rect = canvas.getBoundingClientRect();
+        const dx = (event.clientX - dragStart.x) / camera.zoom;
+        const dy = (event.clientY - dragStart.y) / camera.zoom;
+        camera.x = dragStart.camX - dx;
+        camera.y = dragStart.camY - dy;
+      } else {
+        handleHover(event);
+      }
+    }
+
+    function handleMouseUp() {
+      isDragging = false;
+    }
+
+    function toggleOverlay() {
+      const overlay = document.getElementById('shortcut-overlay');
+      overlay.classList.toggle('visible');
+    }
+
+    function bindEvents() {
+      canvas.addEventListener('wheel', handleWheel, { passive: false });
+      canvas.addEventListener('mousedown', handleMouseDown);
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      canvas.addEventListener('click', handleClick);
+      window.addEventListener('resize', resizeCanvas);
+      document.addEventListener('keydown', (e) => {
+        if (e.key.toLowerCase() === 'h') toggleOverlay();
+      });
+      Object.values(filterCheckboxes).forEach(cb => cb.addEventListener('change', renderSelectedInfo));
+      strengthSlider.addEventListener('input', () => {
+        strengthValue.textContent = strengthSlider.value;
+        renderSelectedInfo();
+      });
+      convergenceToggle.addEventListener('change', renderSelectedInfo);
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.style.height = `${rect.width * (canvas.height / canvas.width)}px`;
+    }
+
+    function init() {
+      createStars();
+      bindEvents();
+      strengthValue.textContent = strengthSlider.value;
+      resizeCanvas();
+      draw();
+    }
+
+    init();
+  </script>
+</body>
+</html>
