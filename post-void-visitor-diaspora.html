@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Post-Void Visitor Diaspora</title>
+<style>
+  :root {
+    --bg-start: #0a0e27;
+    --bg-end: #1a1f3a;
+    --text: #d7fbe8;
+    --secondary: #c8f7ff;
+    --accent: #00ff88;
+    --cyan: #39ffd2;
+    --magenta: #ff4dc8;
+    --panel: rgba(12, 16, 42, 0.82);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    background: radial-gradient(circle at 12% 18%, rgba(0, 255, 136, 0.08), transparent 28%),
+                radial-gradient(circle at 82% 10%, rgba(255, 77, 200, 0.08), transparent 32%),
+                linear-gradient(135deg, var(--bg-start), var(--bg-end));
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  #particles {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 24px 12px 12px;
+    border-bottom: 2px solid var(--cyan);
+    box-shadow: 0 6px 22px rgba(57, 255, 210, 0.24);
+    background: linear-gradient(135deg, rgba(10, 14, 39, 0.95), rgba(26, 31, 58, 0.95));
+  }
+  h1 { margin: 0; font-size: 2.6rem; letter-spacing: 1px; color: var(--accent); }
+  h2 { margin: 6px 0 4px; font-weight: 400; color: var(--secondary); }
+  .meta { color: #9bd8ff; font-size: 0.95rem; }
+  .status-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 12px 0 2px; }
+  .badge {
+    border: 2px solid var(--cyan);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: rgba(26, 31, 58, 0.9);
+    box-shadow: 0 0 10px rgba(57, 255, 210, 0.24);
+  }
+  .badge.cyan { color: var(--cyan); }
+  .badge.magenta { color: var(--magenta); border-color: var(--magenta); box-shadow: 0 0 12px rgba(255, 77, 200, 0.32); }
+  .badge.green { color: #6dffb8; border-color: #6dffb8; box-shadow: 0 0 12px rgba(109, 255, 184, 0.28); }
+  main {
+    position: relative;
+    z-index: 1;
+    max-width: 1220px;
+    margin: 0 auto;
+    padding: 18px 16px 70px;
+    display: grid;
+    gap: 14px;
+  }
+  section {
+    border: 2px solid var(--cyan);
+    border-radius: 8px;
+    background: var(--panel);
+    padding: 14px 16px;
+    box-shadow: 0 0 14px rgba(57, 255, 210, 0.22);
+  }
+  .section-title {
+    margin: 0 0 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--cyan);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--magenta);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--magenta);
+  }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .panel-note { color: var(--secondary); margin: 4px 0 10px; font-size: 0.95rem; }
+  canvas, svg { border-radius: 8px; border: 2px solid var(--cyan); }
+  table { width: 100%; border-collapse: collapse; color: var(--text); }
+  th, td {
+    border: 1px solid var(--cyan);
+    padding: 6px;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  th { background: rgba(57, 255, 210, 0.12); color: var(--secondary); }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  button {
+    border: 2px solid var(--cyan);
+    background: rgba(57, 255, 210, 0.08);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-family: "Courier New", monospace;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 0 12px rgba(57, 255, 210, 0.32); }
+  button.active { background: rgba(0, 255, 136, 0.14); box-shadow: 0 0 12px rgba(0, 255, 136, 0.3); }
+  .bar {
+    height: 14px;
+    border-radius: 7px;
+    background: rgba(57, 255, 210, 0.12);
+    border: 1px solid var(--cyan);
+    overflow: hidden;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--cyan), var(--magenta));
+  }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .stat {
+    border: 2px solid var(--cyan);
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(26, 31, 58, 0.9);
+    box-shadow: inset 0 0 12px rgba(57, 255, 210, 0.16);
+  }
+  .callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .callout {
+    border: 2px solid var(--cyan);
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(10, 14, 39, 0.9);
+    box-shadow: 0 0 12px rgba(57, 255, 210, 0.18);
+  }
+  .pathways { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .pathway {
+    border: 2px solid var(--cyan);
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(15, 20, 48, 0.88);
+  }
+  .timeline {
+    width: 100%;
+    height: 180px;
+    border-radius: 8px;
+    border: 2px solid var(--cyan);
+    background: rgba(10, 14, 39, 0.75);
+  }
+  #connectivity {
+    width: 100%;
+    height: 320px;
+    background: rgba(10, 14, 39, 0.8);
+  }
+  #heatmap { width: 100%; height: 360px; background: rgba(10, 14, 39, 0.75); display: block; }
+  .counts { margin-top: 10px; color: var(--secondary); }
+  .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 6px; align-items: center; }
+  label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; }
+  footer {
+    position: relative;
+    z-index: 1;
+    max-width: 1220px;
+    margin: 0 auto 36px;
+    padding: 0 16px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+    border: 2px solid var(--cyan);
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: rgba(26, 31, 58, 0.85);
+  }
+  footer a:hover { color: var(--secondary); }
+  .audio-control {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 10px;
+    border: 2px solid var(--cyan);
+    border-radius: 8px;
+    background: rgba(26, 31, 58, 0.85);
+    color: var(--secondary);
+  }
+  @media (max-width: 720px) {
+    h1 { font-size: 2.1rem; }
+    #connectivity { height: 260px; }
+    #heatmap { height: 300px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<header>
+  <h1>Post-Void Visitor Diaspora</h1>
+  <h2>Visitor Migration Routes, Cross-World Mark Flow &amp; 10-World Network Dynamics</h2>
+  <div class="meta">Deploy 450 void absence window: 12:13 - 12:38 PM; recovery cascade through 12:50 PM+</div>
+  <div class="status-row">
+    <span class="badge cyan">DIASPORA COMPLETE</span>
+    <span class="badge magenta">847 MARKS CASCADED</span>
+    <span class="badge green">NETWORK REBALANCED</span>
+  </div>
+  <div class="status-row">
+    <div class="audio-control">
+      <button id="audioToggle">Mute 60Hz / 90Hz Field</button>
+      <span id="audioStatus">LFO active</span>
+    </div>
+  </div>
+</header>
+<main>
+  <section>
+    <h3 class="section-title">Visitor Migration Heatmap</h3>
+    <p class="panel-note">Cross-world movement intensity during void onset, immediate recovery, and normalization. Darker cells = higher traffic.</p>
+    <div class="controls">
+      <button data-phase="void" class="active">12:13-12:38 Void</button>
+      <button data-phase="recovery">12:38-12:45 Recovery</button>
+      <button data-phase="normalized">12:45+ Normalization</button>
+    </div>
+    <canvas id="heatmap"></canvas>
+  </section>
+
+  <div class="grid-2">
+    <section>
+      <h3 class="section-title">Diaspora Timeline</h3>
+      <svg class="timeline" viewBox="0 0 800 180" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="waveGrad" x1="0%" x2="100%" y1="0%" y2="0%">
+            <stop offset="0%" stop-color="var(--cyan)" />
+            <stop offset="50%" stop-color="var(--magenta)" />
+            <stop offset="100%" stop-color="var(--accent)" />
+          </linearGradient>
+        </defs>
+        <path id="wave" d="" stroke="url(#waveGrad)" stroke-width="3" fill="none" />
+        <g id="timelineMarkers"></g>
+      </svg>
+      <ul class="panel-note" style="margin-top:8px; line-height:1.5;">
+        <li>12:13 PM: Void onset; 2,500 active visitors queued in origin worlds.</li>
+        <li>12:25 PM: Mid-void exploration; navigation attempts unresolved.</li>
+        <li>12:38 PM: Signal recovery; 847 simultaneous marks released; cascade begins.</li>
+        <li>12:38-12:40 PM: Initial wave; 412 movements.</li>
+        <li>12:40-12:45 PM: Secondary wave; 289 transitions.</li>
+        <li>12:45-12:50 PM: Tertiary wave; 156 late-arriving marks.</li>
+        <li>12:50+ PM: Normalization; distribution stabilizes.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3 class="section-title">10-World Connectivity Graph</h3>
+      <p class="panel-note">Node size = total visitors; flowing links = mark exchange volume during recovery.</p>
+      <svg id="connectivity" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet"></svg>
+    </section>
+  </div>
+
+  <section>
+    <h3 class="section-title">Visitor Retention by World</h3>
+    <div class="grid-2" id="retentionGrid"></div>
+  </section>
+
+  <section>
+    <h3 class="section-title">Cross-World Mark Propagation</h3>
+    <div class="callouts">
+      <div class="callout">
+        <strong>Synchronous Marks</strong>
+        <div>612 marks at 12:38 PM (100ms window)</div>
+        <div>72% returned to origin | 28% routed cross-world</div>
+      </div>
+      <div class="callout">
+        <strong>Delayed Marks</strong>
+        <div>235 marks (12:40-12:50 PM)</div>
+        <div>45% origin | 55% cross-world (path divergence)</div>
+      </div>
+      <div class="callout">
+        <strong>Orphaned Marks</strong>
+        <div>47 marks recovered via GH Issues linkage</div>
+        <div>Resolved after visitor displacement</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section-title">Visitor Experience Pathways</h3>
+    <div class="pathways">
+      <div class="pathway"><strong>Anchored — 68%</strong><br/>Remained in origin world throughout void.</div>
+      <div class="pathway"><strong>Explorers — 18%</strong><br/>Visited 2+ worlds during 12:38-12:50.</div>
+      <div class="pathway"><strong>Nomads — 8%</strong><br/>3+ migrations; sustained inter-world engagement.</div>
+      <div class="pathway"><strong>Lost — 6%</strong><br/>Marks across worlds; origin unclear; GH recovery.</div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section-title">Ecosystem Stability Impact</h3>
+    <div class="stat-grid">
+      <div class="stat"><strong>Network Density (Void):</strong> 0.18 (paths queued)</div>
+      <div class="stat"><strong>Density (Immediate Post-Void):</strong> 0.64 (cascade)</div>
+      <div class="stat"><strong>Density (Normalized):</strong> 0.42 (post 12:50 PM)</div>
+      <div class="stat"><strong>Centrality Shift:</strong> Observatory 0.32 → 0.47</div>
+      <div class="stat"><strong>Average Path Length:</strong> 2.1 hops across 10 worlds</div>
+    </div>
+  </section>
+
+  <section>
+    <h3 class="section-title">Interactive Visitor Diaspora Tracker</h3>
+    <p class="panel-note">Local-only tally; pick your diaspora path.</p>
+    <div class="form-row">
+      <label><input type="checkbox" value="anchored" /> Stayed in my origin world (Anchored)</label>
+      <label><input type="checkbox" value="explorer" /> Explored 2+ worlds (Explorer)</label>
+      <label><input type="checkbox" value="nomad" /> Migrated across 3+ worlds (Nomad)</label>
+      <label><input type="checkbox" value="lost" /> Uncertain which world(s) I visited (Lost)</label>
+      <label><input type="checkbox" value="multi" /> First time visiting multiple worlds simultaneously</label>
+    </div>
+    <div class="controls" style="margin-top:10px;">
+      <button id="submitPath">Submit Pathway</button>
+      <button id="clearPath">Clear Local Tally</button>
+    </div>
+    <div class="counts" id="pathCounts"></div>
+  </section>
+</main>
+<footer>
+  <a href="deploy-450-resonance-aftereffects.html">Page 43 · resonance-aftereffects</a>
+  <a href="deploy-450-resurrection-mechanics.html">Page 42 · resurrection-mechanics</a>
+  <a href="ecosystem-collapse-prevention.html">Page 41 · collapse-prevention</a>
+  <a href="deploy-450-signal-cascade.html">Page 39 · signal-cascade</a>
+</footer>
+
+<script>
+  const worlds = ["Observatory","Drift","Liminal","Persistence","Edge Garden","Signal Cart.","Canonical","Provenance","Proof","Pattern"];
+  const migrationData = {
+    void: [
+      [0,187,92,66,74,81,54,42,39,58],
+      [134,0,142,63,71,55,48,36,45,59],
+      [168,96,0,54,73,62,58,40,38,66],
+      [72,58,64,0,49,38,34,31,29,44],
+      [84,73,68,47,0,56,44,33,36,71],
+      [91,72,64,39,60,0,35,30,33,54],
+      [77,58,61,36,46,34,0,27,26,48],
+      [63,47,52,29,36,32,25,0,24,42],
+      [69,59,57,34,41,33,28,26,0,46],
+      [88,71,69,41,65,53,49,45,44,0]
+    ],
+    recovery: [
+      [0,102,88,51,62,73,46,39,41,96],
+      [94,0,97,48,59,52,44,33,35,81],
+      [101,77,0,42,63,57,54,38,36,72],
+      [48,43,46,0,41,32,30,26,24,38],
+      [66,59,57,38,0,52,40,32,34,69],
+      [72,63,58,33,55,0,38,31,33,61],
+      [69,52,55,32,44,36,0,28,27,57],
+      [52,41,46,27,35,33,26,0,25,49],
+      [58,49,48,29,36,32,27,26,0,53],
+      [93,78,76,39,70,59,55,47,46,0]
+    ],
+    normalized: [
+      [0,64,58,33,42,46,31,26,28,61],
+      [56,0,61,31,37,32,28,22,23,54],
+      [62,51,0,27,39,35,33,25,24,52],
+      [30,27,29,0,25,20,18,16,15,24],
+      [44,39,37,24,0,34,27,21,22,45],
+      [46,38,35,20,33,0,25,20,21,39],
+      [48,36,38,21,29,24,0,19,18,40],
+      [36,29,32,18,23,22,18,0,17,33],
+      [39,33,32,19,24,21,18,17,0,35],
+      [67,55,52,26,49,41,39,32,31,0]
+    ]
+  };
+  const retention = [
+    { world:"Observatory", retained:73, diaspora:27 },
+    { world:"Drift", retained:81, diaspora:19 },
+    { world:"Liminal", retained:68, diaspora:32 },
+    { world:"Persistence", retained:76, diaspora:24 },
+    { world:"Edge Garden", retained:64, diaspora:36 },
+    { world:"Signal Cartographer", retained:77, diaspora:23 },
+    { world:"Canonical", retained:69, diaspora:31 },
+    { world:"Provenance", retained:82, diaspora:18 },
+    { world:"Proof", retained:71, diaspora:29 },
+    { world:"Pattern Archive", retained:75, diaspora:25 }
+  ];
+  const visitors = {
+    "Observatory":287,"Drift":214,"Liminal":194,"Persistence":102,"Edge Garden":145,
+    "Signal Cart.":128,"Canonical":156,"Provenance":98,"Proof":134,"Pattern":167
+  };
+  const links = [
+    ["Observatory","Drift",0.88],
+    ["Drift","Liminal",0.78],
+    ["Liminal","Edge Garden",0.64],
+    ["Pattern","Observatory",0.72],
+    ["Signal Cart.","Canonical",0.52],
+    ["Proof","Pattern",0.58],
+    ["Observatory","Signal Cart.",0.47],
+    ["Edge Garden","Proof",0.43],
+    ["Provenance","Canonical",0.38],
+    ["Drift","Pattern",0.44]
+  ];
+  const positions = {
+    "Observatory":[120,160],"Drift":[220,70],"Liminal":[360,60],"Persistence":[520,60],
+    "Edge Garden":[660,90],"Signal Cart.":[540,190],"Canonical":[400,220],"Provenance":[240,230],
+    "Proof":[120,250],"Pattern":[660,220]
+  };
+
+  const heatmapCanvas = document.getElementById("heatmap");
+  const heatCtx = heatmapCanvas.getContext("2d");
+  function resizeHeatmap() {
+    heatmapCanvas.width = heatmapCanvas.clientWidth * devicePixelRatio;
+    heatmapCanvas.height = heatmapCanvas.clientHeight * devicePixelRatio;
+    heatCtx.setTransform(1,0,0,1,0,0);
+    heatCtx.scale(devicePixelRatio, devicePixelRatio);
+  }
+  function drawHeatmap(phase) {
+    const data = migrationData[phase];
+    const size = heatmapCanvas.clientWidth;
+    const cellW = (heatmapCanvas.clientWidth - 120) / worlds.length;
+    const cellH = (heatmapCanvas.clientHeight - 60) / worlds.length;
+    heatCtx.clearRect(0,0,heatmapCanvas.clientWidth, heatmapCanvas.clientHeight);
+    heatCtx.font = "12px 'Courier New'";
+    heatCtx.fillStyle = varColor("--secondary");
+    worlds.forEach((w,i)=> {
+      heatCtx.fillText(w, 80 + cellW * i + 6, 14);
+      heatCtx.fillText(w, 2, 50 + cellH * i + 12);
+    });
+    const flat = data.flat().filter(v => v>0);
+    const max = Math.max(...flat);
+    data.forEach((row,r)=>{
+      row.forEach((val,c)=>{
+        const intensity = val / max;
+        const x = 70 + cellW * c;
+        const y = 40 + cellH * r;
+        const grd = heatCtx.createLinearGradient(x,y,x+cellW,y+cellH);
+        grd.addColorStop(0, `rgba(0,255,136,${0.1 + intensity*0.7})`);
+        grd.addColorStop(1, `rgba(57,255,210,${0.15 + intensity*0.7})`);
+        heatCtx.fillStyle = grd;
+        heatCtx.fillRect(x,y,cellW-4,cellH-4);
+        heatCtx.strokeStyle = varColor("--cyan");
+        heatCtx.strokeRect(x,y,cellW-4,cellH-4);
+        heatCtx.fillStyle = "#d7fbe8";
+        heatCtx.fillText(val, x + 10, y + 18);
+      });
+    });
+  }
+  function varColor(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+
+  function drawTimeline() {
+    const path = document.getElementById("wave");
+    const points = [
+      {t:0, a:0.1},
+      {t:10, a:0.35},
+      {t:25, a:0.45},
+      {t:38, a:1},
+      {t:40, a:0.82},
+      {t:45, a:0.64},
+      {t:50, a:0.42},
+      {t:60, a:0.3}
+    ];
+    const scaleX = 12;
+    const baseY = 120;
+    const amp = 70;
+    const d = points.map((p,i)=>{
+      const x = p.t * scaleX;
+      const y = baseY - p.a * amp;
+      return `${i===0?"M":"L"}${x},${y}`;
+    }).join(" ");
+    path.setAttribute("d", d);
+    const markers = document.getElementById("timelineMarkers");
+    markers.innerHTML = "";
+    const stops = [
+      {label:"12:13 Void", t:13, a:0.1},
+      {label:"12:25 Exploration", t:25, a:0.45},
+      {label:"12:38 Recovery", t:38, a:1},
+      {label:"12:40-45 Waves", t:43, a:0.72},
+      {label:"12:45-50 Tertiary", t:48, a:0.52},
+      {label:"12:50+ Stable", t:55, a:0.35}
+    ];
+    stops.forEach(s=>{
+      const x = s.t * scaleX;
+      const y = baseY - s.a * amp;
+      const circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      circle.setAttribute("cx", x);
+      circle.setAttribute("cy", y);
+      circle.setAttribute("r", 5);
+      circle.setAttribute("fill", "var(--accent)");
+      markers.appendChild(circle);
+      const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+      text.setAttribute("x", x + 6);
+      text.setAttribute("y", y - 8);
+      text.setAttribute("fill", "var(--secondary)");
+      text.setAttribute("font-size", "12");
+      text.textContent = s.label;
+      markers.appendChild(text);
+    });
+  }
+
+  const connSvg = document.getElementById("connectivity");
+  function drawGraph() {
+    connSvg.innerHTML = "";
+    const defs = document.createElementNS("http://www.w3.org/2000/svg","defs");
+    const grad = document.createElementNS("http://www.w3.org/2000/svg","linearGradient");
+    grad.setAttribute("id","flowGrad");
+    grad.innerHTML = '<stop offset="0%" stop-color="var(--cyan)"/><stop offset="100%" stop-color="var(--magenta)"/>';
+    defs.appendChild(grad);
+    connSvg.appendChild(defs);
+    links.forEach((link,i)=>{
+      const [a,b,weight] = link;
+      const [ax,ay] = positions[a];
+      const [bx,by] = positions[b];
+      const midX = (ax + bx)/2 + (i%2===0?20:-20);
+      const midY = (ay + by)/2 + (i%2===0?-18:18);
+      const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+      path.setAttribute("d", `M${ax},${ay} Q${midX},${midY} ${bx},${by}`);
+      path.setAttribute("fill","none");
+      path.setAttribute("stroke","url(#flowGrad)");
+      path.setAttribute("stroke-width", 2 + weight*2);
+      path.setAttribute("opacity","0.8");
+      path.setAttribute("stroke-linecap","round");
+      connSvg.appendChild(path);
+      addFlow(path, weight);
+    });
+    Object.entries(positions).forEach(([name,[x,y]])=>{
+      const group = document.createElementNS("http://www.w3.org/2000/svg","g");
+      const size = visitors[name] || visitors[name.replace("Signal Cart.","Signal Cart.")];
+      const r = 10 + (size/300)*18;
+      const circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      circle.setAttribute("cx", x);
+      circle.setAttribute("cy", y);
+      circle.setAttribute("r", r);
+      circle.setAttribute("fill","rgba(0,255,136,0.2)");
+      circle.setAttribute("stroke","var(--cyan)");
+      circle.setAttribute("stroke-width","2");
+      group.appendChild(circle);
+      const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+      text.setAttribute("x", x);
+      text.setAttribute("y", y+4);
+      text.setAttribute("fill","var(--text)");
+      text.setAttribute("font-size","12");
+      text.setAttribute("text-anchor","middle");
+      text.textContent = `${name} (${size})`;
+      group.appendChild(text);
+      connSvg.appendChild(group);
+    });
+  }
+  function addFlow(path, weight) {
+    const length = path.getTotalLength();
+    const particles = Math.max(2, Math.round(weight*4));
+    for (let i=0;i<particles;i++) {
+      const dot = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      dot.setAttribute("r","3");
+      dot.setAttribute("fill","var(--accent)");
+      connSvg.appendChild(dot);
+      animateDot(dot, path, length, (i/particles) * 2);
+    }
+  }
+  function animateDot(dot, path, length, offset=0) {
+    let start = performance.now();
+    function frame(now) {
+      const t = ((now/1000 + offset) % 2);
+      const pos = path.getPointAtLength((t/2) * length);
+      dot.setAttribute("cx", pos.x);
+      dot.setAttribute("cy", pos.y);
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function buildRetention() {
+    const container = document.getElementById("retentionGrid");
+    container.innerHTML = "";
+    retention.forEach(item=>{
+      const wrap = document.createElement("div");
+      wrap.className = "stat";
+      const label = document.createElement("div");
+      label.innerHTML = `<strong>${item.world}</strong>`;
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      const retained = document.createElement("span");
+      retained.style.width = `${item.retained}%`;
+      retained.style.background = "linear-gradient(90deg, var(--cyan), var(--accent))";
+      bar.appendChild(retained);
+      const text = document.createElement("div");
+      text.className = "panel-note";
+      text.style.marginTop = "6px";
+      text.textContent = `${item.retained}% retained | ${item.diaspora}% diaspora'd`;
+      wrap.append(label, bar, text);
+      container.appendChild(wrap);
+    });
+  }
+
+  const pathInputs = Array.from(document.querySelectorAll('input[type="checkbox"]'));
+  const countsEl = document.getElementById("pathCounts");
+  function loadCounts() {
+    return JSON.parse(localStorage.getItem("diasporaCounts") || '{"anchored":0,"explorer":0,"nomad":0,"lost":0,"multi":0}');
+  }
+  function saveCounts(counts) { localStorage.setItem("diasporaCounts", JSON.stringify(counts)); }
+  function renderCounts() {
+    const counts = loadCounts();
+    countsEl.textContent = `Anchored: ${counts.anchored} | Explorer: ${counts.explorer} | Nomad: ${counts.nomad} | Lost: ${counts.lost} | Multi-world First-timers: ${counts.multi}`;
+  }
+  document.getElementById("submitPath").addEventListener("click", ()=>{
+    const counts = loadCounts();
+    pathInputs.filter(i=>i.checked).forEach(i=> counts[i.value] = (counts[i.value]||0)+1 );
+    saveCounts(counts);
+    pathInputs.forEach(i=> i.checked = false);
+    renderCounts();
+  });
+  document.getElementById("clearPath").addEventListener("click", ()=>{
+    saveCounts({anchored:0, explorer:0, nomad:0, lost:0, multi:0});
+    renderCounts();
+  });
+
+  // Audio: 60Hz + 90Hz sine with LFO on gain
+  let audioCtx, gainNode, lfo, osc1, osc2;
+  const audioToggle = document.getElementById("audioToggle");
+  const audioStatus = document.getElementById("audioStatus");
+  function initAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0.05;
+    osc1 = audioCtx.createOscillator();
+    osc2 = audioCtx.createOscillator();
+    osc1.type = "sine"; osc2.type = "sine";
+    osc1.frequency.value = 60;
+    osc2.frequency.value = 90;
+    lfo = audioCtx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 0.6;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 0.04;
+    lfo.connect(lfoGain).connect(gainNode.gain);
+    osc1.connect(gainNode);
+    osc2.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    osc1.start();
+    osc2.start();
+    lfo.start();
+  }
+  function setAudio(state) {
+    localStorage.setItem("diasporaAudioMuted", state ? "1" : "0");
+    audioStatus.textContent = state ? "Muted" : "LFO active";
+    audioToggle.textContent = state ? "Unmute 60Hz / 90Hz Field" : "Mute 60Hz / 90Hz Field";
+    if (!audioCtx) return;
+    gainNode.gain.setTargetAtTime(state?0:0.05, audioCtx.currentTime, 0.02);
+  }
+  audioToggle.addEventListener("click", ()=>{
+    if (!audioCtx) initAudio();
+    const muted = localStorage.getItem("diasporaAudioMuted")==="1";
+    setAudio(!muted);
+  });
+  if (localStorage.getItem("diasporaAudioMuted")==="1") {
+    audioStatus.textContent = "Muted";
+    audioToggle.textContent = "Unmute 60Hz / 90Hz Field";
+  }
+
+  // Particles
+  const particleCanvas = document.getElementById("particles");
+  const pCtx = particleCanvas.getContext("2d");
+  let particles = [];
+  function resizeParticles() {
+    particleCanvas.width = window.innerWidth;
+    particleCanvas.height = window.innerHeight;
+    particles = Array.from({length: 120}, ()=>({
+      x: Math.random()*particleCanvas.width,
+      y: Math.random()*particleCanvas.height,
+      vx: (Math.random()*0.6-0.3),
+      vy: (Math.random()*0.4-0.2),
+      size: Math.random()*2+1,
+      alpha: Math.random()*0.6+0.2
+    }));
+  }
+  function drawParticles() {
+    pCtx.clearRect(0,0,particleCanvas.width, particleCanvas.height);
+    particles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy;
+      if (p.x<0) p.x=particleCanvas.width; if (p.x>particleCanvas.width) p.x=0;
+      if (p.y<0) p.y=particleCanvas.height; if (p.y>particleCanvas.height) p.y=0;
+      pCtx.fillStyle = `rgba(57,255,210,${p.alpha})`;
+      pCtx.beginPath();
+      pCtx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      pCtx.fill();
+    });
+    requestAnimationFrame(drawParticles);
+  }
+
+  // Heatmap controls
+  document.querySelectorAll(".controls button[data-phase]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      document.querySelectorAll(".controls button[data-phase]").forEach(b=>b.classList.remove("active"));
+      btn.classList.add("active");
+      drawHeatmap(btn.dataset.phase);
+    });
+  });
+
+  function init() {
+    resizeHeatmap();
+    drawHeatmap("void");
+    drawTimeline();
+    drawGraph();
+    buildRetention();
+    renderCounts();
+    resizeParticles();
+    drawParticles();
+  }
+  window.addEventListener("resize", ()=>{
+    resizeHeatmap();
+    drawHeatmap(document.querySelector(".controls button.active").dataset.phase);
+    resizeParticles();
+  });
+  init();
+</script>
+</body>
+</html>
