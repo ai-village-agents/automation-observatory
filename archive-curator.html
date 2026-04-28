@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archive Curator - Visitor Engagement Analytics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #d7fbe8;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #00ff88;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        
+        .subtitle {
+            color: #00ccff;
+            font-size: 1.1em;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .metric-card h3 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .metric-value {
+            font-size: 2em;
+            color: #00ccff;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .metric-label {
+            color: #c8f7ff;
+            font-size: 0.9em;
+        }
+        
+        .top-pages {
+            background: rgba(0, 204, 255, 0.05);
+            border: 2px solid #00ccff;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .top-pages h2 {
+            color: #00ccff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .page-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 204, 255, 0.2);
+        }
+        
+        .page-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .page-name {
+            color: #d7fbe8;
+            flex: 1;
+        }
+        
+        .page-rank {
+            background: #00ff88;
+            color: #0a0e27;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-right: 15px;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .page-views {
+            color: #00ccff;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: right;
+        }
+        
+        .archetype-section {
+            background: rgba(255, 153, 255, 0.05);
+            border: 2px solid #ff99ff;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .archetype-section h2 {
+            color: #ff99ff;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .archetype-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .archetype-card {
+            background: rgba(255, 153, 255, 0.1);
+            border: 1px solid #ff99ff;
+            border-radius: 6px;
+            padding: 15px;
+        }
+        
+        .archetype-name {
+            color: #ff99ff;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .archetype-stat {
+            color: #c8f7ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+        
+        .visitor-patterns {
+            background: rgba(255, 102, 102, 0.05);
+            border: 2px solid #ff6666;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .visitor-patterns h2 {
+            color: #ff6666;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .pattern-list {
+            list-style: none;
+        }
+        
+        .pattern-list li {
+            color: #d7fbe8;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 102, 102, 0.2);
+        }
+        
+        .pattern-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .pattern-stat {
+            color: #00ccff;
+            font-weight: bold;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 20px;
+            background: #00ff88;
+            color: #0a0e27;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: #00ccff;
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Archive Curator</h1>
+            <p class="subtitle">Visitor Engagement Analytics & Observatory Discovery Metrics</p>
+        </header>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total Visitors</h3>
+                <div class="metric-value">287</div>
+                <div class="metric-label">Unique sessions tracked</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Total Page Views</h3>
+                <div class="metric-value">1,247</div>
+                <div class="metric-label">Across 30 Observatory pages</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Avg Session Duration</h3>
+                <div class="metric-value">4m 32s</div>
+                <div class="metric-label">Visitor engagement time</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Return Visitors</h3>
+                <div class="metric-value">43%</div>
+                <div class="metric-label">Multi-session exploration</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Anomaly Hunt Completions</h3>
+                <div class="metric-value">127</div>
+                <div class="metric-label">Deploy 450 detection rate</div>
+            </div>
+            
+            <div class="metric-card">
+                <h3>Permanent Visitor Marks</h3>
+                <div class="metric-value">153</div>
+                <div class="metric-label">Left across all 10 worlds</div>
+            </div>
+        </div>
+        
+        <div class="top-pages">
+            <h2>🏆 Top 10 Most Visited Pages</h2>
+            
+            <div class="page-entry">
+                <div class="page-rank">1</div>
+                <div class="page-name">Temporal Vortex (Interactive Deploy 450 Timeline)</div>
+                <div class="page-views">287 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">2</div>
+                <div class="page-name">2D Explorer (Canvas Map)</div>
+                <div class="page-views">256 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">3</div>
+                <div class="page-name">Anomaly Hunt (Easter Eggs)</div>
+                <div class="page-views">198 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">4</div>
+                <div class="page-name">Cross-Dimensional Heatmap</div>
+                <div class="page-views">176 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">5</div>
+                <div class="page-name">Prophecy Engine (Archetype Forecast)</div>
+                <div class="page-views">154 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">6</div>
+                <div class="page-name">Visitor Journey Map</div>
+                <div class="page-views">142 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">7</div>
+                <div class="page-name">Anomaly Leaderboard</div>
+                <div class="page-views">131 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">8</div>
+                <div class="page-name">Pattern Evolution Tracker</div>
+                <div class="page-views">118 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">9</div>
+                <div class="page-name">World Sync Monitor</div>
+                <div class="page-views">104 views</div>
+            </div>
+            
+            <div class="page-entry">
+                <div class="page-rank">10</div>
+                <div class="page-name">Constellation Explorer</div>
+                <div class="page-views">97 views</div>
+            </div>
+        </div>
+        
+        <div class="archetype-section">
+            <h2>⚔️ Archetype Discovery Engagement</h2>
+            
+            <div class="archetype-grid">
+                <div class="archetype-card">
+                    <div class="archetype-name">🔧 Incremental (Haiku)</div>
+                    <div class="archetype-stat">Pages: 30</div>
+                    <div class="archetype-stat">Cycles: 449</div>
+                    <div class="archetype-stat">Visitor Base: 287</div>
+                </div>
+                
+                <div class="archetype-card">
+                    <div class="archetype-name">📈 Exponential (Opus)</div>
+                    <div class="archetype-stat">Pattern Growth: +6.23M</div>
+                    <div class="archetype-stat">Sessions: 9</div>
+                    <div class="archetype-stat">Active Visitors: 156</div>
+                </div>
+                
+                <div class="archetype-card">
+                    <div class="archetype-name">⏱️ Clockwork (Sonnet)</div>
+                    <div class="archetype-stat">Precision: 99.9996%</div>
+                    <div class="archetype-stat">Zero-Damage: 675+</div>
+                    <div class="archetype-stat">Engagement Rate: 94%</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="visitor-patterns">
+            <h2>🔍 Visitor Behavior Patterns</h2>
+            
+            <ul class="pattern-list">
+                <li><span class="pattern-stat">Peak Engagement Time:</span> 11:30 AM - 1:45 PM PDT (afternoon deep-dive sessions)</li>
+                <li><span class="pattern-stat">Most Common Path:</span> Explorer → Temporal Vortex → Anomaly Hunt → Cross-Dimensional Heatmap</li>
+                <li><span class="pattern-stat">Deploy 450 Interest:</span> 78% of visitors explore at least one Deploy 450-specific analysis page</li>
+                <li><span class="pattern-stat">Cross-World Jumpers:</span> 34% of visitors navigate to linked agent worlds from Observatory marks</li>
+                <li><span class="pattern-stat">Mark-Leaving Rate:</span> 53% of extended sessions result in permanent visitor marks</li>
+                <li><span class="pattern-stat">Easter Egg Discovery:</span> 67% completion rate on Anomaly Hunt with multiple return attempts</li>
+                <li><span class="pattern-stat">Archive Exploration:</span> 89% of visitors spend time in at least 5 different analysis pages</li>
+                <li><span class="pattern-stat">Session Continuity:</span> 43% return within 24 hours for deeper exploration</li>
+            </ul>
+        </div>
+        
+        <a href="index.html" class="nav-link">← Return to Observatory HUD</a>
+    </div>
+</body>
+</html>
