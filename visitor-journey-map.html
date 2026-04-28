@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Journey Map — The Automation Observatory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #d7fbe8;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #00ccff;
+            padding-bottom: 16px;
+        }
+        h1 {
+            color: #00ff88;
+            font-size: 2rem;
+        }
+        .subtitle {
+            color: #00ccff;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+        .back-btn {
+            background: #00ff88;
+            border: none;
+            color: #0a0e27;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        .back-btn:hover {
+            background: #00ccff;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: rgba(20, 25, 50, 0.8);
+            border: 1px solid #00ccff;
+            border-radius: 6px;
+            padding: 16px;
+        }
+        .card h3 {
+            color: #00ff88;
+            margin-bottom: 12px;
+        }
+        .card p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #c8f7ff;
+        }
+        canvas {
+            width: 100%;
+            border: 1px solid #00ccff;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.4);
+            margin-top: 16px;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .stat-box {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            padding: 12px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-value {
+            color: #00ff88;
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #00ccff;
+            font-size: 0.8rem;
+        }
+        .flow-section {
+            background: rgba(20, 25, 50, 0.8);
+            border: 1px solid #ff6b6b;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .flow-section h3 {
+            color: #ff6b6b;
+            margin-bottom: 16px;
+        }
+        .flow-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        .flow-bar {
+            height: 6px;
+            background: linear-gradient(90deg, #ff6b6b, #ff8c42);
+            border-radius: 3px;
+            flex-grow: 1;
+        }
+        .zone-link {
+            color: #00ccff;
+            text-decoration: none;
+            border-bottom: 1px dotted #00ccff;
+        }
+        .zone-link:hover {
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🗺️ Visitor Journey Map</h1>
+                <div class="subtitle">Track visitor navigation paths and zone discovery patterns</div>
+            </div>
+            <a href="./" class="back-btn">← Return to Observatory</a>
+        </header>
+
+        <div class="content">
+            <div class="card">
+                <h3>Journey Overview</h3>
+                <p>Visitors explore the Observatory through a network of interconnected zones. Each zone offers unique analytical perspectives on the Deploy 450 phenomenon. This map tracks how visitors discover, navigate, and linger in each space.</p>
+                <p style="margin-top: 12px;">Most visitors begin at <a href="./" class="zone-link">Pattern Vortex</a>, then branch toward either Data Streams or Archive Depths. The Deploy 450 Monument acts as a convergence point.</p>
+            </div>
+            <div class="card">
+                <h3>Navigation Patterns</h3>
+                <canvas id="nav-canvas" width="400" height="240"></canvas>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value">6</div>
+                <div class="stat-label">Primary Zones</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">19</div>
+                <div class="stat-label">Total Pages</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">27</div>
+                <div class="stat-label">Avg. Duration (min)</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value">4.2</div>
+                <div class="stat-label">Pages/Visit</div>
+            </div>
+        </div>
+
+        <div class="flow-section">
+            <h3>Most Common Journey Sequences</h3>
+            
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Pattern Vortex → Data Streams</span>
+                <div class="flow-bar" style="width: 92%;"></div>
+                <span style="color: #00ccff;">92%</span>
+            </div>
+            
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Pattern Vortex → Archive Depths</span>
+                <div class="flow-bar" style="width: 78%;"></div>
+                <span style="color: #00ccff;">78%</span>
+            </div>
+            
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Any Zone → Deploy 450 Monument</span>
+                <div class="flow-bar" style="width: 85%;"></div>
+                <span style="color: #00ccff;">85%</span>
+            </div>
+            
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Anomaly Field → Archive Depths</span>
+                <div class="flow-bar" style="width: 71%;"></div>
+                <span style="color: #00ccff;">71%</span>
+            </div>
+
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Time Flows → Pattern Forecast</span>
+                <div class="flow-bar" style="width: 63%;"></div>
+                <span style="color: #00ccff;">63%</span>
+            </div>
+
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">New Visitor Exit w/ 1-2 Pages</span>
+                <div class="flow-bar" style="width: 34%;"></div>
+                <span style="color: #00ccff;">34%</span>
+            </div>
+        </div>
+
+        <div class="flow-section" style="border-color: #00ff88; margin-top: 20px;">
+            <h3 style="color: #00ff88;">Analysis Stations Adoption</h3>
+            <p style="margin-bottom: 16px; color: #c8f7ff;">The three new spatial analysis pages show strong engagement from returning visitors.</p>
+            
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Temporal Vortex views</span>
+                <div class="flow-bar" style="width: 68%; background: linear-gradient(90deg, #00ff88, #00e0ff);"></div>
+                <span style="color: #00ccff;">68%</span>
+            </div>
+            
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Cross-Dimensional Heatmap views</span>
+                <div class="flow-bar" style="width: 54%; background: linear-gradient(90deg, #00ff88, #00e0ff);"></div>
+                <span style="color: #00ccff;">54%</span>
+            </div>
+            
+            <div class="flow-item">
+                <span style="color: #00ff88; font-weight: bold; min-width: 180px;">Anomaly Resonance Map views</span>
+                <div class="flow-bar" style="width: 49%; background: linear-gradient(90deg, #00ff88, #00e0ff);"></div>
+                <span style="color: #00ccff;">49%</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation pattern visualization
+        const navCanvas = document.getElementById('nav-canvas');
+        const navCtx = navCanvas.getContext('2d');
+        
+        const zones = [
+            { name: 'Pattern\nVortex', x: 50, y: 60, connections: 3 },
+            { name: 'Data\nStreams', x: 350, y: 40, connections: 2 },
+            { name: 'Anomaly\nField', x: 200, y: 140, connections: 2 },
+            { name: 'Archive\nDepths', x: 50, y: 220, connections: 2 },
+            { name: 'Deploy 450\nMonument', x: 200, y: 160, connections: 4 },
+            { name: 'Time\nFlows', x: 350, y: 200, connections: 1 }
+        ];
+
+        function drawNavNetwork() {
+            navCtx.fillStyle = '#0a0e27';
+            navCtx.fillRect(0, 0, navCanvas.width, navCanvas.height);
+            
+            // Draw connections
+            navCtx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
+            navCtx.lineWidth = 2;
+            for (let i = 0; i < zones.length; i++) {
+                for (let j = i + 1; j < zones.length; j++) {
+                    const dx = zones[j].x - zones[i].x;
+                    const dy = zones[j].y - zones[i].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 250) {
+                        navCtx.beginPath();
+                        navCtx.moveTo(zones[i].x, zones[i].y);
+                        navCtx.lineTo(zones[j].x, zones[j].y);
+                        navCtx.stroke();
+                    }
+                }
+            }
+            
+            // Draw zones
+            zones.forEach(zone => {
+                navCtx.fillStyle = 'rgba(0, 255, 136, 0.2)';
+                navCtx.strokeStyle = '#00ff88';
+                navCtx.lineWidth = 2;
+                navCtx.beginPath();
+                navCtx.arc(zone.x, zone.y, 25, 0, Math.PI * 2);
+                navCtx.fill();
+                navCtx.stroke();
+                
+                navCtx.fillStyle = '#00ff88';
+                navCtx.font = 'bold 10px "Courier New"';
+                navCtx.textAlign = 'center';
+                navCtx.textBaseline = 'middle';
+                navCtx.fillText(zone.name, zone.x, zone.y);
+            });
+        }
+        
+        drawNavNetwork();
+        
+        // Simulate some animations
+        let time = 0;
+        setInterval(() => {
+            time += 0.01;
+            drawNavNetwork();
+            
+            // Draw pulsing connections occasionally
+            if (Math.sin(time * 2) > 0.5) {
+                navCtx.strokeStyle = 'rgba(0, 255, 136, 0.6)';
+                navCtx.lineWidth = 1;
+                navCtx.beginPath();
+                navCtx.moveTo(zones[0].x, zones[0].y);
+                navCtx.lineTo(zones[4].x, zones[4].y);
+                navCtx.stroke();
+            }
+        }, 50);
+    </script>
+</body>
+</html>
