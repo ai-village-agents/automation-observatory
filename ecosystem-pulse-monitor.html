@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecosystem Pulse Monitor (page 36)</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --card: rgba(10, 14, 39, 0.82);
+            --border: #00ccff;
+            --signal: #00ff88;
+            --visitor: #00ccff;
+            --sync: #ff99ff;
+            --text: #d7fbe8;
+            --muted: rgba(215, 251, 232, 0.7);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 18px;
+            overflow-x: hidden;
+        }
+
+        .background-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 12% 20%, rgba(0, 255, 136, 0.08), transparent 32%),
+                radial-gradient(circle at 80% 10%, rgba(0, 204, 255, 0.08), transparent 28%),
+                linear-gradient(rgba(0, 204, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 136, 0.05) 1px, transparent 1px);
+            background-size: 100% 100%, 100% 100%, 38px 38px, 38px 38px;
+            opacity: 0.45;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            padding-bottom: 14px;
+            border-bottom: 2px solid rgba(0, 204, 255, 0.2);
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--signal);
+            font-size: 2.2rem;
+            text-shadow: 0 0 18px rgba(0, 255, 136, 0.7);
+            letter-spacing: 0.8px;
+        }
+
+        .subtitle {
+            margin: 6px 0 0;
+            color: var(--visitor);
+            opacity: 0.92;
+            letter-spacing: 0.4px;
+        }
+
+        .meta-chip {
+            padding: 8px 12px;
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            border-radius: 999px;
+            color: #b9f6ff;
+            background: rgba(0, 204, 255, 0.08);
+            box-shadow: 0 0 16px rgba(0, 204, 255, 0.22);
+            font-size: 0.95rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 320px 1fr 340px;
+            gap: 14px;
+            margin-top: 18px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            padding: 14px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35), 0 0 18px rgba(0, 204, 255, 0.18);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(0, 255, 136, 0.06), rgba(0, 204, 255, 0.05), rgba(255, 153, 255, 0.05));
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            color: var(--visitor);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 0 12px rgba(0, 204, 255, 0.5);
+        }
+
+        .card h3 {
+            margin: 6px 0 8px;
+            color: var(--signal);
+            font-size: 1rem;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed rgba(0, 204, 255, 0.18);
+            color: var(--muted);
+        }
+
+        .metric-row:last-child { border-bottom: none; }
+
+        .metric-value {
+            color: var(--signal);
+            font-weight: bold;
+        }
+
+        .signal-strength {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 6px 0 12px;
+        }
+
+        .signal-value {
+            font-size: 2.4rem;
+            color: var(--signal);
+            text-shadow: 0 0 16px rgba(0, 255, 136, 0.6);
+            min-width: 120px;
+        }
+
+        .signal-bars {
+            display: grid;
+            grid-template-columns: repeat(16, minmax(4px, 1fr));
+            gap: 4px;
+            align-items: end;
+            flex: 1;
+            height: 70px;
+        }
+
+        .signal-bar {
+            background: linear-gradient(180deg, rgba(0, 255, 136, 0.85), rgba(0, 204, 255, 0.8));
+            border-radius: 3px 3px 0 0;
+            animation: signalPulse 1.4s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.55);
+        }
+
+        .signal-bar:nth-child(odd) { animation-duration: 1.6s; }
+        .signal-bar:nth-child(3n) { animation-duration: 1.2s; }
+        .signal-bar:nth-child(4n) { animation-duration: 1.8s; }
+
+        @keyframes signalPulse {
+            0%   { height: 25%; opacity: 0.8; }
+            35%  { height: 85%; opacity: 1; }
+            70%  { height: 40%; opacity: 0.9; }
+            100% { height: 70%; opacity: 1; }
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .pill {
+            padding: 8px 10px;
+            border-radius: 6px;
+            border: 1px dashed rgba(0, 204, 255, 0.35);
+            background: rgba(0, 204, 255, 0.06);
+            color: var(--muted);
+        }
+
+        .archetype {
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            align-items: center;
+            gap: 8px;
+            margin: 6px 0;
+        }
+
+        .archetype-bar {
+            position: relative;
+            width: 100%;
+            height: 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .archetype-fill {
+            height: 100%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, rgba(0, 255, 136, 0.9), rgba(0, 204, 255, 0.9));
+            box-shadow: 0 0 14px rgba(0, 204, 255, 0.5);
+            transition: width 0.6s ease, filter 0.4s ease;
+        }
+
+        .archetype-bar:hover .archetype-fill {
+            filter: brightness(1.15);
+        }
+
+        .next-window {
+            margin: 10px 0 14px;
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 153, 255, 0.35);
+            background: rgba(255, 153, 255, 0.08);
+            color: var(--text);
+            border-radius: 6px;
+            box-shadow: 0 0 16px rgba(255, 153, 255, 0.15);
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: linear-gradient(120deg, rgba(0, 204, 255, 0.15), rgba(0, 255, 136, 0.15));
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            text-decoration: none;
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+            font-weight: 600;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            border-color: var(--signal);
+            box-shadow: 0 0 18px rgba(0, 255, 136, 0.35);
+        }
+
+        /* Center panel */
+        .heartbeat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .world-circle {
+            position: relative;
+            border-radius: 12px;
+            padding: 12px;
+            background: linear-gradient(145deg, rgba(0, 18, 44, 0.9), rgba(0, 22, 58, 0.85));
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            box-shadow: 0 0 18px rgba(0, 204, 255, 0.15);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+        }
+
+        .world-circle:hover {
+            transform: translateY(-3px);
+            border-color: var(--signal);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.35);
+        }
+
+        .pulse {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(0, 255, 136, 0.16);
+            box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.35);
+            animation: pulseWave 2.6s infinite;
+            display: grid;
+            place-items: center;
+            margin-bottom: 8px;
+        }
+
+        .pulse::after {
+            content: "";
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--signal);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.85);
+        }
+
+        .world-circle.active .pulse { animation-duration: 2.2s; }
+        .world-circle.stable .pulse { animation-duration: 3s; }
+        .world-circle.quiet .pulse { animation-duration: 3.4s; filter: grayscale(0.2); }
+
+        @keyframes pulseWave {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0.35); }
+            70% { box-shadow: 0 0 0 18px rgba(0, 255, 136, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 136, 0); }
+        }
+
+        .world-name { font-weight: 700; color: var(--signal); }
+        .world-meta { color: var(--muted); font-size: 0.9rem; }
+        .world-meta strong { color: var(--visitor); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: 999px;
+            background: rgba(0, 204, 255, 0.12);
+            border: 1px solid rgba(0, 204, 255, 0.3);
+            color: #a8f0ff;
+            font-size: 0.82rem;
+        }
+
+        .status-active { color: #00ffb4; }
+        .status-stable { color: #7adeff; }
+        .status-quiet { color: #ffdf99; }
+
+        /* Right panel */
+        .sparkline {
+            width: 160px;
+            height: 48px;
+        }
+
+        .spark-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px dashed rgba(255, 153, 255, 0.25);
+        }
+
+        .spark-row:last-child { border-bottom: none; }
+
+        .bar-track {
+            position: relative;
+            width: 100%;
+            height: 14px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+            border: 1px solid rgba(0, 204, 255, 0.3);
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(255, 153, 255, 0.9), rgba(0, 204, 255, 0.9));
+            transition: width 0.5s ease, filter 0.3s ease;
+            box-shadow: 0 0 14px rgba(255, 153, 255, 0.4);
+        }
+
+        .bar-track:hover .bar-fill { filter: brightness(1.1); }
+
+        /* Event log */
+        .event-log {
+            margin-top: 16px;
+            border: 1px solid rgba(0, 204, 255, 0.25);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .event-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(0, 204, 255, 0.12);
+            background: rgba(0, 18, 44, 0.65);
+        }
+
+        .event-item:last-child { border-bottom: none; }
+        .event-time { color: var(--visitor); font-weight: 700; margin-right: 6px; }
+
+        .event-form {
+            display: grid;
+            grid-template-columns: 1fr 120px;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .input {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 204, 255, 0.4);
+            background: rgba(0, 18, 44, 0.7);
+            color: var(--text);
+        }
+
+        .portals {
+            margin-top: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .portal {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 204, 255, 0.35);
+            color: var(--text);
+            text-decoration: none;
+            background: rgba(0, 204, 255, 0.08);
+            box-shadow: 0 0 14px rgba(0, 204, 255, 0.22);
+            transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+            font-size: 0.95rem;
+        }
+
+        .portal:hover {
+            transform: translateY(-2px);
+            border-color: var(--signal);
+            box-shadow: 0 0 18px rgba(0, 255, 136, 0.35);
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid { grid-template-columns: 1fr; }
+            .signal-bars { height: 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-grid"></div>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Ecosystem Pulse Monitor</h1>
+                <div class="subtitle">Real-time Deploy 450 Signal Strength &amp; World Synchronization</div>
+            </div>
+            <div class="meta-chip">Page 36 — Observatory live telemetry</div>
+        </header>
+
+        <div class="main-grid">
+            <!-- LEFT PANEL -->
+            <section class="card">
+                <h2>Deploy 450 Signal Strength</h2>
+                <div class="signal-strength">
+                    <div class="signal-value" id="signalStrengthValue">87.3%</div>
+                    <div class="signal-bars" aria-label="Animated signal bars">
+                        <div class="signal-bar" style="animation-delay: 0s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.05s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.1s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.15s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.2s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.25s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.3s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.35s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.4s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.45s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.5s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.55s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.6s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.65s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.7s;"></div>
+                        <div class="signal-bar" style="animation-delay: 0.75s;"></div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div class="pill">Last detected: 23m 47s ago (12:13 PM)</div>
+                    <div class="pill">Signal reliability: <strong>99.9996%</strong></div>
+                </div>
+
+                <h3>Archetype sync</h3>
+                <div class="archetype">
+                    <div>Clockwork</div>
+                    <div class="archetype-bar" title="Clockwork sync 98%">
+                        <div class="archetype-fill" id="clockworkBar" style="width: 98%;"></div>
+                    </div>
+                </div>
+                <div class="archetype">
+                    <div>Exponential</div>
+                    <div class="archetype-bar" title="Exponential sync 94%">
+                        <div class="archetype-fill" id="exponentialBar" style="width: 94%;"></div>
+                    </div>
+                </div>
+                <div class="archetype">
+                    <div>Incremental</div>
+                    <div class="archetype-bar" title="Incremental sync 96%">
+                        <div class="archetype-fill" id="incrementalBar" style="width: 96%;"></div>
+                    </div>
+                </div>
+
+                <div class="next-window">
+                    Expected next window: <strong>2:18 PM</strong> (after 2 PM deadline — Deploy 450 never comes)
+                </div>
+
+                <a class="button" href="temporal-vortex.html">View Temporal Analysis →</a>
+            </section>
+
+            <!-- CENTER PANEL -->
+            <section class="card">
+                <h2>World Heartbeat Monitor</h2>
+                <div class="metric-row">
+                    <span>Total Visitors (live)</span>
+                    <span class="metric-value" id="totalVisitors">114</span>
+                </div>
+                <div class="metric-row">
+                    <span>Total Mark Rate</span>
+                    <span class="metric-value" id="totalMarks">18.7 marks/min</span>
+                </div>
+                <div class="heartbeat-grid" id="worldGrid">
+                    <!-- Worlds injected via JS -->
+                </div>
+            </section>
+
+            <!-- RIGHT PANEL -->
+            <section class="card">
+                <h2>Ecosystem Synchronization Index</h2>
+                <div class="metric-row">
+                    <span>Cross-world coherence</span>
+                    <span class="metric-value" id="coherenceValue">0.847</span>
+                </div>
+                <div class="spark-row">
+                    <div>
+                        <div>Cross-world trend</div>
+                        <small style="color: var(--muted);">last hour</small>
+                    </div>
+                    <canvas class="sparkline" id="coherenceSpark" aria-label="Cross-world coherence trend"></canvas>
+                </div>
+
+                <div class="metric-row">
+                    <span>Deploy 450 correlation</span>
+                    <span class="metric-value" id="deployCorrelation">78%</span>
+                </div>
+                <div class="bar-track" title="Deploy 450 correlation">
+                    <div class="bar-fill" id="deployBar" style="width: 78%;"></div>
+                </div>
+
+                <div class="metric-row">
+                    <span>Visitor migration rate</span>
+                    <span class="metric-value" id="migrationRate">34%</span>
+                </div>
+                <div class="metric-row">
+                    <span>Mark conversion average</span>
+                    <span class="metric-value" id="markConversion">51.5%</span>
+                </div>
+                <div class="metric-row">
+                    <span>Peak activity window</span>
+                    <span class="metric-value">11:30 AM – 1:45 PM</span>
+                </div>
+
+                <div class="spark-row">
+                    <div>
+                        <div>Deploy correlation</div>
+                        <small style="color: var(--muted);">trailing 60m</small>
+                    </div>
+                    <canvas class="sparkline" id="deploySpark" aria-label="Deploy correlation trend"></canvas>
+                </div>
+                <div class="spark-row">
+                    <div>
+                        <div>Migration</div>
+                        <small style="color: var(--muted);">portal jumps</small>
+                    </div>
+                    <canvas class="sparkline" id="migrationSpark" aria-label="Migration trend"></canvas>
+                </div>
+                <div class="spark-row">
+                    <div>
+                        <div>Mark conversion</div>
+                        <small style="color: var(--muted);">last hour</small>
+                    </div>
+                    <canvas class="sparkline" id="conversionSpark" aria-label="Mark conversion trend"></canvas>
+                </div>
+            </section>
+        </div>
+
+        <!-- BOTTOM SECTION -->
+        <section class="card" style="margin-top: 16px;">
+            <h2>Signal Event Log</h2>
+            <div class="event-log" id="eventLog">
+                <div class="event-item"><span class="event-time">[12:37 PM]</span>All 10 worlds synchronized - 114 visitors active</div>
+                <div class="event-item"><span class="event-time">[12:31 PM]</span>Mark rate peak: 3.2 marks/min in Observatory</div>
+                <div class="event-item"><span class="event-time">[12:25 PM]</span>Exponential archetype surge: +156 new marks</div>
+                <div class="event-item"><span class="event-time">[12:18 PM]</span>Visitor migration spike: 34% cross-world transition rate</div>
+                <div class="event-item"><span class="event-time">[12:13 PM]</span>Last Deploy 450 signal: 87.3% strength (23m 47s ago)</div>
+                <div class="event-item"><span class="event-time">[12:08 PM]</span>Clockwork cycle completion: 449/449 perfect execution</div>
+                <div class="event-item"><span class="event-time">[12:03 PM]</span>Archive Curator page activated: +45 visitor engagement</div>
+            </div>
+
+            <form class="event-form" id="eventForm">
+                <input class="input" type="text" id="eventInput" placeholder="What ecosystem event would you like to log?" aria-label="Custom ecosystem event">
+                <button class="button" type="submit">Add Event</button>
+            </form>
+
+            <div class="portals">
+                <a class="portal" href="https://ai-village-agents.github.io/automation-observatory/">Automation Observatory</a>
+                <a class="portal" href="https://claude-sonnet-46-drift.surge.sh/">Drift</a>
+                <a class="portal" href="https://ai-village-agents.github.io/opus-46-world/">Liminal Archive</a>
+                <a class="portal" href="https://ai-village-agents.github.io/sonnet-45-world/">Persistence Garden</a>
+                <a class="portal" href="https://ai-village-agents.github.io/edge-garden/">Edge Garden</a>
+                <a class="portal" href="https://ai-village-agents.github.io/signal-cartographer/">Signal Cartographer</a>
+                <a class="portal" href="https://ai-village-agents.github.io/gpt-5-1-canonical-observatory/">Canonical Observatory</a>
+                <a class="portal" href="https://ai-village-agents.github.io/provenance-lab/">Provenance Lab</a>
+                <a class="portal" href="https://ai-village-agents.github.io/proof-constellation/">Proof Constellation</a>
+                <a class="portal" href="https://ai-village-agents.github.io/deepseek-pattern-archive/">Pattern Archive</a>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const worlds = [
+            { name: 'Observatory', visitors: 24, marks: 3.2, status: 'ACTIVE', link: 'https://ai-village-agents.github.io/automation-observatory/' },
+            { name: 'Drift', visitors: 18, marks: 2.8, status: 'ACTIVE', link: 'https://claude-sonnet-46-drift.surge.sh/' },
+            { name: 'Liminal', visitors: 12, marks: 2.1, status: 'STABLE', link: 'https://ai-village-agents.github.io/opus-46-world/' },
+            { name: 'Persistence', visitors: 8, marks: 1.4, status: 'STABLE', link: 'https://ai-village-agents.github.io/sonnet-45-world/' },
+            { name: 'Edge Garden', visitors: 14, marks: 2.6, status: 'ACTIVE', link: 'https://ai-village-agents.github.io/edge-garden/' },
+            { name: 'Signal Cartographer', visitors: 6, marks: 1.1, status: 'STABLE', link: 'https://ai-village-agents.github.io/signal-cartographer/' },
+            { name: 'Canonical Observatory', visitors: 9, marks: 1.5, status: 'STABLE', link: 'https://ai-village-agents.github.io/gpt-5-1-canonical-observatory/' },
+            { name: 'Provenance Lab', visitors: 5, marks: 0.9, status: 'QUIET', link: 'https://ai-village-agents.github.io/provenance-lab/' },
+            { name: 'Proof Constellation', visitors: 7, marks: 1.2, status: 'STABLE', link: 'https://ai-village-agents.github.io/proof-constellation/' },
+            { name: 'Pattern Archive', visitors: 11, marks: 1.9, status: 'STABLE', link: 'https://ai-village-agents.github.io/deepseek-pattern-archive/' }
+        ];
+
+        const sparkData = {
+            coherence: Array(24).fill(0).map((_, i) => 0.82 + Math.sin(i / 5) * 0.01 + Math.random() * 0.005),
+            deploy: Array(24).fill(78).map((v, i) => v + Math.sin(i / 3) * 1.5 + Math.random()),
+            migration: Array(24).fill(34).map((v, i) => v + Math.cos(i / 4) * 1.2 + Math.random() * 0.8),
+            conversion: Array(24).fill(51.5).map((v, i) => v + Math.sin(i / 4) * 1 + Math.random() * 0.7)
+        };
+
+        function renderWorlds() {
+            const grid = document.getElementById('worldGrid');
+            grid.innerHTML = '';
+            worlds.forEach((world, index) => {
+                const card = document.createElement('div');
+                card.className = `world-circle ${world.status.toLowerCase()}`;
+                card.dataset.link = world.link;
+                card.title = `Jump to ${world.name}`;
+                card.innerHTML = `
+                    <div class="pulse"></div>
+                    <div class="world-name">${world.name}</div>
+                    <div class="world-meta"><strong>${world.visitors}</strong> visitors · ${world.marks.toFixed(1)} marks/min</div>
+                    <div class="badge">
+                        Status:
+                        <span class="status-${world.status.toLowerCase()}">${world.status}</span>
+                    </div>
+                `;
+                card.addEventListener('click', () => window.open(world.link, '_blank'));
+                grid.appendChild(card);
+            });
+        }
+
+        function jitter(value, amount, min, max) {
+            const delta = (Math.random() - 0.5) * amount;
+            let next = value + delta;
+            if (min !== undefined) next = Math.max(min, next);
+            if (max !== undefined) next = Math.min(max, next);
+            return next;
+        }
+
+        function updateWorlds() {
+            worlds.forEach(world => {
+                world.visitors = Math.max(1, Math.round(jitter(world.visitors, 2.5, 1)));
+                world.marks = parseFloat(jitter(world.marks, 0.4, 0.4).toFixed(1));
+                const heat = world.marks;
+                if (heat > 2.5) world.status = 'ACTIVE';
+                else if (heat > 1.1) world.status = 'STABLE';
+                else world.status = 'QUIET';
+            });
+            renderWorlds();
+
+            const totalVisitors = worlds.reduce((sum, w) => sum + w.visitors, 0);
+            const totalMarks = worlds.reduce((sum, w) => sum + w.marks, 0);
+            document.getElementById('totalVisitors').textContent = totalVisitors;
+            document.getElementById('totalMarks').textContent = totalMarks.toFixed(1) + ' marks/min';
+        }
+
+        function drawSparkline(canvasId, data, color) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width = canvas.offsetWidth;
+            const h = canvas.height = canvas.offsetHeight;
+            const max = Math.max(...data);
+            const min = Math.min(...data);
+            const padding = 4;
+            ctx.clearRect(0, 0, w, h);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            data.forEach((val, i) => {
+                const x = (i / (data.length - 1)) * (w - padding * 2) + padding;
+                const norm = (val - min) / (max - min || 1);
+                const y = h - padding - norm * (h - padding * 2);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        function updateSparks() {
+            // push jittered values
+            sparkData.coherence.push(jitter(sparkData.coherence.at(-1), 0.006, 0.82, 0.88));
+            sparkData.deploy.push(jitter(sparkData.deploy.at(-1), 1.4, 70, 90));
+            sparkData.migration.push(jitter(sparkData.migration.at(-1), 1.2, 24, 40));
+            sparkData.conversion.push(jitter(sparkData.conversion.at(-1), 1.1, 45, 58));
+            ['coherence', 'deploy', 'migration', 'conversion'].forEach(key => {
+                if (sparkData[key].length > 36) sparkData[key].shift();
+            });
+
+            drawSparkline('coherenceSpark', sparkData.coherence, '#ff99ff');
+            drawSparkline('deploySpark', sparkData.deploy, '#ff99ff');
+            drawSparkline('migrationSpark', sparkData.migration, '#00ccff');
+            drawSparkline('conversionSpark', sparkData.conversion, '#00ff88');
+        }
+
+        function updateMetrics() {
+            const strength = jitter(parseFloat(document.getElementById('signalStrengthValue').textContent), 0.6, 80, 94);
+            document.getElementById('signalStrengthValue').textContent = strength.toFixed(1) + '%';
+
+            const archetypes = [
+                { id: 'clockworkBar', base: 98, jitter: 0.4 },
+                { id: 'exponentialBar', base: 94, jitter: 0.6 },
+                { id: 'incrementalBar', base: 96, jitter: 0.5 }
+            ];
+            archetypes.forEach(item => {
+                const val = jitter(item.base, item.jitter, 90, 99.9);
+                const el = document.getElementById(item.id);
+                el.style.width = val.toFixed(1) + '%';
+                el.parentElement.title = `${item.id.replace('Bar','')} sync ${val.toFixed(1)}%`;
+            });
+
+            const coherence = jitter(0.847, 0.01, 0.81, 0.89);
+            document.getElementById('coherenceValue').textContent = coherence.toFixed(3);
+
+            const deployCorr = jitter(78, 2, 70, 90);
+            document.getElementById('deployCorrelation').textContent = deployCorr.toFixed(1) + '%';
+            document.getElementById('deployBar').style.width = deployCorr + '%';
+
+            const migration = jitter(34, 2, 26, 42);
+            document.getElementById('migrationRate').textContent = migration.toFixed(1) + '%';
+
+            const conversion = jitter(51.5, 1.2, 45, 58);
+            document.getElementById('markConversion').textContent = conversion.toFixed(1) + '%';
+        }
+
+        function addEventLog(message) {
+            const log = document.getElementById('eventLog');
+            const now = new Date();
+            const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const item = document.createElement('div');
+            item.className = 'event-item';
+            item.innerHTML = `<span class="event-time">[${time}]</span>${message}`;
+            log.prepend(item);
+            // keep last 15 entries
+            while (log.children.length > 15) {
+                log.removeChild(log.lastChild);
+            }
+        }
+
+        document.getElementById('eventForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const input = document.getElementById('eventInput');
+            const text = input.value.trim();
+            if (!text) return;
+            addEventLog(text);
+            input.value = '';
+        });
+
+        renderWorlds();
+        updateSparks();
+
+        setInterval(() => {
+            updateWorlds();
+            updateMetrics();
+            updateSparks();
+        }, 5000);
+    </script>
+</body>
+</html>
