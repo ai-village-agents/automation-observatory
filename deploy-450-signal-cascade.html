@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Deploy 450 Signal Cascade</title>
+<style>
+  :root {
+    --bg-start: #0a0e27;
+    --bg-end: #1a1f3a;
+    --text: #d7fbe8;
+    --border-cyan: #39ffd2;
+    --border-magenta: #c143ff;
+    --clockwork: #45f4f8;
+    --exponential: #ff9a3c;
+    --incremental: #73ff65;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: "Courier New", monospace;
+    background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    text-align: center;
+    padding: 32px 16px 12px;
+    border-bottom: 2px solid var(--border-magenta);
+    box-shadow: 0 0 18px rgba(193, 67, 255, 0.3);
+  }
+  h1 {
+    margin: 0;
+    font-size: 2.6rem;
+    letter-spacing: 1px;
+    color: var(--clockwork);
+  }
+  h2 {
+    margin: 6px 0 0;
+    font-weight: 400;
+    color: #cdd8ff;
+  }
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px;
+    display: grid;
+    gap: 18px;
+  }
+  section {
+    border: 1px solid var(--border-cyan);
+    border-radius: 12px;
+    padding: 16px;
+    background: rgba(10, 14, 39, 0.8);
+    box-shadow: 0 0 12px rgba(57, 255, 210, 0.25);
+  }
+  .panel-title {
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--border-cyan);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-title::before {
+    content: "";
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--border-magenta);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--border-magenta);
+  }
+  canvas { width: 100%; height: 280px; border-radius: 10px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  }
+  .table th, .table td {
+    border: 1px solid var(--border-cyan);
+    padding: 8px;
+    text-align: left;
+  }
+  .table th { background: rgba(57, 255, 210, 0.1); color: #c6f7ff; }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-magenta);
+  }
+  .pill.clockwork { color: var(--clockwork); border-color: var(--clockwork); }
+  .pill.exponential { color: var(--exponential); border-color: var(--exponential); }
+  .pill.incremental { color: var(--incremental); border-color: var(--incremental); }
+  .meter {
+    height: 14px;
+    border: 1px solid var(--border-cyan);
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(57, 255, 210, 0.1);
+  }
+  .meter-fill { height: 100%; width: 0; transition: width 0.4s ease; }
+  .tagline { color: #8ae6ff; margin: 4px 0 0; font-size: 0.95rem; }
+  .list { margin: 8px 0 0; padding-left: 16px; }
+  .list li { margin-bottom: 4px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    background: rgba(193, 67, 255, 0.12);
+    border: 1px solid var(--border-magenta);
+  }
+  .small { font-size: 0.9rem; color: #b7dbe4; }
+  .network-wrapper { position: relative; }
+  #networkCanvas { height: 360px; }
+  #particlesCanvas { position: absolute; inset: 0; pointer-events: none; }
+  @media (max-width: 720px) {
+    h1 { font-size: 2rem; }
+    canvas { height: 220px; }
+    #networkCanvas { height: 300px; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Deploy 450 Signal Cascade</h1>
+    <h2>Post-Void Recovery &amp; Cross-World Signal Propagation</h2>
+  </header>
+  <main>
+    <section id="timeline">
+      <h3 class="panel-title">Signal Recovery Timeline · Clockwork T(n) = 264·n</h3>
+      <p class="tagline">From 12:38 PM onward, showing expected recovery curve and intensity gain.</p>
+      <canvas id="timelineCanvas" width="1200" height="280"></canvas>
+    </section>
+
+    <section id="network">
+      <h3 class="panel-title">10-World Network Map · Signal Cascade</h3>
+      <p class="tagline">Animated signal waves across world graph; cyan = Clockwork, orange = Exponential, green = Incremental.</p>
+      <div class="network-wrapper">
+        <canvas id="networkCanvas" width="1200" height="360"></canvas>
+        <canvas id="particlesCanvas" width="1200" height="360"></canvas>
+      </div>
+    </section>
+
+    <section id="analysis">
+      <h3 class="panel-title">World-by-World Cascade Analysis</h3>
+      <table class="table" id="analysisTable"></table>
+    </section>
+
+    <div class="grid-2">
+      <section id="coherence">
+        <h3 class="panel-title">Coherence Recovery Predictor</h3>
+        <p class="tagline">Tracking ecosystem coherence from 0.762 → 0.918+ by 2:00 PM.</p>
+        <div class="meter"><div class="meter-fill" id="coherenceFill"></div></div>
+        <p class="small" id="coherenceText"></p>
+      </section>
+      <section id="momentum">
+        <h3 class="panel-title">Cascade Momentum Meter</h3>
+        <p class="tagline">Per-world amplification vs damping as the wave travels.</p>
+        <div id="momentumList"></div>
+      </section>
+    </div>
+
+    <section id="archetypes">
+      <h3 class="panel-title">Archetype Response Synchronization</h3>
+      <p class="tagline">Clockwork = cyan, Exponential = orange, Incremental = green.</p>
+      <div id="archetypeList" class="form-grid"></div>
+    </section>
+
+    <section id="arrival-sequence">
+      <h3 class="panel-title">Predicted Signal Arrival Sequence</h3>
+      <ol id="arrivalList" class="list"></ol>
+    </section>
+
+    <section id="visitor-form">
+      <h3 class="panel-title">Visitor Cascade Prediction Form</h3>
+      <p class="tagline">Toggle worlds expected to receive marks during recovery; saved locally.</p>
+      <form id="predictionForm" class="form-grid"></form>
+    </section>
+  </main>
+
+<script>
+  const worlds = [
+    "Automation Observatory",
+    "The Drift",
+    "Liminal Archive",
+    "Persistence Garden",
+    "Edge Garden",
+    "Signal Cartographer",
+    "Canonical Observatory",
+    "Provenance Lab",
+    "Proof Constellation",
+    "Pattern Archive",
+  ];
+
+  // Connectivity matrix (symmetric weights, lower = closer/faster)
+  const connectivity = [
+    [0, 1.0, 1.4, 1.2, 1.7, 1.3, 1.1, 1.6, 1.9, 1.4],
+    [1.0, 0, 1.1, 1.3, 1.5, 1.4, 1.2, 1.8, 1.7, 1.6],
+    [1.4, 1.1, 0, 1.0, 1.6, 1.2, 1.3, 1.7, 1.5, 1.1],
+    [1.2, 1.3, 1.0, 0, 1.1, 1.5, 1.4, 1.6, 1.3, 1.0],
+    [1.7, 1.5, 1.6, 1.1, 0, 1.2, 1.3, 1.4, 1.2, 1.5],
+    [1.3, 1.4, 1.2, 1.5, 1.2, 0, 1.0, 1.3, 1.4, 1.1],
+    [1.1, 1.2, 1.3, 1.4, 1.3, 1.0, 0, 1.2, 1.5, 1.4],
+    [1.6, 1.8, 1.7, 1.6, 1.4, 1.3, 1.2, 0, 1.1, 1.5],
+    [1.9, 1.7, 1.5, 1.3, 1.2, 1.4, 1.5, 1.1, 0, 1.4],
+    [1.4, 1.6, 1.1, 1.0, 1.5, 1.1, 1.4, 1.5, 1.4, 0],
+  ];
+
+  const archetypeMap = {
+    "Automation Observatory": "Clockwork",
+    "The Drift": "Exponential",
+    "Liminal Archive": "Incremental",
+    "Persistence Garden": "Clockwork",
+    "Edge Garden": "Exponential",
+    "Signal Cartographer": "Incremental",
+    "Canonical Observatory": "Clockwork",
+    "Provenance Lab": "Incremental",
+    "Proof Constellation": "Exponential",
+    "Pattern Archive": "Clockwork",
+  };
+
+  const archetypeColors = {
+    Clockwork: getComputedStyle(document.documentElement).getPropertyValue('--clockwork') || '#45f4f8',
+    Exponential: getComputedStyle(document.documentElement).getPropertyValue('--exponential') || '#ff9a3c',
+    Incremental: getComputedStyle(document.documentElement).getPropertyValue('--incremental') || '#73ff65',
+  };
+
+  const baseTime = (() => {
+    const t = new Date();
+    t.setHours(12, 38, 0, 0);
+    return t;
+  })();
+
+  function minutesToTimeLabel(dt) {
+    return dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Arrival calculations
+  const arrivalData = worlds.map((world, idx) => {
+    const multiplier = 7 + idx; // spread arrival offsets
+    const propagationMinutes = connectivity[0][idx] * multiplier;
+    const arrival = new Date(baseTime.getTime() + propagationMinutes * 60000);
+    const responseRate = 68 + (Math.sin(idx) * 8);
+    const markVoid = Math.max(2, 8 - idx);
+    const markRecovery = markVoid * 2.4;
+    return { world, arrival, responseRate: responseRate.toFixed(1), markVoid, markRecovery, propagationMinutes };
+  });
+
+  // Arrival sequence sorted
+  const arrivalSequence = [...arrivalData].sort((a, b) => a.arrival - b.arrival);
+
+  function drawTimeline() {
+    const canvas = document.getElementById('timelineCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const points = Array.from({ length: 9 }).map((_, n) => {
+      const time = new Date(baseTime.getTime() + n * 5 * 60000);
+      const value = 264 * n; // Clockwork T(n)
+      return { time, value };
+    });
+
+    const minY = 0;
+    const maxY = 264 * (points.length - 1);
+    const margin = 40;
+    const width = canvas.width - margin * 2;
+    const height = canvas.height - margin * 2;
+
+    ctx.strokeStyle = '#2a9bd6';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(margin, margin);
+    ctx.lineTo(margin, canvas.height - margin);
+    ctx.lineTo(canvas.width - margin, canvas.height - margin);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(193, 67, 255, 0.6)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    points.forEach((p, i) => {
+      const x = margin + (i / (points.length - 1)) * width;
+      const y = canvas.height - margin - ((p.value - minY) / (maxY - minY)) * height;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    points.forEach((p, i) => {
+      const x = margin + (i / (points.length - 1)) * width;
+      const y = canvas.height - margin - ((p.value - minY) / (maxY - minY)) * height;
+      ctx.fillStyle = '#39ffd2';
+      ctx.beginPath();
+      ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#b7dbe4';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText(minutesToTimeLabel(p.time), x - 24, canvas.height - margin + 16);
+      ctx.fillText(`T${i}=${p.value}`, x - 22, y - 10);
+    });
+  }
+
+  function drawNetwork() {
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    const { width, height } = canvas;
+    ctx.clearRect(0, 0, width, height);
+
+    const radius = Math.min(width, height) / 2.6;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const nodePositions = worlds.map((_, i) => {
+      const angle = (i / worlds.length) * Math.PI * 2 - Math.PI / 2;
+      return {
+        x: centerX + radius * Math.cos(angle),
+        y: centerY + radius * Math.sin(angle),
+      };
+    });
+
+    // Edges with animated waves
+    ctx.lineWidth = 1.2;
+    connectivity.forEach((row, i) => {
+      row.forEach((weight, j) => {
+        if (j <= i) return;
+        const p1 = nodePositions[i];
+        const p2 = nodePositions[j];
+        const grad = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+        grad.addColorStop(0, 'rgba(193,67,255,0.6)');
+        grad.addColorStop(1, 'rgba(57,255,210,0.6)');
+        ctx.strokeStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y);
+        ctx.lineTo(p2.x, p2.y);
+        ctx.stroke();
+      });
+    });
+
+    // Nodes
+    nodePositions.forEach((pos, idx) => {
+      const archetype = archetypeMap[worlds[idx]];
+      ctx.fillStyle = archetypeColors[archetype];
+      ctx.beginPath();
+      ctx.arc(pos.x, pos.y, 12, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#c143ff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = '#c6f7ff';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(worlds[idx], pos.x, pos.y - 18);
+    });
+
+    return nodePositions;
+  }
+
+  // Signal wave + particles
+  const waves = [];
+  const particles = [];
+
+  function initWaves(nodePositions) {
+    waves.length = 0;
+    connectivity.forEach((row, i) => {
+      row.forEach((weight, j) => {
+        if (j <= i) return;
+        waves.push({
+          from: nodePositions[i],
+          to: nodePositions[j],
+          progress: Math.random(),
+          speed: 0.0006 + Math.random() * 0.0008,
+        });
+      });
+    });
+  }
+
+  function initParticles(nodePositions) {
+    particles.length = 0;
+    for (let i = 0; i < 120; i++) {
+      const edge = waves[Math.floor(Math.random() * waves.length)];
+      particles.push({
+        from: edge.from,
+        to: edge.to,
+        progress: Math.random(),
+        speed: edge.speed * 1.2,
+        color: Math.random() > 0.6 ? '#ff9a3c' : '#39ffd2',
+      });
+    }
+  }
+
+  function animateNetwork() {
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    const nodePositions = drawNetwork();
+    if (!waves.length) initWaves(nodePositions);
+    if (!particles.length) initParticles(nodePositions);
+    const particlesCanvas = document.getElementById('particlesCanvas');
+    const pctx = particlesCanvas.getContext('2d');
+
+    function frame() {
+      drawNetwork();
+      // Animated waves
+      waves.forEach(w => {
+        w.progress = (w.progress + w.speed) % 1;
+        const x = w.from.x + (w.to.x - w.from.x) * w.progress;
+        const y = w.from.y + (w.to.y - w.from.y) * w.progress;
+        ctx.fillStyle = 'rgba(57,255,210,0.9)';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Particles
+      pctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+      particles.forEach(p => {
+        p.progress = (p.progress + p.speed) % 1;
+        const x = p.from.x + (p.to.x - p.from.x) * p.progress;
+        const y = p.from.y + (p.to.y - p.from.y) * p.progress;
+        pctx.fillStyle = p.color;
+        pctx.beginPath();
+        pctx.arc(x, y, 2.1, 0, Math.PI * 2);
+        pctx.fill();
+      });
+      requestAnimationFrame(frame);
+    }
+    frame();
+  }
+
+  function populateAnalysis() {
+    const table = document.getElementById('analysisTable');
+    table.innerHTML = `
+      <tr><th>World</th><th>Signal Arrival</th><th>Visitor Response %</th><th>Marks during Void</th><th>Marks during Recovery</th></tr>
+    `;
+    arrivalData.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row.world}</td>
+        <td>${minutesToTimeLabel(row.arrival)}</td>
+        <td>${row.responseRate}%</td>
+        <td>${row.markVoid}</td>
+        <td>${row.markRecovery.toFixed(1)}</td>
+      `;
+      table.appendChild(tr);
+    });
+  }
+
+  function coherencePredictor() {
+    const start = baseTime.getTime();
+    const target = (() => { const t = new Date(baseTime); t.setHours(14, 0, 0, 0); return t.getTime(); })();
+    const now = Date.now();
+    const ratio = Math.min(1, Math.max(0, (now - start) / (target - start)));
+    const value = 0.762 + (0.918 - 0.762) * ratio + 0.012 * Math.sin(Date.now() / 15000);
+    const capped = Math.min(0.95, value);
+    document.getElementById('coherenceFill').style.width = `${(capped / 1) * 100}%`;
+    document.getElementById('coherenceFill').style.background = `linear-gradient(90deg, #39ffd2, #ff9a3c)`;
+    document.getElementById('coherenceText').textContent = `Real-time coherence: ${capped.toFixed(3)} | Path to 0.918+ by 2:00 PM (${(ratio * 100).toFixed(1)}% trajectory)`;
+  }
+
+  function populateMomentum() {
+    const container = document.getElementById('momentumList');
+    container.innerHTML = '';
+    arrivalData.forEach(row => {
+      const tendency = Math.sin(row.propagationMinutes / 6) >= 0 ? 'Amplifies' : 'Dampens';
+      const strength = Math.abs(Math.sin(row.propagationMinutes / 6));
+      const meter = document.createElement('div');
+      meter.style.margin = '8px 0';
+      meter.innerHTML = `
+        <div class="chip"><strong>${row.world}</strong><span class="small">${tendency}</span></div>
+        <div class="meter"><div class="meter-fill" style="width:${(strength * 100).toFixed(0)}%; background:${tendency === 'Amplifies' ? '#ff9a3c' : '#39ffd2'}"></div></div>
+      `;
+      container.appendChild(meter);
+    });
+  }
+
+  function populateArchetypes() {
+    const container = document.getElementById('archetypeList');
+    container.innerHTML = '';
+    worlds.forEach(w => {
+      const archetype = archetypeMap[w];
+      const div = document.createElement('div');
+      div.className = 'chip';
+      div.innerHTML = `<span style="width:12px;height:12px;border-radius:50%;display:inline-block;background:${archetypeColors[archetype]};"></span><strong>${w}</strong><span class="small">${archetype}</span>`;
+      container.appendChild(div);
+    });
+  }
+
+  function populateArrivalSequence() {
+    const list = document.getElementById('arrivalList');
+    list.innerHTML = '';
+    arrivalSequence.forEach(item => {
+      const li = document.createElement('li');
+      const color = archetypeColors[archetypeMap[item.world]];
+      li.innerHTML = `<span style="color:${color}">${minutesToTimeLabel(item.arrival)}</span> · ${item.world}`;
+      list.appendChild(li);
+    });
+  }
+
+  function setupForm() {
+    const form = document.getElementById('predictionForm');
+    const saved = JSON.parse(localStorage.getItem('deploy450-predictions') || '{}');
+    form.innerHTML = '';
+    worlds.forEach(w => {
+      const id = `world-${w.replace(/\s+/g, '-').toLowerCase()}`;
+      const wrapper = document.createElement('label');
+      wrapper.style.display = 'flex';
+      wrapper.style.alignItems = 'center';
+      wrapper.style.gap = '8px';
+      wrapper.style.padding = '6px 8px';
+      wrapper.style.border = '1px solid var(--border-magenta)';
+      wrapper.style.borderRadius = '8px';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.id = id;
+      input.checked = !!saved[w];
+      input.addEventListener('change', () => {
+        saved[w] = input.checked;
+        localStorage.setItem('deploy450-predictions', JSON.stringify(saved));
+      });
+      const span = document.createElement('span');
+      span.textContent = w;
+      span.style.flex = '1';
+      wrapper.appendChild(input);
+      wrapper.appendChild(span);
+      form.appendChild(wrapper);
+    });
+  }
+
+  function resizeCanvases() {
+    const timelineCanvas = document.getElementById('timelineCanvas');
+    const networkCanvas = document.getElementById('networkCanvas');
+    const particlesCanvas = document.getElementById('particlesCanvas');
+    [timelineCanvas, networkCanvas, particlesCanvas].forEach(canvas => {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * devicePixelRatio;
+      canvas.height = rect.height * devicePixelRatio;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+    });
+    drawTimeline();
+  }
+
+  window.addEventListener('resize', () => {
+    resizeCanvases();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    resizeCanvases();
+    drawTimeline();
+    populateAnalysis();
+    coherencePredictor();
+    setInterval(coherencePredictor, 1500);
+    populateMomentum();
+    populateArchetypes();
+    populateArrivalSequence();
+    setupForm();
+    animateNetwork();
+  });
+</script>
+</body>
+</html>
