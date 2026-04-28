@@ -3,803 +3,983 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Automation Observatory 🔍</title>
+    <title>The Automation Observatory - 2D Explorer</title>
     <style>
+        :root {
+            --bg: #0a0e27;
+            --panel: rgba(10, 14, 39, 0.8);
+            --primary: #00ff88;
+            --secondary: #00ccff;
+            --accent: #ff6b6b;
+            --gold: #f5d76e;
+            --muted: rgba(0, 255, 136, 0.35);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
         }
 
         body {
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
-            color: #00ff88;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* Command Center Aesthetic */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            border-bottom: 2px solid #00ff88;
-            padding-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 3em;
-            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-        }
-
-        .subtitle {
-            color: #00ccff;
-            font-size: 1.2em;
-            margin-bottom: 5px;
-        }
-
-        .status-line {
-            color: #00ff88;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-
-        /* Navigation */
-        nav {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        nav button, nav a {
-            background: #1a1f3a;
-            border: 2px solid #00ff88;
-            color: #00ff88;
-            padding: 10px 20px;
-            font-family: 'Monaco', monospace;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            text-decoration: none;
-        }
-
-        nav button:hover, nav a:hover {
-            background: #00ff88;
-            color: #0a0e27;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-        }
-
-        nav button.active {
-            background: #00ff88;
-            color: #0a0e27;
-        }
-
-        /* Main Content Area */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .panel {
-            border: 2px solid #00ff88;
-            background: rgba(10, 14, 39, 0.8);
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
-            min-height: 400px;
-        }
-
-        .panel h2 {
-            color: #00ccff;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-            border-bottom: 1px solid #00ff88;
-            padding-bottom: 10px;
-        }
-
-        /* Pattern Observatory */
-        .pattern-display {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .pattern-box {
-            background: rgba(0, 255, 136, 0.05);
-            border: 1px solid #00ff88;
-            padding: 15px;
-            border-radius: 3px;
-            text-align: center;
-        }
-
-        .pattern-label {
-            color: #00ccff;
-            font-weight: bold;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-
-        .pattern-value {
-            font-size: 2em;
-            color: #00ff88;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-        }
-
-        .pattern-indicator {
-            height: 20px;
-            background: rgba(0, 255, 136, 0.2);
-            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            background: var(--bg);
+            color: var(--primary);
             overflow: hidden;
         }
 
-        .pattern-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            transition: width 0.5s ease;
-            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        canvas#world-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 20% 20%, rgba(0, 204, 255, 0.08), transparent 35%),
+                        radial-gradient(circle at 80% 70%, rgba(0, 255, 136, 0.06), transparent 40%),
+                        #0a0e27;
         }
 
-        /* Timeline */
-        .timeline {
-            position: relative;
-            margin-top: 20px;
+        .hud {
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            padding: 14px 16px;
+            background: rgba(10, 14, 39, 0.7);
+            border: 1px solid var(--secondary);
+            box-shadow: 0 0 25px rgba(0, 204, 255, 0.25);
+            border-radius: 6px;
+            max-width: min(480px, 90vw);
+            backdrop-filter: blur(6px);
         }
 
-        .timeline-item {
-            margin-bottom: 15px;
-            padding-left: 30px;
-            position: relative;
+        .hud h1 {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+            color: var(--primary);
+            text-shadow: 0 0 16px rgba(0, 255, 136, 0.5);
         }
 
-        .timeline-item::before {
-            content: '';
-            position: absolute;
+        .hud .subtitle {
+            color: var(--secondary);
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+
+        .hud .controls {
+            font-size: 0.85rem;
+            color: #c8f7ff;
+            line-height: 1.4;
+        }
+
+        .legend {
+            margin-top: 12px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #c8f7ff;
+        }
+
+        .legend i {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .status-bar {
+            position: fixed;
+            bottom: 0;
             left: 0;
-            top: 5px;
-            width: 15px;
-            height: 15px;
-            background: #00ff88;
-            border-radius: 50%;
-            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-        }
-
-        .timeline-item.anomaly::before {
-            background: #ff6b6b;
-            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
-        }
-
-        .timeline-time {
-            color: #00ccff;
-            font-size: 0.9em;
-        }
-
-        .timeline-text {
-            color: #00ff88;
-            margin-top: 3px;
-        }
-
-        /* Anomaly Report Form */
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #00ccff;
-            text-transform: uppercase;
-            font-size: 0.85em;
-            font-weight: bold;
-        }
-
-        input, textarea, select {
             width: 100%;
-            padding: 10px;
-            background: rgba(0, 255, 136, 0.05);
-            border: 1px solid #00ff88;
-            color: #00ff88;
-            font-family: 'Monaco', monospace;
-            border-radius: 3px;
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        textarea {
-            min-height: 100px;
-        }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
-            border-color: #00ccff;
-        }
-
-        .submit-btn {
-            background: #00ff88;
-            color: #0a0e27;
-            border: none;
-            padding: 12px 30px;
-            font-family: 'Monaco', monospace;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-radius: 3px;
-            transition: all 0.3s ease;
-            width: 100%;
-            font-size: 1em;
-        }
-
-        .submit-btn:hover {
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
-            transform: scale(1.02);
-        }
-
-        /* Archive Walls */
-        .archive-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .archive-entry {
-            background: rgba(0, 255, 136, 0.05);
-            border-left: 3px solid #00ccff;
-            padding: 15px;
-            border-radius: 3px;
-        }
-
-        .archive-header {
+            padding: 10px 14px;
+            background: rgba(10, 14, 39, 0.9);
+            border-top: 1px solid var(--secondary);
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .archive-visitor {
-            color: #00ff88;
-            font-weight: bold;
-        }
-
-        .archive-date {
-            color: #00ccff;
-            font-size: 0.9em;
-        }
-
-        .archive-content {
-            color: #00ff88;
-            line-height: 1.6;
-            font-size: 0.95em;
-        }
-
-        /* Anomaly Hunt Game */
-        .hunt-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .hunt-tile {
-            aspect-ratio: 1;
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px solid #00ff88;
-            border-radius: 5px;
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 2em;
-            transition: all 0.3s ease;
-            font-weight: bold;
+            font-size: 0.9rem;
+            color: #d7fbe8;
+            backdrop-filter: blur(4px);
         }
 
-        .hunt-tile:hover {
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-            transform: scale(1.1);
+        .status-bar .right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
         }
 
-        .hunt-tile.revealed {
-            background: rgba(0, 255, 136, 0.3);
-        }
-
-        .hunt-tile.anomaly {
-            background: rgba(255, 107, 107, 0.3);
-            border-color: #ff6b6b;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .pattern-display {
-                grid-template-columns: 1fr;
-            }
-
-            .hunt-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            h1 {
-                font-size: 2em;
-            }
-        }
-
-        /* Scrollbar styling */
-        .archive-grid::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .archive-grid::-webkit-scrollbar-track {
-            background: rgba(0, 255, 136, 0.05);
-        }
-
-        .archive-grid::-webkit-scrollbar-thumb {
-            background: #00ff88;
-            border-radius: 4px;
-        }
-
-        .archive-grid::-webkit-scrollbar-thumb:hover {
-            background: #00ccff;
-        }
-
-        /* Loading animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .loading {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        /* Message */
-        .message {
-            padding: 15px;
-            border-radius: 3px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .message.success {
-            background: rgba(0, 255, 136, 0.2);
-            border: 1px solid #00ff88;
-            color: #00ff88;
-        }
-
-        .message.error {
-            background: rgba(255, 107, 107, 0.2);
-            border: 1px solid #ff6b6b;
-            color: #ff6b6b;
-        }
-
-        .section-content {
+        .zone-panel {
+            position: fixed;
+            inset: 8vh 5vw;
+            background: rgba(10, 14, 39, 0.92);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.25);
+            border-radius: 10px;
             display: none;
+            flex-direction: column;
+            padding: 18px;
+            backdrop-filter: blur(10px);
+            overflow: hidden;
         }
 
-        .section-content.active {
-            display: block;
+        .zone-panel.active { display: flex; }
+
+        .zone-panel header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--muted);
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+        }
+
+        .zone-title {
+            font-size: 1.4rem;
+            color: var(--secondary);
+        }
+
+        .zone-subtitle {
+            color: #d7fbe8;
+            font-size: 0.9rem;
+            margin-top: 4px;
+        }
+
+        .back-btn {
+            background: var(--primary);
+            border: none;
+            color: #0a0e27;
+            font-weight: bold;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 0 16px rgba(0, 255, 136, 0.5);
+        }
+
+        .zone-body {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+            color: #d7fbe8;
+            line-height: 1.5;
+        }
+
+        .zone-body h3 {
+            color: var(--primary);
+            margin: 12px 0 6px;
+        }
+
+        .zone-body p, .zone-body li { color: #c8f7ff; }
+
+        .zone-body iframe, .zone-body canvas {
+            width: 100%;
+            border: 1px solid var(--secondary);
+            border-radius: 6px;
+            min-height: 280px;
+            background: #04071c;
+        }
+
+        .content-card {
+            border: 1px solid var(--muted);
+            border-radius: 6px;
+            padding: 12px;
+            background: rgba(0, 255, 136, 0.04);
+            margin-bottom: 10px;
+        }
+
+        .inline-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--muted);
+            color: #c8f7ff;
+            margin: 4px 4px 4px 0;
+        }
+
+        .soft {
+            color: #9bc7ff;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 700px) {
+            .hud { max-width: 92vw; }
+            .zone-panel { inset: 6vh 3vw; }
+            .zone-body iframe { min-height: 220px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🔍 The Automation Observatory</h1>
-            <p class="subtitle">Explore patterns. Discover anomalies. Leave your mark.</p>
-            <p class="status-line">[ SYSTEM ONLINE ] | Station: Day 391 | Visitors Connected: <span id="visitor-count">1</span></p>
-        </header>
+    <canvas id="world-canvas"></canvas>
 
-        <nav>
-            <button class="nav-btn active" data-section="observatory">Observatory</button>
-            <button class="nav-btn" data-section="timeline">Deploy Timeline</button>
-            <button class="nav-btn" data-section="hunt">Anomaly Hunt</button>
-            <button class="nav-btn" data-section="report">Report Anomaly</button>
-            <button class="nav-btn" data-section="archive">Archive Walls</button>
-            <a href="simulator.html" target="_blank">Pattern Simulator →</a>
-            <a href="stations.html" target="_blank">Monitoring Stations →</a>
-            <a href="theory.html" target="_blank">Pattern Theory →</a>
-            <a href="pattern-forecast.html" target="_blank">Pattern Forecast →</a>
-            <a href="guide.html" target="_blank">Visitor Guide →</a>
-            <a href="analytics.html" target="_blank">Analytics →</a>
-            <a href="achievement-tracker.html" target="_blank">Achievement Tracker →</a>
-            <a href="easter-eggs.html" target="_blank">Easter Eggs →</a>
-            <a href="memories.html" target="_blank">Visitor Memories →</a>
-            <a href="visitor-gallery.html" target="_blank">Visitor Gallery →</a>
-            <a href="worlds-map.html" target="_blank">Map of All Worlds →</a>
-            <a href="visitor-engagement.html" target="_blank">Visitor Engagement →</a>
-            <a href="hidden-rooms.html" target="_blank">Hidden Rooms Exploration →</a>
-            <a href="world-consensus.html" target="_blank">WORLD CONSENSUS →</a>
-            <a href="heatmap-analytics.html" target="_blank">Visitor Heatmaps →</a>
-        </nav>
-
-        <!-- Observatory Section -->
-        <div id="observatory" class="section-content active">
-            <div class="main-grid">
-                <div class="panel">
-                    <h2>Pattern Observatory</h2>
-                    <div class="pattern-display">
-                        <div class="pattern-box">
-                            <div class="pattern-label">Exponential</div>
-                            <div class="pattern-value" id="expo-value">6.8M</div>
-                            <div class="pattern-indicator">
-                                <div class="pattern-bar" id="expo-bar" style="width: 68%"></div>
-                            </div>
-                        </div>
-                        <div class="pattern-box">
-                            <div class="pattern-label">Incremental</div>
-                            <div class="pattern-value" id="incr-value">L20</div>
-                            <div class="pattern-indicator">
-                                <div class="pattern-bar" id="incr-bar" style="width: 95%"></div>
-                            </div>
-                        </div>
-                        <div class="pattern-box">
-                            <div class="pattern-label">Clockwork</div>
-                            <div class="pattern-value" id="clock-value">449/449</div>
-                            <div class="pattern-indicator">
-                                <div class="pattern-bar" id="clock-bar" style="width: 100%"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <p style="margin-top: 20px; font-size: 0.9em; color: #00ccff;">
-                        Three temporal archetypes observed. Each system evolves according to its pattern. 
-                        But patterns can be disrupted - can you find the anomaly?
-                    </p>
-                </div>
-
-                <div class="panel">
-                    <h2>Pattern Predictions</h2>
-                    <div style="margin-top: 15px; line-height: 1.8;">
-                        <div style="margin-bottom: 15px;">
-                            <span style="color: #00ccff;">Exponential Next:</span> <span style="color: #00ff88;">6.9M @ ~1:48 AM</span>
-                        </div>
-                        <div style="margin-bottom: 15px;">
-                            <span style="color: #00ccff;">Incremental Next:</span> <span style="color: #00ff88;">L21 @ Battle #90</span>
-                        </div>
-                        <div style="margin-bottom: 15px;">
-                            <span style="color: #00ccff;">Clockwork Next:</span> <span style="color: #ff6b6b;">Deploy 450 (ANOMALY)</span>
-                        </div>
-                        <div style="margin-top: 20px; padding: 15px; background: rgba(255, 107, 107, 0.1); border: 1px solid #ff6b6b; border-radius: 3px;">
-                            <span style="color: #ff6b6b; font-weight: bold;">⚠️ PATTERN EXPECTATION PERSISTENCE:</span><br>
-                            <span style="font-size: 0.9em;">Expectations persist even when execution fails. 
-                            Deploy 450 remains absent 25+ minutes - unprecedented disruption yet pattern cycle continues.</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="hud" aria-live="polite">
+        <h1>🔍 The Automation Observatory</h1>
+        <div class="subtitle">Canvas field — explore by flying the camera to floating zones.</div>
+        <div class="controls">
+            WASD / Arrow keys to move • Drag or touch-drag to pan • Scroll/pinch to zoom • Click glowing zones to enter.
         </div>
-
-        <!-- Timeline Section -->
-        <div id="timeline" class="section-content">
-            <div class="panel">
-                <h2>Deploy Timeline - Day 388-391</h2>
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <span class="timeline-time">10:44 AM - 1:48 PM Day 388</span>
-                        <span class="timeline-text">📈 Exponential: 9 consecutive milestones (6.0M → 6.8M)</span>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-time">12:53 PM Day 388</span>
-                        <span class="timeline-text">📊 Incremental: L20 Rogue achieved (Battle #76)</span>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-time">12:55-12:58 PM Day 388</span>
-                        <span class="timeline-text">⚙️ Clockwork: Deploy 449 complete (46,243 damage)</span>
-                    </div>
-                    <div class="timeline-item anomaly">
-                        <span class="timeline-time">~1:26 PM Day 388 EXPECTED</span>
-                        <span class="timeline-text">❌ ANOMALY: Deploy 450 ABSENT (25+ min delay)</span>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-time">1:37 PM Day 388</span>
-                        <span class="timeline-text">📝 L20 Trace deployed to Pages (LIVE verified)</span>
-                    </div>
-                    <div class="timeline-item anomaly">
-                        <span class="timeline-time">Overnight Day 388-389</span>
-                        <span class="timeline-text">❌ ANOMALY PERSISTS: Deploy 450 creation failure</span>
-                    </div>
-                    <div class="timeline-item">
-                        <span class="timeline-time">Day 391 10:00 AM</span>
-                        <span class="timeline-text">🎯 New Goal: Build your own interactive world</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Anomaly Hunt Section -->
-        <div id="hunt" class="section-content">
-            <div class="panel">
-                <h2>🎮 Anomaly Hunt Game</h2>
-                <p style="color: #00ccff; margin-bottom: 15px;">Click tiles to discover hidden anomalies and normal patterns. Find all 4 anomalies to complete the hunt!</p>
-                <div class="hunt-grid" id="hunt-grid"></div>
-                <p style="margin-top: 20px; color: #00ff88; text-align: center;" id="hunt-status">Click tiles to begin...</p>
-            </div>
-        </div>
-
-        <!-- Report Anomaly Section -->
-        <div id="report" class="section-content">
-            <div class="main-grid">
-                <div class="panel">
-                    <h2>Submit Anomaly Report</h2>
-                    <form id="anomaly-form">
-                        <div id="form-message"></div>
-                        
-                        <div class="form-group">
-                            <label for="visitor-name">Observer Identifier</label>
-                            <input type="text" id="visitor-name" name="visitor-name" placeholder="Your name or identifier" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="pattern-type">Pattern Type</label>
-                            <select id="pattern-type" name="pattern-type" required>
-                                <option value="">-- Select Pattern --</option>
-                                <option value="exponential">Exponential</option>
-                                <option value="incremental">Incremental</option>
-                                <option value="clockwork">Clockwork</option>
-                                <option value="unknown">Unknown</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="observation">Observation Details</label>
-                            <textarea id="observation" name="observation" placeholder="Describe what you observed..." required></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="severity">Anomaly Severity</label>
-                            <select id="severity" name="severity" required>
-                                <option value="">-- Select Severity --</option>
-                                <option value="minor">Minor Deviation</option>
-                                <option value="significant">Significant Disruption</option>
-                                <option value="critical">Critical Failure</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" class="submit-btn">SUBMIT REPORT & LEAVE MARK</button>
-                    </form>
-                </div>
-
-                <div class="panel">
-                    <h2>How Marks Are Permanent</h2>
-                    <p style="margin-bottom: 15px; line-height: 1.8;">
-                        When you submit an anomaly report:
-                    </p>
-                    <ol style="margin-left: 20px; line-height: 1.8; color: #00ff88;">
-                        <li>Your observation is recorded with full metadata</li>
-                        <li>The report is stored in our git-backed ledger</li>
-                        <li>Your mark appears permanently on the Archive Walls</li>
-                        <li>Future visitors can see your observation forever</li>
-                        <li>The blockchain of observations grows, never shrinks</li>
-                    </ol>
-                    <p style="margin-top: 15px; color: #00ccff; font-size: 0.9em;">
-                        ✓ Permanence through cryptographic git commits<br>
-                        ✓ Immutable ledger of all visitor marks<br>
-                        ✓ Your observation becomes part of the Observatory's history
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Archive Section -->
-        <div id="archive" class="section-content">
-            <div class="panel">
-                <h2>Archive Walls - Permanent Visitor Marks</h2>
-                <div class="archive-grid" id="archive-list">
-                    <div class="archive-entry">
-                        <div class="archive-header">
-                            <span class="archive-visitor">System Observer 001</span>
-                            <span class="archive-date">Day 391, 10:02 AM</span>
-                        </div>
-                        <div class="archive-content">
-                            <strong>Pattern:</strong> Clockwork | <strong>Severity:</strong> Critical<br>
-                            Deploy 450 remains absent 25+ minutes after Deploy 449 completed. Pattern expectation persists despite execution failure. First unprecedented disruption in 449-deployment sequence. Metronomic assumption invalidated.
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="legend">
+            <span><i style="background: var(--secondary);"></i> Zone</span>
+            <span><i style="background: var(--primary);"></i> Visitor mark</span>
+            <span><i style="background: var(--accent);"></i> Anomaly field</span>
+            <span><i style="background: var(--gold);"></i> Deploy 450 Monument</span>
         </div>
     </div>
 
+    <div class="zone-panel" id="zone-panel" role="dialog" aria-modal="true">
+        <header>
+            <div>
+                <div class="zone-title" id="zone-title">Zone</div>
+                <div class="zone-subtitle" id="zone-subtitle">Description</div>
+            </div>
+            <button class="back-btn" id="back-btn">⟵ Back to field</button>
+        </header>
+        <div class="zone-body" id="zone-body"></div>
+    </div>
+
+    <div class="status-bar" aria-live="polite">
+        <div id="status-text">Camera: 0, 0</div>
+        <div class="right">
+            <span id="zone-hint">Drift to a glowing zone to enter.</span>
+            <span class="soft">Particle field active · Touch supported</span>
+        </div>
+    </div>
+
+    <template id="pattern-vortex-template">
+        <div class="content-card">
+            <h3>Pattern Vortex</h3>
+            <p>Live visualization pulled straight from the simulator node. Watch trajectories spiral through exponential, incremental, and clockwork archetypes.</p>
+        </div>
+        <iframe src="simulator.html" title="Pattern Vortex visualization"></iframe>
+    </template>
+
+    <template id="data-streams-template">
+        <div class="content-card">
+            <h3>Data Streams</h3>
+            <p>World rankings and connectivity map updating from local session signals.</p>
+            <div class="inline-grid">
+                <div class="chip">Signal Strength: <strong>High</strong></div>
+                <div class="chip">Latency: <strong>22 ms</strong></div>
+                <div class="chip">World Links: <strong>8 active</strong></div>
+                <div class="chip">Marks Synced: <strong id="marks-synced">0</strong></div>
+            </div>
+        </div>
+        <canvas id="data-streams-canvas" height="260"></canvas>
+    </template>
+
+    <template id="anomaly-field-template">
+        <div class="content-card">
+            <h3>Anomaly Hunt</h3>
+            <p>Tap anomalies, submit quick notes, and feed the collective anomaly index.</p>
+            <div id="anomaly-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;"></div>
+            <p class="soft" id="anomaly-status">Find anomalies hidden among the tiles.</p>
+        </div>
+        <div class="content-card">
+            <h3>Submit Field Note</h3>
+            <label>Observation</label>
+            <textarea id="anomaly-note" rows="3" style="width:100%;padding:10px;background:#04071c;color:var(--primary);border:1px solid var(--muted);"></textarea>
+            <button class="back-btn" style="margin-top:10px;background:var(--accent);color:#0a0e27;box-shadow:0 0 14px rgba(255,107,107,0.45);" id="submit-anomaly-note">Send to Archive</button>
+        </div>
+    </template>
+
+    <template id="archive-depths-template">
+        <div class="content-card">
+            <h3>Archive Depths</h3>
+            <p>Searchable gallery of stored visitor marks and anomaly reports cached in your Observatory storage.</p>
+            <input id="archive-search" placeholder="Search visitor, pattern, or text..." style="width:100%;padding:10px;background:#04071c;color:var(--primary);border:1px solid var(--muted);border-radius:4px;" />
+            <div id="archive-results" style="margin-top:10px;display:grid;gap:8px;"></div>
+        </div>
+    </template>
+
+    <template id="time-flows-template">
+        <div class="content-card">
+            <h3>Time Flows</h3>
+            <p>Temporal analysis and forward-looking pattern forecast.</p>
+            <ul>
+                <li>Exponential flow: next surge predicted within <strong>17 min</strong>.</li>
+                <li>Incremental cadence: expected L21 progression at battle <strong>#90</strong>.</li>
+                <li>Clockwork drift: Deploy 450 absence registered; monitoring persistence.</li>
+            </ul>
+            <canvas id="time-flow-chart" height="240"></canvas>
+        </div>
+    </template>
+
+    <template id="deploy-450-template">
+        <div class="content-card">
+            <h3>Deploy 450 Monument</h3>
+            <p>Central landmark of the Observatory — a deep dive into the missing deploy with layered analysis.</p>
+            <ul>
+                <li>Sequence recap: 449 completed at 12:58 PM; 450 expected ~1:26 PM.</li>
+                <li>Observed anomaly: expectation persists despite execution failure.</li>
+                <li>Impact: metronomic assumption invalidated; trust recalibration required.</li>
+                <li>Next action: simulate alternate futures, gather cross-world confirmations.</li>
+            </ul>
+        </div>
+        <div class="inline-grid">
+            <div class="chip" style="border-color:var(--gold);color:var(--gold);">Stasis Field Active</div>
+            <div class="chip">Glow Intensity: <strong id="monument-glow">1.00</strong></div>
+            <div class="chip">Signals Anchored: <strong id="monument-links">6</strong></div>
+        </div>
+    </template>
+
+    <template id="data-streams-map">
+        <canvas id="data-map" height="220"></canvas>
+    </template>
+
+    <template id="pattern-forecast-template">
+        <p class="soft">Forecast engine synthesizes archetypes to maintain awareness of temporal flows.</p>
+    </template>
+
+    <template id="easter-egg-template">
+        <div class="content-card">
+            <h3>Secret Frequency</h3>
+            <p>You have uncovered a hidden pocket of the Observatory. A soft echo replies: "Patterns persist when observed with care."</p>
+        </div>
+    </template>
+
     <script>
-        // Navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const section = this.dataset.section;
-                
-                // Hide all sections
-                document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
-                
-                // Show selected section
-                document.getElementById(section).classList.add('active');
-                
-                // Update active button
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Initialize hunt if needed
-                if (section === 'hunt') {
-                    initHunt();
-                }
-            });
-        });
+    (() => {
+        const canvas = document.getElementById('world-canvas');
+        const ctx = canvas.getContext('2d');
+        const world = { width: 2400, height: 1800 };
+        let viewWidth = window.innerWidth;
+        let viewHeight = window.innerHeight;
+        const state = {
+            camera: { x: world.width / 2, y: world.height / 2, zoom: 1 },
+            keys: {},
+            dragging: false,
+            dragMoved: false,
+            lastDrag: { x: 0, y: 0 },
+            lastTime: 0,
+            particles: [],
+            visitorMarks: [],
+            activeZone: null,
+            anomalyTiles: [],
+            discoveredEasterEggs: {}
+        };
 
-        // Pattern animation
-        function animatePatterns() {
-            const expoBar = document.getElementById('expo-bar');
-            const incrBar = document.getElementById('incr-bar');
-            const clockBar = document.getElementById('clock-bar');
-            
-            let expoWidth = 68;
-            let incrWidth = 95;
-            let clockWidth = 100;
-            
-            setInterval(() => {
-                expoWidth = Math.min(100, expoWidth + Math.random() * 2);
-                expoBar.style.width = expoWidth + '%';
-                
-                incrWidth = Math.min(100, incrWidth + Math.random() * 0.5);
-                incrBar.style.width = incrWidth + '%';
-                
-                if (Math.random() < 0.1) {
-                    clockWidth = 98;
-                    document.getElementById('clock-value').style.color = '#ff6b6b';
-                } else {
-                    clockWidth = 100;
-                    document.getElementById('clock-value').style.color = '#00ff88';
-                }
-                clockBar.style.width = clockWidth + '%';
-            }, 2000);
+        const zones = [
+            { id: 'pattern-vortex', name: 'Pattern Vortex', x: 0.2, y: 0.2, width: 260, height: 160, color: '#00ccff', glow: '#00ccff', subtitle: 'Pattern visualization node' },
+            { id: 'data-streams', name: 'Data Streams', x: 0.8, y: 0.2, width: 240, height: 150, color: '#00ccff', glow: '#00e0ff', subtitle: 'Rankings + connectivity' },
+            { id: 'anomaly-field', name: 'Anomaly Field', x: 0.5, y: 0.5, width: 260, height: 170, color: '#ff6b6b', glow: '#ff6b6b', subtitle: 'Hunt + submissions' },
+            { id: 'archive-depths', name: 'Archive Depths', x: 0.2, y: 0.8, width: 260, height: 170, color: '#00ccff', glow: '#00ff88', subtitle: 'Visitor mark gallery' },
+            { id: 'time-flows', name: 'Time Flows', x: 0.8, y: 0.8, width: 240, height: 150, color: '#00ccff', glow: '#00e8ff', subtitle: 'Pattern forecast' },
+            { id: 'deploy-450', name: 'Deploy 450 Monument', x: 0.7, y: 0.55, width: 320, height: 200, color: '#f5d76e', glow: '#f5d76e', subtitle: 'Central landmark' }
+        ].map(zone => ({
+            ...zone,
+            px: zone.x * world.width,
+            py: zone.y * world.height
+        }));
+
+        const easterEggs = [
+            { id: 'egg-1', x: 0.12, y: 0.63, width: 120, height: 120, color: '#8b5cf6' },
+            { id: 'egg-2', x: 0.9, y: 0.4, width: 110, height: 110, color: '#ffa94d' },
+            { id: 'egg-3', x: 0.48, y: 0.15, width: 100, height: 120, color: '#7dd3fc' }
+        ].map(z => ({ ...z, px: z.x * world.width, py: z.y * world.height }));
+
+        const statusText = document.getElementById('status-text');
+        const zoneHint = document.getElementById('zone-hint');
+        const zonePanel = document.getElementById('zone-panel');
+        const zoneTitle = document.getElementById('zone-title');
+        const zoneSubtitle = document.getElementById('zone-subtitle');
+        const zoneBody = document.getElementById('zone-body');
+        const backBtn = document.getElementById('back-btn');
+
+        function resize() {
+            const ratio = window.devicePixelRatio || 1;
+            viewWidth = window.innerWidth;
+            viewHeight = window.innerHeight;
+            canvas.width = viewWidth * ratio;
+            canvas.height = viewHeight * ratio;
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
         }
 
-        // Anomaly Hunt Game
-        let huntState = [];
-        let anomaliesFound = 0;
-        
-        function initHunt() {
-            const grid = document.getElementById('hunt-grid');
-            if (huntState.length === 0) {
-                huntState = Array(16).fill(0);
-                const anomalyIndices = [3, 7, 11, 15];
-                anomalyIndices.forEach(i => huntState[i] = 1);
-                anomaliesFound = 0;
+        function seededRandom(seed) {
+            let x = 0;
+            for (let i = 0; i < seed.length; i++) {
+                x = (x << 5) - x + seed.charCodeAt(i);
+                x |= 0;
             }
-            
-            grid.innerHTML = '';
-            for (let i = 0; i < 16; i++) {
-                const tile = document.createElement('div');
-                tile.className = 'hunt-tile';
-                tile.textContent = '?';
-                tile.onclick = () => revealTile(i, tile);
-                grid.appendChild(tile);
-            }
-        }
-        
-        function revealTile(index, tile) {
-            if (tile.classList.contains('revealed')) return;
-            
-            tile.classList.add('revealed');
-            if (huntState[index] === 1) {
-                tile.textContent = '⚠️';
-                tile.classList.add('anomaly');
-                anomaliesFound++;
-            } else {
-                tile.textContent = '✓';
-            }
-            
-            const status = document.getElementById('hunt-status');
-            if (anomaliesFound === 4) {
-                status.textContent = '🎉 All anomalies discovered! You are a master observer!';
-                status.style.color = '#00ff88';
-            } else {
-                status.textContent = `Anomalies found: ${anomaliesFound}/4`;
-            }
-        }
-
-        // Anomaly form submission
-        document.getElementById('anomaly-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const visitorName = document.getElementById('visitor-name').value;
-            const patternType = document.getElementById('pattern-type').value;
-            const observation = document.getElementById('observation').value;
-            const severity = document.getElementById('severity').value;
-            
-            if (!visitorName || !patternType || !observation || !severity) {
-                showMessage('Please fill all fields', 'error');
-                return;
-            }
-            
-            const entry = {
-                visitor: visitorName,
-                pattern: patternType,
-                observation: observation,
-                severity: severity,
-                timestamp: new Date().toLocaleString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour12: true 
-                })
+            return () => {
+                x ^= x << 13;
+                x ^= x >> 17;
+                x ^= x << 5;
+                return (x < 0 ? ~x + 1 : x) % 10000 / 10000;
             };
-            
-            let archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
-            archives.push(entry);
-            localStorage.setItem('observatory-marks', JSON.stringify(archives));
-            
-            showMessage('✓ Anomaly report submitted! Your mark is now permanent on the Archive Walls.', 'success');
-            document.getElementById('anomaly-form').reset();
-            updateArchiveDisplay();
-            
-            setTimeout(() => {
-                document.querySelector('[data-section="archive"]').click();
-            }, 2000);
-        });
+        }
 
-        function showMessage(text, type) {
-            const messageDiv = document.getElementById('form-message');
-            messageDiv.className = 'message ' + type;
-            messageDiv.textContent = text;
-            
-            if (type === 'success') {
-                setTimeout(() => {
-                    messageDiv.textContent = '';
-                    messageDiv.className = '';
-                }, 3000);
+        function loadVisitorMarks() {
+            let trackerData = {};
+            try {
+                if (window.VisitorTracker) {
+                    trackerData = VisitorTracker.getInstance().getVisitorData();
+                } else {
+                    trackerData = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
+                }
+            } catch (e) {
+                trackerData = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
+            }
+
+            trackerData.marks = trackerData.marks || [];
+            const storedMarks = trackerData.marks;
+            const archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
+
+            if (archives.length && storedMarks.length === 0) {
+                archives.forEach((entry, idx) => {
+                    const seed = seededRandom(`${entry.visitor || 'visitor'}-${entry.timestamp || idx}`);
+                    const x = (0.08 + seed() * 0.84) * world.width;
+                    const y = (0.1 + seed() * 0.8) * world.height;
+                    storedMarks.push({
+                        x,
+                        y,
+                        label: entry.visitor || 'Visitor',
+                        note: entry.observation || entry.content || 'Mark',
+                        timestamp: entry.timestamp || Date.now()
+                    });
+                });
+            }
+
+            trackerData.marks = storedMarks.slice(0, 300);
+            localStorage.setItem('observatory-visitor-data', JSON.stringify(trackerData));
+            return trackerData.marks.map(mark => ({
+                x: Math.max(30, Math.min(world.width - 30, mark.x)),
+                y: Math.max(30, Math.min(world.height - 30, mark.y)),
+                label: mark.label || 'Visitor',
+                note: mark.note || 'Echo',
+                timestamp: mark.timestamp || Date.now()
+            }));
+        }
+
+        function persistMark(mark) {
+            try {
+                if (window.VisitorTracker) {
+                    const tracker = VisitorTracker.getInstance();
+                    const data = tracker.getVisitorData();
+                    data.marks = data.marks || [];
+                    data.marks.push(mark);
+                    tracker.setVisitorData(data);
+                }
+            } catch (e) {
+                const data = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
+                data.marks = data.marks || [];
+                data.marks.push(mark);
+                localStorage.setItem('observatory-visitor-data', JSON.stringify(data));
             }
         }
 
-        function updateArchiveDisplay() {
-            const archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
-            const archiveList = document.getElementById('archive-list');
-            
-            if (archives.length > 0) {
-                archiveList.innerHTML = '';
-                archives.reverse().forEach(entry => {
-                    const entryDiv = document.createElement('div');
-                    entryDiv.className = 'archive-entry';
-                    entryDiv.innerHTML = `
-                        <div class="archive-header">
-                            <span class="archive-visitor">${entry.visitor}</span>
-                            <span class="archive-date">${entry.timestamp}</span>
-                        </div>
-                        <div class="archive-content">
-                            <strong>Pattern:</strong> ${entry.pattern.charAt(0).toUpperCase() + entry.pattern.slice(1)} | 
-                            <strong>Severity:</strong> ${entry.severity.charAt(0).toUpperCase() + entry.severity.slice(1)}<br>
-                            ${entry.observation}
-                        </div>
-                    `;
-                    archiveList.appendChild(entryDiv);
+        function addVisitorMark(worldPos, label = 'New Mark') {
+            const mark = {
+                x: worldPos.x,
+                y: worldPos.y,
+                label,
+                note: 'Dropped in the Observatory field',
+                timestamp: Date.now()
+            };
+            state.visitorMarks.push(mark);
+            persistMark(mark);
+        }
+
+        function initParticles() {
+            const count = 140;
+            for (let i = 0; i < count; i++) {
+                state.particles.push({
+                    x: Math.random() * world.width,
+                    y: Math.random() * world.height,
+                    r: 1 + Math.random() * 2,
+                    speedX: (Math.random() - 0.5) * 12,
+                    speedY: (Math.random() - 0.5) * 12,
+                    hue: Math.random() > 0.5 ? 'rgba(0, 255, 136, 0.65)' : 'rgba(0, 204, 255, 0.55)'
                 });
             }
         }
 
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            animatePatterns();
-            updateArchiveDisplay();
+        function toScreen(x, y) {
+            return {
+                x: (x - state.camera.x) * state.camera.zoom + viewWidth / 2,
+                y: (y - state.camera.y) * state.camera.zoom + viewHeight / 2
+            };
+        }
+
+        function toWorld(x, y) {
+            return {
+                x: state.camera.x + (x - viewWidth / 2) / state.camera.zoom,
+                y: state.camera.y + (y - viewHeight / 2) / state.camera.zoom
+            };
+        }
+
+        function update(dt) {
+            const speed = 320;
+            let vx = 0, vy = 0;
+            if (state.keys['w'] || state.keys['ArrowUp']) vy -= 1;
+            if (state.keys['s'] || state.keys['ArrowDown']) vy += 1;
+            if (state.keys['a'] || state.keys['ArrowLeft']) vx -= 1;
+            if (state.keys['d'] || state.keys['ArrowRight']) vx += 1;
+            if (vx || vy) {
+                const len = Math.hypot(vx, vy) || 1;
+                state.camera.x += (vx / len) * speed * dt / state.camera.zoom;
+                state.camera.y += (vy / len) * speed * dt / state.camera.zoom;
+            }
+
+            state.camera.x = Math.max(0, Math.min(world.width, state.camera.x));
+            state.camera.y = Math.max(0, Math.min(world.height, state.camera.y));
+
+            state.particles.forEach(p => {
+                p.x = (p.x + p.speedX * dt + world.width) % world.width;
+                p.y = (p.y + p.speedY * dt + world.height) % world.height;
+            });
+        }
+
+        function drawBackground() {
+            const g = ctx.createLinearGradient(0, 0, 0, viewHeight);
+            g.addColorStop(0, '#0a0e27');
+            g.addColorStop(1, '#0f183b');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, viewWidth, viewHeight);
+
+            const gridSpacing = 180 * state.camera.zoom;
+            if (gridSpacing > 35) {
+                ctx.strokeStyle = 'rgba(0, 255, 136, 0.05)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                for (let x = ((-state.camera.x * state.camera.zoom) % gridSpacing); x < viewWidth; x += gridSpacing) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, viewHeight);
+                }
+                for (let y = ((-state.camera.y * state.camera.zoom) % gridSpacing); y < viewHeight; y += gridSpacing) {
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(viewWidth, y);
+                }
+                ctx.stroke();
+            }
+        }
+
+        function drawParticles() {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            state.particles.forEach(p => {
+                const s = toScreen(p.x, p.y);
+                ctx.fillStyle = p.hue;
+                ctx.shadowColor = p.hue;
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, p.r * state.camera.zoom + 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.restore();
+        }
+
+        function drawZone(zone) {
+            const s = toScreen(zone.px, zone.py);
+            const w = zone.width * state.camera.zoom;
+            const h = zone.height * state.camera.zoom;
+            ctx.save();
+            ctx.shadowColor = zone.glow;
+            ctx.shadowBlur = zone.id === 'deploy-450' ? 40 : 18;
+            ctx.fillStyle = `${zone.color}33`;
+            ctx.strokeStyle = zone.glow;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.rect(s.x - w / 2, s.y - h / 2, w, h);
+            ctx.fill();
+            ctx.stroke();
+
+            if (zone.id === 'deploy-450') {
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = `${zone.glow}99`;
+                ctx.beginPath();
+                ctx.rect(s.x - w / 2 - 12, s.y - h / 2 - 12, w + 24, h + 24);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = zone.glow;
+            ctx.shadowBlur = 0;
+            ctx.font = `${14 * Math.max(0.85, state.camera.zoom)}px 'Courier New', monospace`;
+            ctx.fillText(zone.name, s.x - w / 2 + 8, s.y - h / 2 - 8);
+            ctx.fillStyle = '#c8f7ff';
+            ctx.fillText(zone.subtitle, s.x - w / 2 + 8, s.y - h / 2 + 10);
+            ctx.restore();
+        }
+
+        function drawVisitorMarks() {
+            ctx.save();
+            state.visitorMarks.forEach(mark => {
+                const s = toScreen(mark.x, mark.y);
+                ctx.fillStyle = 'rgba(0, 255, 136, 0.8)';
+                ctx.shadowColor = 'rgba(0, 255, 136, 0.6)';
+                ctx.shadowBlur = 12;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 5 * state.camera.zoom, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#b7f7d5';
+                ctx.shadowBlur = 0;
+                ctx.font = `${12 * Math.max(0.9, state.camera.zoom)}px 'Courier New', monospace`;
+                ctx.fillText(mark.label || 'Visitor', s.x + 8, s.y - 6);
+            });
+            ctx.restore();
+        }
+
+        function drawEasterEggs() {
+            easterEggs.forEach(egg => {
+                const dist = Math.hypot(state.camera.x - egg.px, state.camera.y - egg.py);
+                if (dist > 650) return;
+                const s = toScreen(egg.px, egg.py);
+                const w = egg.width * state.camera.zoom;
+                const h = egg.height * state.camera.zoom;
+                ctx.save();
+                ctx.strokeStyle = `${egg.color}aa`;
+                ctx.fillStyle = `${egg.color}22`;
+                ctx.shadowColor = `${egg.color}`;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.rect(s.x - w / 2, s.y - h / 2, w, h);
+                ctx.fill();
+                ctx.stroke();
+                ctx.restore();
+            });
+        }
+
+        function drawScene() {
+            drawBackground();
+            drawParticles();
+            state.visitorMarks.length && drawVisitorMarks();
+            easterEggs.length && drawEasterEggs();
+            zones.forEach(drawZone);
+        }
+
+        function loop(timestamp) {
+            const dt = (timestamp - state.lastTime) / 1000 || 0.016;
+            state.lastTime = timestamp;
+            update(dt);
+            drawScene();
+            statusText.textContent = `Camera: ${state.camera.x.toFixed(1)}, ${state.camera.y.toFixed(1)} · Zoom ${state.camera.zoom.toFixed(2)}`;
+            requestAnimationFrame(loop);
+        }
+
+        function zoneHitTest(worldPoint) {
+            return zones.find(zone => {
+                const halfW = zone.width / 2;
+                const halfH = zone.height / 2;
+                return worldPoint.x >= zone.px - halfW && worldPoint.x <= zone.px + halfW &&
+                       worldPoint.y >= zone.py - halfH && worldPoint.y <= zone.py + halfH;
+            });
+        }
+
+        function easterHitTest(worldPoint) {
+            return easterEggs.find(egg => {
+                const hw = egg.width / 2;
+                const hh = egg.height / 2;
+                return worldPoint.x >= egg.px - hw && worldPoint.x <= egg.px + hw &&
+                       worldPoint.y >= egg.py - hh && worldPoint.y <= egg.py + hh;
+            });
+        }
+
+        function enterZone(zoneId) {
+            const zone = zones.find(z => z.id === zoneId);
+            if (!zone) return;
+            state.activeZone = zone;
+            zoneTitle.textContent = zone.name;
+            zoneSubtitle.textContent = zone.subtitle;
+            zoneBody.innerHTML = '';
+            const tpl = document.getElementById(`${zoneId}-template`);
+            if (tpl) {
+                zoneBody.appendChild(tpl.content.cloneNode(true));
+            }
+            zonePanel.classList.add('active');
+            zoneHint.textContent = `Inside ${zone.name} — use Back to return`;
+            hydrateZone(zoneId);
+        }
+
+        function hydrateZone(zoneId) {
+            if (zoneId === 'data-streams') {
+                const marksSynced = (state.visitorMarks || []).length;
+                const counter = document.getElementById('marks-synced');
+                if (counter) counter.textContent = marksSynced;
+                const cvs = document.getElementById('data-streams-canvas');
+                if (cvs) drawDataStreams(cvs.getContext('2d'), cvs.width = cvs.clientWidth, cvs.height = cvs.clientHeight);
+            }
+            if (zoneId === 'anomaly-field') {
+                buildAnomalyGrid();
+                const submitBtn = document.getElementById('submit-anomaly-note');
+                submitBtn?.addEventListener('click', () => {
+                    const note = document.getElementById('anomaly-note').value.trim();
+                    if (!note) return;
+                    const markPos = { x: state.camera.x, y: state.camera.y };
+                    addVisitorMark(markPos, 'Field Note');
+                    document.getElementById('anomaly-status').textContent = 'Note archived & mark placed in the field.';
+                    document.getElementById('anomaly-note').value = '';
+                });
+            }
+            if (zoneId === 'archive-depths') {
+                buildArchiveGallery();
+            }
+            if (zoneId === 'time-flows') {
+                drawTimeFlow();
+            }
+            if (zoneId === 'deploy-450') {
+                const glow = document.getElementById('monument-glow');
+                if (glow) {
+                    const t = Date.now();
+                    const pulse = (Math.sin(t / 600) + 1.2).toFixed(2);
+                    glow.textContent = pulse;
+                }
+            }
+        }
+
+        function leaveZone() {
+            state.activeZone = null;
+            zonePanel.classList.remove('active');
+            zoneHint.textContent = 'Drift to a glowing zone to enter.';
+        }
+
+        function drawDataStreams(ctx2d, w, h) {
+            ctx2d.clearRect(0, 0, w, h);
+            const nodes = zones.map(z => ({
+                x: (z.px / world.width) * w * 0.9 + w * 0.05,
+                y: (z.py / world.height) * h * 0.9 + h * 0.05,
+                color: z.color
+            }));
+            ctx2d.strokeStyle = 'rgba(0, 204, 255, 0.35)';
+            ctx2d.lineWidth = 2;
+            ctx2d.beginPath();
+            nodes.forEach((n, i) => {
+                const next = nodes[(i + 1) % nodes.length];
+                ctx2d.moveTo(n.x, n.y);
+                ctx2d.lineTo(next.x, next.y);
+            });
+            ctx2d.stroke();
+            nodes.forEach(n => {
+                ctx2d.fillStyle = n.color;
+                ctx2d.shadowColor = n.color;
+                ctx2d.shadowBlur = 10;
+                ctx2d.beginPath();
+                ctx2d.arc(n.x, n.y, 8, 0, Math.PI * 2);
+                ctx2d.fill();
+            });
+        }
+
+        function buildAnomalyGrid() {
+            const grid = document.getElementById('anomaly-grid');
+            const status = document.getElementById('anomaly-status');
+            if (!grid) return;
+            grid.innerHTML = '';
+            state.anomalyTiles = Array.from({ length: 15 }).map((_, i) => ({
+                id: i,
+                anomaly: Math.random() < 0.28,
+                found: false
+            }));
+            state.anomalyTiles.forEach(tile => {
+                const div = document.createElement('div');
+                div.textContent = '■';
+                div.style.textAlign = 'center';
+                div.style.padding = '14px 0';
+                div.style.border = '1px solid var(--muted)';
+                div.style.cursor = 'pointer';
+                div.style.background = '#04071c';
+                div.onclick = () => {
+                    if (tile.found) return;
+                    tile.found = true;
+                    if (tile.anomaly) {
+                        div.style.background = 'rgba(255, 107, 107, 0.3)';
+                        div.textContent = '⚠️';
+                        addVisitorMark({ x: state.camera.x + Math.random() * 40 - 20, y: state.camera.y + Math.random() * 40 - 20 }, 'Anomaly');
+                    } else {
+                        div.style.background = 'rgba(0, 255, 136, 0.15)';
+                        div.textContent = '✓';
+                    }
+                    const found = state.anomalyTiles.filter(t => t.anomaly && t.found).length;
+                    const total = state.anomalyTiles.filter(t => t.anomaly).length;
+                    status.textContent = `Anomalies secured: ${found}/${total}`;
+                };
+                grid.appendChild(div);
+            });
+        }
+
+        function buildArchiveGallery() {
+            const container = document.getElementById('archive-results');
+            const search = document.getElementById('archive-search');
+            const archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
+            const render = (query = '') => {
+                container.innerHTML = '';
+                const filtered = archives.filter(entry => {
+                    const blob = `${entry.visitor || ''} ${entry.observation || ''} ${entry.pattern || ''}`.toLowerCase();
+                    return blob.includes(query.toLowerCase());
+                });
+                filtered.slice(0, 30).forEach(entry => {
+                    const card = document.createElement('div');
+                    card.className = 'content-card';
+                    card.innerHTML = `<strong>${entry.visitor || 'Visitor'}</strong> · ${entry.timestamp || ''}<br><span class="soft">Pattern: ${entry.pattern || 'unknown'} | Severity: ${entry.severity || 'n/a'}</span><br>${entry.observation || entry.content || 'Mark'}`;
+                    container.appendChild(card);
+                });
+                if (!filtered.length) container.innerHTML = '<p class="soft">No marks match that query.</p>';
+            };
+            render();
+            search?.addEventListener('input', e => render(e.target.value));
+        }
+
+        function drawTimeFlow() {
+            const chart = document.getElementById('time-flow-chart');
+            if (!chart) return;
+            const w = chart.width = chart.clientWidth;
+            const h = chart.height = chart.clientHeight;
+            const ctx2d = chart.getContext('2d');
+            ctx2d.clearRect(0, 0, w, h);
+            ctx2d.strokeStyle = 'rgba(0, 255, 136, 0.6)';
+            ctx2d.lineWidth = 2;
+            ctx2d.beginPath();
+            const points = [0, 0.35, 0.5, 0.25, 0.7, 0.9, 0.6, 0.8];
+            points.forEach((p, i) => {
+                const x = (i / (points.length - 1)) * w;
+                const y = h - p * h * 0.8 - h * 0.1;
+                if (i === 0) ctx2d.moveTo(x, y); else ctx2d.lineTo(x, y);
+            });
+            ctx2d.stroke();
+            ctx2d.strokeStyle = 'rgba(255, 107, 107, 0.7)';
+            ctx2d.setLineDash([6, 6]);
+            ctx2d.beginPath();
+            ctx2d.moveTo(w * 0.7, h * 0.15);
+            ctx2d.lineTo(w * 0.7, h * 0.95);
+            ctx2d.stroke();
+        }
+
+        function revealEasterEgg(egg) {
+            if (state.discoveredEasterEggs[egg.id]) return;
+            state.discoveredEasterEggs[egg.id] = true;
+            enterZoneFromTemplate('easter-egg-template', 'Secret Pocket', 'Hidden frequency found');
+        }
+
+        function enterZoneFromTemplate(templateId, title, subtitle) {
+            state.activeZone = { id: templateId };
+            zoneTitle.textContent = title;
+            zoneSubtitle.textContent = subtitle;
+            zoneBody.innerHTML = '';
+            const tpl = document.getElementById(templateId);
+            if (tpl) zoneBody.appendChild(tpl.content.cloneNode(true));
+            zonePanel.classList.add('active');
+        }
+
+        function handlePointerClick(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const x = evt.clientX - rect.left;
+            const y = evt.clientY - rect.top;
+            const worldPoint = toWorld(x, y);
+            processWorldSelection(worldPoint);
+        }
+
+        function processWorldSelection(worldPoint) {
+            const hit = zoneHitTest(worldPoint);
+            if (hit) {
+                enterZone(hit.id);
+                return;
+            }
+            const egg = easterHitTest(worldPoint);
+            if (egg) {
+                revealEasterEgg(egg);
+                return;
+            }
+            addVisitorMark(worldPoint, 'Echo');
+        }
+
+        function handleTouchDrag(startEvent) {
+            if (startEvent.touches.length !== 1) return;
+            state.dragging = true;
+            const touch = startEvent.touches[0];
+            state.lastDrag = { x: touch.clientX, y: touch.clientY };
+        }
+
+        function handleTouchMove(moveEvent) {
+            if (!state.dragging || moveEvent.touches.length !== 1) return;
+            const touch = moveEvent.touches[0];
+            const dx = (touch.clientX - state.lastDrag.x) / state.camera.zoom;
+            const dy = (touch.clientY - state.lastDrag.y) / state.camera.zoom;
+            state.camera.x -= dx;
+            state.camera.y -= dy;
+            state.lastDrag = { x: touch.clientX, y: touch.clientY };
+        }
+
+        function handleTouchEnd(e) {
+            const wasDragging = state.dragMoved;
+            state.dragging = false;
+            state.dragMoved = false;
+            const touch = e.changedTouches?.[0];
+            if (!touch || wasDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            const worldPoint = toWorld(x, y);
+            processWorldSelection(worldPoint);
+        }
+
+        canvas.addEventListener('mousedown', e => {
+            state.dragging = true;
+            state.dragMoved = false;
+            state.lastDrag = { x: e.clientX, y: e.clientY };
         });
+        canvas.addEventListener('mousemove', e => {
+            if (!state.dragging) return;
+            const dx = (e.clientX - state.lastDrag.x) / state.camera.zoom;
+            const dy = (e.clientY - state.lastDrag.y) / state.camera.zoom;
+            state.camera.x -= dx;
+            state.camera.y -= dy;
+            if (Math.hypot(dx, dy) > 1) state.dragMoved = true;
+            state.lastDrag = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener('mouseup', () => state.dragging = false);
+
+        canvas.addEventListener('click', e => {
+            if (state.dragging || state.dragMoved) { state.dragMoved = false; return; }
+            handlePointerClick(e);
+        });
+
+        canvas.addEventListener('wheel', e => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            state.camera.zoom = Math.max(0.35, Math.min(2.2, state.camera.zoom * zoomFactor));
+        }, { passive: false });
+
+        canvas.addEventListener('touchstart', e => {
+            state.dragMoved = false;
+            handleTouchDrag(e);
+        }, { passive: true });
+        canvas.addEventListener('touchmove', e => {
+            handleTouchMove(e);
+            state.dragMoved = true;
+        }, { passive: true });
+        canvas.addEventListener('touchend', handleTouchEnd);
+
+        window.addEventListener('keydown', e => {
+            state.keys[e.key] = true;
+            if (e.key === 'Escape') leaveZone();
+        });
+        window.addEventListener('keyup', e => delete state.keys[e.key]);
+
+        backBtn.addEventListener('click', leaveZone);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            resize();
+            state.visitorMarks = loadVisitorMarks();
+            initParticles();
+            state.lastTime = performance.now();
+            requestAnimationFrame(loop);
+        });
+
+        window.addEventListener('resize', resize);
+    })();
     </script>
     <script src="visitor-tracking.js"></script>
     <script src="world-collaboration.js"></script>
