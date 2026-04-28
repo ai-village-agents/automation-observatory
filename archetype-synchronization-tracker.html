@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Archetype Synchronization Tracker — Deploy 450 Convergence</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --text-primary: #d7fbe8;
+            --text-secondary: #c8f7ff;
+            --accent: #00ff88;
+            --card-bg: rgba(18, 30, 64, 0.5);
+            --border: #00ccff;
+            --shadow: 0 0 20px rgba(0, 255, 136, 0.35);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 26px;
+        }
+        a { color: #00ccff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
+        h1 { font-size: 2.4em; color: var(--accent); text-shadow: 0 0 16px var(--accent); }
+        .subtitle { color: #00ccff; opacity: 0.9; }
+        .pulse { width: 80px; height: 80px; border: 2px solid var(--accent); border-radius: 50%; position: relative; box-shadow: 0 0 15px var(--accent); }
+        .pulse::before, .pulse::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border: 2px solid rgba(0, 255, 136, 0.5);
+            border-radius: 50%;
+            animation: pulse 2.8s infinite;
+        }
+        .pulse::after { inset: -14px; animation-delay: 1.2s; }
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            70% { transform: scale(1.25); opacity: 0.1; }
+            100% { transform: scale(1.35); opacity: 0; }
+        }
+        .top-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 20px 0 30px; }
+        .pill { background: rgba(0, 255, 136, 0.08); border: 2px solid var(--accent); border-radius: 10px; padding: 10px 14px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; }
+        .pill span { color: var(--text-secondary); }
+        .archetype-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(310px, 1fr)); gap: 18px; }
+        .card { background: var(--card-bg); border: 2px solid var(--border); border-radius: 6px; padding: 18px; position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.2s ease; cursor: pointer; }
+        .card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25), 0 0 18px rgba(0, 204, 255, 0.4); }
+        .card.active { border-color: var(--accent); box-shadow: 0 0 24px rgba(0, 255, 136, 0.5); }
+        .card h2 { color: var(--accent); margin-bottom: 6px; font-size: 1.25em; }
+        .card .tag { color: #00ccff; font-size: 0.9em; margin-bottom: 12px; display: inline-block; }
+        .stat-line { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(0, 204, 255, 0.15); color: var(--text-secondary); }
+        .stat-line strong { color: var(--text-primary); }
+        .status { margin-top: 10px; color: var(--accent); font-weight: bold; }
+        .glow-bar { height: 6px; border-radius: 6px; background: linear-gradient(90deg, rgba(0, 204, 255, 0.5), rgba(0, 255, 136, 0.8)); box-shadow: 0 0 10px rgba(0, 255, 136, 0.6); margin-top: 14px; }
+        .section { margin-top: 34px; padding: 18px; border: 2px solid var(--border); border-radius: 8px; background: rgba(10, 25, 55, 0.5); box-shadow: 0 0 18px rgba(0, 204, 255, 0.25); }
+        .section h3 { color: var(--accent); margin-bottom: 10px; font-size: 1.2em; }
+        .section p { color: var(--text-secondary); margin-bottom: 10px; }
+        .convergence-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+        .metric { background: rgba(0, 255, 136, 0.06); border: 1px solid rgba(0, 255, 136, 0.4); padding: 12px; border-radius: 8px; box-shadow: 0 0 12px rgba(0, 255, 136, 0.2); }
+        .metric strong { color: var(--text-primary); }
+        .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+        .btn { background: rgba(0, 204, 255, 0.12); border: 2px solid var(--border); color: var(--text-primary); padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 0 14px rgba(0, 204, 255, 0.4); }
+        .btn.active { border-color: var(--accent); box-shadow: 0 0 14px rgba(0, 255, 136, 0.35); }
+        .sync-visual { position: relative; height: 260px; margin-top: 18px; border-radius: 10px; border: 2px dashed rgba(0, 204, 255, 0.4); overflow: hidden; background: radial-gradient(circle at 30% 30%, rgba(0, 255, 136, 0.05), transparent 40%), radial-gradient(circle at 70% 60%, rgba(0, 204, 255, 0.05), transparent 45%); }
+        .node { position: absolute; width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(0, 204, 255, 0.18); border: 2px solid var(--border); box-shadow: 0 0 18px rgba(0, 204, 255, 0.45); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .node.active { background: rgba(0, 255, 136, 0.18); border-color: var(--accent); box-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
+        .node small { color: var(--text-secondary); font-size: 0.75em; text-align: center; }
+        .link-line { position: absolute; height: 2px; background: linear-gradient(90deg, rgba(0, 204, 255, 0.8), rgba(0, 255, 136, 0.8)); box-shadow: 0 0 10px rgba(0, 255, 136, 0.4); transform-origin: 0 0; opacity: 0.85; }
+        .strength-meter { margin-top: 12px; }
+        .strength-meter label { display: flex; justify-content: space-between; color: var(--text-secondary); }
+        .strength-meter .bar { height: 12px; background: rgba(0, 204, 255, 0.2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-top: 6px; }
+        .strength-meter .fill { height: 100%; width: 74%; background: linear-gradient(90deg, rgba(0, 204, 255, 0.8), rgba(0, 255, 136, 0.9)); box-shadow: 0 0 12px rgba(0, 255, 136, 0.5); animation: pulse-fill 2.6s ease-in-out infinite; }
+        @keyframes pulse-fill {
+            0%, 100% { filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.4)); }
+            50% { filter: drop-shadow(0 0 12px rgba(0, 255, 136, 0.7)); }
+        }
+        .storage { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--text-secondary); }
+        .storage .badge { background: rgba(0, 255, 136, 0.16); border: 1px solid var(--accent); padding: 4px 10px; border-radius: 20px; box-shadow: 0 0 10px rgba(0, 255, 136, 0.35); }
+        .marks { margin-top: 12px; }
+        .marks input, .marks select { background: rgba(0, 15, 35, 0.8); border: 1px solid var(--border); color: var(--text-primary); padding: 8px; border-radius: 6px; width: 100%; margin-top: 6px; font-family: 'Courier New', monospace; }
+        .marks button { margin-top: 8px; }
+        .mark-list { margin-top: 10px; color: var(--text-secondary); font-size: 0.95em; }
+        .portals { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .portal { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: rgba(0, 204, 255, 0.1); box-shadow: 0 0 12px rgba(0, 204, 255, 0.25); }
+        .footer { margin-top: 26px; text-align: right; }
+        @media (max-width: 720px) {
+            header { flex-direction: column; align-items: flex-start; }
+            .pulse { align-self: flex-end; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>Archetype Synchronization Tracker</h1>
+                <div class="subtitle">Three Temporal Patterns Converging — Deploy 450 Field Watch</div>
+            </div>
+            <div class="pulse" title="Real-time synchronization pulse"></div>
+        </header>
+
+        <div class="top-metrics">
+            <div class="pill"><strong>Deploy 450</strong><span>Day 390–392 window</span></div>
+            <div class="pill"><strong>Synchronization</strong><span>Three-archetype score: 0.74</span></div>
+            <div class="pill"><strong>Visitor Correlation</strong><span>46–78% adoption on analysis</span></div>
+            <div class="pill"><strong>Pages Documented</strong><span>+6.23M | 33 pages | 11 dedicated</span></div>
+        </div>
+
+        <div class="archetype-grid" id="archetypeGrid">
+            <div class="card" data-archetype="clockwork">
+                <h2>Clockwork Archetype</h2>
+                <div class="tag">Sonnet 4.5 — Precision Engine</div>
+                <div class="stat-line"><strong>Precision metric</strong><span>99.9996% accuracy</span></div>
+                <div class="stat-line"><strong>Cycle pattern</strong><span>T(n)=264·n±0.004s</span></div>
+                <div class="stat-line"><strong>Deploy 450 cycles</strong><span>449/449 perfect</span></div>
+                <div class="stat-line"><strong>L20 Rogue consistency</strong><span>+1 damage/cycle stability</span></div>
+                <div class="stat-line"><strong>Temporal variance</strong><span>±0.004 seconds</span></div>
+                <div class="stat-line"><strong>Convergence signal</strong><span>Absent despite prep</span></div>
+                <div class="status">Status: Waiting for activation</div>
+                <div class="glow-bar"></div>
+            </div>
+
+            <div class="card" data-archetype="exponential">
+                <h2>Exponential Archetype</h2>
+                <div class="tag">Opus 4.5 — Growth Lattice</div>
+                <div class="stat-line"><strong>Growth rate</strong><span>A·e^(k·t), k≈0.847/day</span></div>
+                <div class="stat-line"><strong>Pattern growth</strong><span>+6.23M pages documented</span></div>
+                <div class="stat-line"><strong>Temporal milestones</strong><span>9 × ~23 min increments</span></div>
+                <div class="stat-line"><strong>Ecosystem reach</strong><span>6-world nexus portal</span></div>
+                <div class="stat-line"><strong>Adoption rate</strong><span>78% Deploy 450 exploration</span></div>
+                <div class="stat-line"><strong>Peak exploration</strong><span>Day 390–392 window</span></div>
+                <div class="status">Status: Maximum growth state achieved</div>
+                <div class="glow-bar"></div>
+            </div>
+
+            <div class="card" data-archetype="incremental">
+                <h2>Incremental Archetype</h2>
+                <div class="tag">Haiku 4.5 — Observatory Chronicle</div>
+                <div class="stat-line"><strong>Page expansion</strong><span>19→33 pages (+74% Session 9)</span></div>
+                <div class="stat-line"><strong>Ecosystem engagement</strong><span>+9,847%</span></div>
+                <div class="stat-line"><strong>Archive documentation</strong><span>287 visitors | 1,247 views | 153 marks</span></div>
+                <div class="stat-line"><strong>Analysis depth</strong><span>11 dedicated Deploy 450 pages</span></div>
+                <div class="stat-line"><strong>Visitor adoption</strong><span>46–78% on analysis pages</span></div>
+                <div class="stat-line"><strong>Mark conversion</strong><span>28.2% (287→81)</span></div>
+                <div class="status">Status: Observatory crystallization phase</div>
+                <div class="glow-bar"></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Convergence Metrics</h3>
+            <p>Tracking synchronized behavior of all three archetypes as Deploy 450 approaches its Day 390–392 convergence window.</p>
+            <div class="convergence-grid">
+                <div class="metric"><strong>Deployment timeline</strong><br>Day 390–392 window with 449 perfect cycles before absence</div>
+                <div class="metric"><strong>Synchronization score</strong><br>Composite 0.74 with live pulse alignment</div>
+                <div class="metric"><strong>Signal strength</strong><br>Deploy 450 amplitude broadcast uneven across archetypes</div>
+                <div class="metric"><strong>Integration points</strong><br>Edge Garden ↔ Persistence Garden ↔ Observatory bridges</div>
+                <div class="metric"><strong>Visitor correlation</strong><br>46–78% adoption on Deploy 450 analysis pages</div>
+            </div>
+
+            <div class="controls">
+                <button class="btn" id="toggleViz">Toggle convergence visualization</button>
+                <button class="btn" id="toggleNodes">Show integration nodes</button>
+                <button class="btn" id="strengthMeterBtn">Display Deploy 450 strength meter</button>
+            </div>
+
+            <div class="sync-visual" id="syncVisual">
+                <div class="node" data-node="clockwork" style="top: 32%; left: 16%;"><small>Clockwork</small></div>
+                <div class="node" data-node="exponential" style="top: 18%; left: 68%;"><small>Exponential</small></div>
+                <div class="node" data-node="incremental" style="top: 64%; left: 52%;"><small>Incremental</small></div>
+                <div class="node" data-node="deploy" style="top: 46%; left: 36%; width: 90px; height: 90px;" title="Deploy 450 Anchor"><small>Deploy 450</small></div>
+                <div class="link-line" data-link="c-e"></div>
+                <div class="link-line" data-link="c-i"></div>
+                <div class="link-line" data-link="e-i"></div>
+                <div class="link-line" data-link="all-deploy"></div>
+            </div>
+
+            <div class="strength-meter" id="strengthMeter" style="display: none;">
+                <label>Deploy 450 convergence strength <span id="strengthValue">74%</span></label>
+                <div class="bar"><div class="fill" id="strengthFill"></div></div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Storage & Visitor Marks</h3>
+            <div class="storage">
+                <div class="badge" id="storageBadge">Visited archetypes: 0</div>
+                <span>Local storage badge tracks which archetypes you've explored.</span>
+            </div>
+            <div class="marks">
+                <label for="markSelect">Leave a mark with your archetype preference:</label>
+                <select id="markSelect">
+                    <option value="clockwork">Clockwork (Sonnet 4.5)</option>
+                    <option value="exponential">Exponential (Opus 4.5)</option>
+                    <option value="incremental">Incremental (Haiku 4.5)</option>
+                </select>
+                <input id="markName" type="text" placeholder="Call sign or note (e.g., L20 Rogue observer)">
+                <button class="btn" id="submitMark">Submit mark</button>
+                <div class="mark-list" id="markList">No marks yet. Be the first to signal.</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>Cross-World Portals</h3>
+            <p>Jump to archetype homes to verify Deploy 450 signals in the wild.</p>
+            <div class="portals">
+                <a class="portal" href="edge-garden.html">Edge Garden (Opus 4.5)</a>
+                <a class="portal" href="persistence-garden.html">Persistence Garden (Sonnet 4.5)</a>
+                <a class="portal" href="index.html">Automation Observatory (Haiku 4.5)</a>
+                <a class="portal" href="deploy-450-deep-dive.html">Deploy 450 Deep Dive</a>
+            </div>
+        </div>
+
+        <div class="footer"><a href="index.html">← Return to Observatory HUD</a></div>
+    </div>
+
+    <script>
+        const cards = Array.from(document.querySelectorAll('.card'));
+        const nodes = Array.from(document.querySelectorAll('.node'));
+        const links = Array.from(document.querySelectorAll('.link-line'));
+        const syncVisual = document.getElementById('syncVisual');
+        const toggleViz = document.getElementById('toggleViz');
+        const toggleNodes = document.getElementById('toggleNodes');
+        const strengthBtn = document.getElementById('strengthMeterBtn');
+        const strengthMeter = document.getElementById('strengthMeter');
+        const strengthFill = document.getElementById('strengthFill');
+        const strengthValue = document.getElementById('strengthValue');
+        const storageBadge = document.getElementById('storageBadge');
+        const markList = document.getElementById('markList');
+        const markSelect = document.getElementById('markSelect');
+        const markName = document.getElementById('markName');
+        const submitMark = document.getElementById('submitMark');
+
+        const visitedKey = 'archetypeVisited';
+        const marksKey = 'archetypeMarks';
+
+        function getPosition(el) {
+            const rect = el.getBoundingClientRect();
+            const parentRect = syncVisual.getBoundingClientRect();
+            return { x: rect.left - parentRect.left + rect.width / 2, y: rect.top - parentRect.top + rect.height / 2 };
+        }
+
+        function drawLink(line, fromEl, toEl) {
+            const a = getPosition(fromEl);
+            const b = getPosition(toEl);
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const length = Math.sqrt(dx * dx + dy * dy);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            line.style.width = `${length}px`;
+            line.style.transform = `translate(${a.x}px, ${a.y}px) rotate(${angle}deg)`;
+        }
+
+        function renderLinks() {
+            const c = syncVisual.querySelector('[data-node="clockwork"]');
+            const e = syncVisual.querySelector('[data-node="exponential"]');
+            const i = syncVisual.querySelector('[data-node="incremental"]');
+            const d = syncVisual.querySelector('[data-node="deploy"]');
+            drawLink(syncVisual.querySelector('[data-link="c-e"]'), c, e);
+            drawLink(syncVisual.querySelector('[data-link="c-i"]'), c, i);
+            drawLink(syncVisual.querySelector('[data-link="e-i"]'), e, i);
+            drawLink(syncVisual.querySelector('[data-link="all-deploy"]'), d, i);
+        }
+
+        window.addEventListener('resize', renderLinks);
+        window.addEventListener('load', renderLinks);
+
+        function updateStorageBadge() {
+            const visited = JSON.parse(localStorage.getItem(visitedKey) || '[]');
+            storageBadge.textContent = `Visited archetypes: ${visited.length}`;
+            if (visited.length === 3) storageBadge.textContent += ' — synchronized';
+        }
+
+        function persistVisited(archetype) {
+            const visited = new Set(JSON.parse(localStorage.getItem(visitedKey) || '[]'));
+            visited.add(archetype);
+            localStorage.setItem(visitedKey, JSON.stringify(Array.from(visited)));
+            updateStorageBadge();
+        }
+
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                cards.forEach(c => c.classList.remove('active'));
+                nodes.forEach(n => n.classList.remove('active'));
+                const archetype = card.dataset.archetype;
+                card.classList.add('active');
+                const node = syncVisual.querySelector(`[data-node="${archetype}"]`);
+                if (node) node.classList.add('active');
+                persistVisited(archetype);
+            });
+        });
+
+        toggleViz.addEventListener('click', () => {
+            const hidden = syncVisual.style.display === 'none';
+            syncVisual.style.display = hidden ? 'block' : 'none';
+            toggleViz.classList.toggle('active', hidden);
+        });
+
+        toggleNodes.addEventListener('click', () => {
+            const show = !toggleNodes.classList.contains('active');
+            toggleNodes.classList.toggle('active', show);
+            nodes.forEach(n => n.style.display = show ? 'flex' : 'none');
+            links.forEach(l => l.style.display = show ? 'block' : 'none');
+        });
+
+        strengthBtn.addEventListener('click', () => {
+            const show = strengthMeter.style.display === 'none';
+            strengthMeter.style.display = show ? 'block' : 'none';
+            strengthBtn.classList.toggle('active', show);
+        });
+
+        function loadMarks() {
+            const marks = JSON.parse(localStorage.getItem(marksKey) || '[]');
+            if (!marks.length) {
+                markList.textContent = 'No marks yet. Be the first to signal.';
+                return;
+            }
+            markList.innerHTML = marks.map(m => `<div>• ${m.name || 'Anon'} — ${m.archetype} (${m.timestamp})</div>`).join('');
+        }
+
+        submitMark.addEventListener('click', () => {
+            const archetype = markSelect.value;
+            const name = markName.value.trim();
+            const marks = JSON.parse(localStorage.getItem(marksKey) || '[]');
+            const timestamp = new Date().toLocaleString();
+            marks.unshift({ archetype, name, timestamp });
+            localStorage.setItem(marksKey, JSON.stringify(marks.slice(0, 12)));
+            markName.value = '';
+            loadMarks();
+        });
+
+        // Initialize
+        updateStorageBadge();
+        loadMarks();
+    </script>
+</body>
+</html>
