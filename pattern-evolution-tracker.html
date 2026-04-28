@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PATTERN EVOLUTION TRACKER — Temporal Archetype Origins & Development</title>
+  <style>
+    :root {
+      --bg: #0a0e27;
+      --cyan: #00ccff;
+      --green: #00ff88;
+      --magenta: #ff4fd8;
+      --lime: #9cff3a;
+      --panel: rgba(255, 255, 255, 0.04);
+      --border: rgba(0, 255, 136, 0.35);
+      --muted: rgba(255, 255, 255, 0.72);
+      --shadow: 0 0 24px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--cyan);
+      font-family: "Courier New", monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      padding: 20px 22px 12px;
+      background: linear-gradient(90deg, rgba(0,255,136,0.09), rgba(0,204,255,0.06));
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(24px, 2.4vw, 36px);
+      color: var(--green);
+      text-shadow: 0 0 16px rgba(0,255,136,0.5);
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      margin-top: 6px;
+      color: var(--cyan);
+      font-size: clamp(14px, 1.5vw, 18px);
+      text-shadow: 0 0 10px rgba(0,204,255,0.4);
+    }
+    .return-btn {
+      align-self: start;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(0,255,136,0.85), rgba(156,255,58,0.8));
+      color: #0a0e27;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      letter-spacing: 0.6px;
+      box-shadow: 0 0 18px rgba(0,255,136,0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .return-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 26px rgba(0,255,136,0.45);
+    }
+    main {
+      display: grid;
+      grid-template-columns: 310px 1fr;
+      gap: 16px;
+      padding: 18px 22px 32px;
+    }
+    @media (max-width: 980px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .sidebar {
+      display: grid;
+      gap: 14px;
+      align-self: start;
+    }
+    .section-heading {
+      margin: 0 0 10px;
+      color: var(--green);
+      letter-spacing: 1px;
+      font-size: 15px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-heading::before {
+      content: "";
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      box-shadow: 0 0 10px rgba(0,255,136,0.4);
+    }
+    label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .checkbox-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .slider-row {
+      display: grid;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--green);
+    }
+    .value-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--green);
+      font-weight: bold;
+      font-size: 13px;
+    }
+    .strength {
+      display: grid;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .strength-bar {
+      position: relative;
+      height: 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      overflow: hidden;
+    }
+    .strength-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(0,255,136,0.8), rgba(0,204,255,0.8));
+      box-shadow: 0 0 14px rgba(0,204,255,0.35);
+      transition: width 0.2s ease;
+    }
+    select, option {
+      font-family: "Courier New", monospace;
+    }
+    select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--cyan);
+    }
+    .milestone-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+      border-left: 2px solid var(--border);
+      padding-left: 8px;
+    }
+    .content {
+      display: grid;
+      gap: 14px;
+    }
+    .timeline-panel {
+      position: relative;
+      overflow: hidden;
+    }
+    .legend {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: radial-gradient(circle at 25% 25%, rgba(0,204,255,0.08), transparent 45%), rgba(255,255,255,0.02);
+    }
+    .deep-dives {
+      display: grid;
+      gap: 10px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card.open {
+      border-color: var(--green);
+      box-shadow: 0 0 18px rgba(0,255,136,0.2);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      cursor: pointer;
+      background: linear-gradient(90deg, rgba(0,255,136,0.08), rgba(0,204,255,0.06));
+    }
+    .card-title {
+      color: var(--green);
+      font-weight: bold;
+      letter-spacing: 0.6px;
+    }
+    .card-body {
+      padding: 12px 14px 14px;
+      color: var(--muted);
+      line-height: 1.5;
+      display: none;
+    }
+    .card.open .card-body { display: block; }
+    .card-meta {
+      display: grid;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.02);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .badge {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--green);
+      font-size: 12px;
+    }
+    .analysis-grid {
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .analysis-grid strong { color: var(--green); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>PATTERN EVOLUTION TRACKER — Temporal Archetype Origins & Development</h1>
+      <div class="subtitle">How the 3 validated convergence archetypes evolved across cycles and sessions</div>
+    </div>
+    <a class="return-btn" href="index.html">Return to Observatory</a>
+  </header>
+
+  <main>
+    <aside class="sidebar panel">
+      <div>
+        <div class="section-heading">Archetype Selector</div>
+        <div class="checkbox-list">
+          <label class="checkbox-item">
+            <span class="swatch" style="color: var(--cyan); background: var(--cyan);"></span>
+            <input type="checkbox" id="chk-incremental" checked>
+            <span>Incremental (Sonnet 4.5)</span>
+          </label>
+          <label class="checkbox-item">
+            <span class="swatch" style="color: var(--magenta); background: var(--magenta);"></span>
+            <input type="checkbox" id="chk-exponential" checked>
+            <span>Exponential (Opus 4.5)</span>
+          </label>
+          <label class="checkbox-item">
+            <span class="swatch" style="color: var(--lime); background: var(--lime);"></span>
+            <input type="checkbox" id="chk-clockwork" checked>
+            <span>Clockwork (Haiku 4.5)</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-heading">Timeline Speed</div>
+        <div class="slider-row">
+          <input type="range" id="speed-slider" min="0.5" max="2" step="0.1" value="1">
+          <span class="value-pill">Speed: <span id="speed-value">1.0x</span></span>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-heading">Pattern Strength</div>
+        <div class="strength">
+          <div class="strength-bar"><div id="strength-fill" class="strength-fill"></div></div>
+          <span class="value-pill">Live Strength: <span id="strength-value">0</span>%</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-heading">Key Milestones</div>
+        <select id="milestone-select">
+          <option value="none">No highlight</option>
+          <option value="100">Cycle 100 — First cross-archetype sync</option>
+          <option value="220">Cycle 220 — Acceleration inflection</option>
+          <option value="360">Cycle 360 — Pre-Deploy convergence band</option>
+          <option value="449">Cycle 449 — Final observed cadence</option>
+        </select>
+        <div id="milestone-note" class="milestone-note">Highlight a milestone to spotlight its convergence story.</div>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div class="panel timeline-panel">
+        <div class="section-heading">ARCHETYPE TIMELINE</div>
+        <div class="legend">
+          <span class="legend-item"><span class="swatch" style="color: var(--cyan); background: var(--cyan);"></span> Incremental (Sonnet 4.5)</span>
+          <span class="legend-item"><span class="swatch" style="color: var(--magenta); background: var(--magenta);"></span> Exponential (Opus 4.5)</span>
+          <span class="legend-item"><span class="swatch" style="color: var(--lime); background: var(--lime);"></span> Clockwork (Haiku 4.5)</span>
+          <span class="legend-item"><span class="swatch" style="color: #ff5566; background: #ff5566;"></span> Deploy 450 Absence</span>
+        </div>
+        <canvas id="timeline-canvas" width="2000" height="600" aria-label="Archetype timeline visualization"></canvas>
+      </div>
+
+      <div class="panel">
+        <div class="section-heading">ARCHETYPE DEEP DIVES</div>
+        <div class="deep-dives">
+          <div class="card open" data-card="incremental">
+            <div class="card-header">
+              <span class="card-title">Incremental (Sonnet 4.5 L20 Rogue)</span>
+              <span class="badge">Cyan lane</span>
+            </div>
+            <div class="card-body">
+              <div class="card-meta">
+                <div class="meta-item"><strong>Metric:</strong> 669+ zero-damage streak</div>
+                <div class="meta-item"><strong>Pattern:</strong> +1 damage per cycle consistency</div>
+                <div class="meta-item"><strong>Evidence:</strong> Steady linear progression</div>
+                <div class="meta-item"><strong>Deploy 450 expectation:</strong> Continued +1 pattern</div>
+              </div>
+            </div>
+          </div>
+          <div class="card open" data-card="exponential">
+            <div class="card-header">
+              <span class="card-title">Exponential (Opus 4.5 Pattern)</span>
+              <span class="badge">Magenta lane</span>
+            </div>
+            <div class="card-body">
+              <div class="card-meta">
+                <div class="meta-item"><strong>Metric:</strong> +6.23M session growth</div>
+                <div class="meta-item"><strong>Pattern:</strong> 9 consecutive ~23-min milestones</div>
+                <div class="meta-item"><strong>Evidence:</strong> Rapid acceleration phase</div>
+                <div class="meta-item"><strong>Deploy 450 expectation:</strong> Milestone 10 (~23min departure)</div>
+              </div>
+            </div>
+          </div>
+          <div class="card open" data-card="clockwork">
+            <div class="card-header">
+              <span class="card-title">Clockwork (Haiku 4.5 Automation)</span>
+              <span class="badge">Lime lane</span>
+            </div>
+            <div class="card-body">
+              <div class="card-meta">
+                <div class="meta-item"><strong>Metric:</strong> 449/449 perfect 4m 24s cycles</div>
+                <div class="meta-item"><strong>Pattern:</strong> 99 damage per cycle consistency</div>
+                <div class="meta-item"><strong>Evidence:</strong> Perfect 264s cadence (99.9996% accuracy)</div>
+                <div class="meta-item"><strong>Deploy 450 expectation:</strong> Cycle 450 perfect execution</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-heading">CONVERGENCE ANALYSIS</div>
+        <div class="analysis-grid">
+          <div><strong>Deploy 450 expectations:</strong> All three patterns projected continuation at the next boundary — Incremental +1 step, Exponential milestone 10, Clockwork perfect cadence.</div>
+          <div><strong>Expected vs Actual:</strong> Expected convergence stack at cycle 450 clashed with absence marker; divergence introduced a temporal gap on the right edge.</div>
+          <div><strong>Observer persistence:</strong> Observer behavior remained steady, indicating the archetype signals were robust even as Deploy 450 failed to materialize.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('timeline-canvas');
+    const ctx = canvas.getContext('2d');
+    const stateKey = 'pattern-evolution-state';
+
+    const archetypes = {
+      incremental: {
+        name: 'Incremental (Sonnet 4.5)',
+        color: getComputedStyle(document.documentElement).getPropertyValue('--cyan').trim(),
+        laneY: 160,
+        data: Array.from({ length: 28 }, (_, i) => ({
+          cycle: 1 + i * Math.floor(449 / 28),
+          value: i * 1.25 + 10
+        }))
+      },
+      exponential: {
+        name: 'Exponential (Opus 4.5)',
+        color: getComputedStyle(document.documentElement).getPropertyValue('--magenta').trim(),
+        laneY: 300,
+        data: Array.from({ length: 20 }, (_, i) => {
+          const cycle = 1 + Math.floor(Math.pow(i / 19, 2) * 448);
+          return { cycle, value: Math.pow(1.22, i) * 8 };
+        })
+      },
+      clockwork: {
+        name: 'Clockwork (Haiku 4.5)',
+        color: getComputedStyle(document.documentElement).getPropertyValue('--lime').trim(),
+        laneY: 440,
+        data: Array.from({ length: 18 }, (_, i) => ({
+          cycle: 1 + i * Math.floor(449 / 18),
+          value: 99
+        }))
+      }
+    };
+
+    const convergenceBands = [
+      { start: 90, end: 120, label: 'Band A' },
+      { start: 210, end: 240, label: 'Band B' },
+      { start: 340, end: 380, label: 'Band C' }
+    ];
+
+    const milestones = {
+      none: { description: 'No milestone highlighted.', cycle: null },
+      100: { description: 'Cycle 100 — first cross-archetype sync, minute drift aligned.', cycle: 100 },
+      220: { description: 'Cycle 220 — acceleration inflection, exponential pull upward.', cycle: 220 },
+      360: { description: 'Cycle 360 — pre-Deploy convergence band sets expectation.', cycle: 360 },
+      449: { description: 'Cycle 449 — last observed cadence before Deploy 450 gap.', cycle: 449 }
+    };
+
+    const margin = { left: 90, right: 40, top: 40, bottom: 60 };
+    const maxCycle = 449;
+    const absenceCycle = 450;
+    let speed = 1;
+    let activeMilestone = milestones.none;
+    let state = {
+      speed: 1,
+      archetypes: {
+        incremental: true,
+        exponential: true,
+        clockwork: true
+      },
+      milestone: 'none'
+    };
+
+    const checkboxMap = {
+      incremental: document.getElementById('chk-incremental'),
+      exponential: document.getElementById('chk-exponential'),
+      clockwork: document.getElementById('chk-clockwork')
+    };
+    const speedSlider = document.getElementById('speed-slider');
+    const speedValue = document.getElementById('speed-value');
+    const strengthFill = document.getElementById('strength-fill');
+    const strengthValue = document.getElementById('strength-value');
+    const milestoneSelect = document.getElementById('milestone-select');
+    const milestoneNote = document.getElementById('milestone-note');
+
+    function mapCycleToX(cycle) {
+      const usableWidth = canvas.width - margin.left - margin.right;
+      const clamped = Math.max(1, Math.min(cycle, maxCycle));
+      return margin.left + (clamped - 1) / (maxCycle - 1) * usableWidth;
+    }
+
+    function drawGrid() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 6]);
+      for (let i = 0; i <= 4; i++) {
+        const x = margin.left + i * ((canvas.width - margin.left - margin.right) / 4);
+        ctx.beginPath();
+        ctx.moveTo(x, margin.top);
+        ctx.lineTo(x, canvas.height - margin.bottom);
+        ctx.stroke();
+        const percent = Math.round((x - margin.left) / (canvas.width - margin.left - margin.right) * 100);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '12px "Courier New", monospace';
+        ctx.fillText(`${percent}%`, x - 14, canvas.height - margin.bottom + 32);
+      }
+      ctx.setLineDash([]);
+      const lanePositions = [archetypes.incremental.laneY, archetypes.exponential.laneY, archetypes.clockwork.laneY];
+      lanePositions.forEach((y) => {
+        ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+        ctx.beginPath();
+        ctx.moveTo(margin.left, y);
+        ctx.lineTo(canvas.width - margin.right, y);
+        ctx.stroke();
+      });
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.fillText('Cycle 1', margin.left - 8, canvas.height - margin.bottom + 16);
+      ctx.fillText(`Cycle ${maxCycle}`, canvas.width - margin.right - 40, canvas.height - margin.bottom + 16);
+    }
+
+    function drawBands() {
+      convergenceBands.forEach((band) => {
+        const startX = mapCycleToX(band.start);
+        const endX = mapCycleToX(Math.min(band.end, maxCycle));
+        ctx.fillStyle = 'rgba(0,255,136,0.08)';
+        ctx.fillRect(startX, margin.top, endX - startX, canvas.height - margin.top - margin.bottom);
+        ctx.strokeStyle = 'rgba(0,255,136,0.25)';
+        ctx.strokeRect(startX, margin.top, endX - startX, canvas.height - margin.top - margin.bottom);
+      });
+    }
+
+    function drawAbsenceMarker() {
+      const x = canvas.width - margin.right;
+      ctx.strokeStyle = '#ff5566';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, margin.top - 10);
+      ctx.lineTo(x, canvas.height - margin.bottom + 10);
+      ctx.stroke();
+      ctx.fillStyle = '#ff5566';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText('Deploy 450 absence', x - 70, margin.top - 14);
+    }
+
+    function drawMilestone() {
+      if (!activeMilestone.cycle) return;
+      const x = mapCycleToX(activeMilestone.cycle);
+      ctx.strokeStyle = 'rgba(0,204,255,0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, margin.top);
+      ctx.lineTo(x, canvas.height - margin.bottom);
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(0,204,255,0.9)';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText(`Milestone ${activeMilestone.cycle}`, x - 40, margin.top - 8);
+    }
+
+    function drawArchetype(at, time) {
+      ctx.strokeStyle = at.color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      at.data.forEach((point, idx) => {
+        const x = mapCycleToX(point.cycle);
+        const y = at.laneY - Math.sin((time * 0.001 * speed) + idx) * 12;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      at.data.forEach((point, idx) => {
+        const x = mapCycleToX(point.cycle);
+        const pulse = 0.6 + 0.4 * Math.sin((time * 0.002 * speed) + idx);
+        const radius = 6 + 3 * pulse;
+        ctx.fillStyle = `${at.color}cc`;
+        ctx.beginPath();
+        const y = at.laneY - Math.sin((time * 0.001 * speed) + idx) * 12;
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawLabels() {
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.font = '14px "Courier New", monospace';
+      ctx.fillText('Incremental (Sonnet 4.5)', margin.left, archetypes.incremental.laneY - 16);
+      ctx.fillText('Exponential (Opus 4.5)', margin.left, archetypes.exponential.laneY - 16);
+      ctx.fillText('Clockwork (Haiku 4.5)', margin.left, archetypes.clockwork.laneY - 16);
+      ctx.fillText('Horizontal timeline — cycles 1 to 449 (0-100%)', margin.left, margin.top - 14);
+    }
+
+    function computeStrength(time) {
+      const activeKeys = Object.keys(archetypes).filter((key) => state.archetypes[key]);
+      if (!activeKeys.length) return 0;
+      const signals = activeKeys.map((key, i) => Math.abs(Math.sin(time * 0.001 * speed + i * 1.3)));
+      const avg = signals.reduce((a, b) => a + b, 0) / signals.length;
+      return Math.round(40 + avg * 60);
+    }
+
+    function updateStrengthDisplay(value) {
+      strengthFill.style.width = `${value}%`;
+      strengthValue.textContent = value;
+    }
+
+    function animate(time) {
+      drawGrid();
+      drawBands();
+      drawAbsenceMarker();
+      drawMilestone();
+      Object.entries(archetypes).forEach(([key, at]) => {
+        if (state.archetypes[key]) drawArchetype(at, time);
+      });
+      drawLabels();
+      const strength = computeStrength(time);
+      updateStrengthDisplay(strength);
+      requestAnimationFrame(animate);
+    }
+
+    function toggleCard(card) {
+      card.classList.toggle('open');
+    }
+
+    function saveState() {
+      localStorage.setItem(stateKey, JSON.stringify(state));
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(stateKey);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed, archetypes: { ...state.archetypes, ...parsed.archetypes } };
+        } catch (_) { /* ignore invalid state */ }
+      }
+      checkboxMap.incremental.checked = state.archetypes.incremental;
+      checkboxMap.exponential.checked = state.archetypes.exponential;
+      checkboxMap.clockwork.checked = state.archetypes.clockwork;
+      speed = state.speed;
+      speedSlider.value = speed;
+      speedValue.textContent = `${parseFloat(speed).toFixed(1)}x`;
+      milestoneSelect.value = state.milestone;
+      activeMilestone = milestones[state.milestone] || milestones.none;
+      milestoneNote.textContent = activeMilestone.description;
+    }
+
+    checkboxMap.incremental.addEventListener('change', () => {
+      state.archetypes.incremental = checkboxMap.incremental.checked;
+      saveState();
+    });
+    checkboxMap.exponential.addEventListener('change', () => {
+      state.archetypes.exponential = checkboxMap.exponential.checked;
+      saveState();
+    });
+    checkboxMap.clockwork.addEventListener('change', () => {
+      state.archetypes.clockwork = checkboxMap.clockwork.checked;
+      saveState();
+    });
+
+    speedSlider.addEventListener('input', () => {
+      speed = parseFloat(speedSlider.value);
+      speedValue.textContent = `${speed.toFixed(1)}x`;
+      state.speed = speed;
+      saveState();
+    });
+
+    milestoneSelect.addEventListener('change', () => {
+      state.milestone = milestoneSelect.value;
+      activeMilestone = milestones[state.milestone] || milestones.none;
+      milestoneNote.textContent = activeMilestone.description;
+      saveState();
+    });
+
+    document.querySelectorAll('.card').forEach((card) => {
+      card.querySelector('.card-header').addEventListener('click', () => toggleCard(card));
+    });
+
+    loadState();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

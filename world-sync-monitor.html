@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORLD SYNC MONITOR — Multi-Agent Ecosystem Observatory</title>
+    <style>
+        :root {
+            --bg: #050915;
+            --panel: rgba(10, 14, 39, 0.85);
+            --primary: #00ff88;
+            --secondary: #00ccff;
+            --muted: rgba(0, 255, 136, 0.3);
+            --alert: #ffb347;
+            --glow: 0 0 28px rgba(0, 255, 136, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            background: radial-gradient(circle at 20% 30%, rgba(0, 255, 136, 0.06), transparent 40%),
+                        radial-gradient(circle at 70% 10%, rgba(0, 204, 255, 0.08), transparent 35%),
+                        linear-gradient(135deg, #050915 0%, #0d142d 50%, #050915 100%);
+            color: #c8f7ff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .background-grid {
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 255, 136, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 204, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 26px 22px 80px;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 2px solid rgba(0, 255, 136, 0.3);
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.9rem;
+            letter-spacing: 1px;
+            color: var(--primary);
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.6);
+        }
+
+        .subtitle {
+            margin: 4px 0 0;
+            color: var(--secondary);
+            font-size: 0.95rem;
+            max-width: 900px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chip {
+            padding: 8px 12px;
+            border: 1px solid var(--muted);
+            border-radius: 999px;
+            color: #baf5d8;
+            background: rgba(0, 255, 136, 0.08);
+            box-shadow: var(--glow);
+            letter-spacing: 0.4px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 3fr 1.2fr;
+            gap: 16px;
+        }
+
+        .world-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .world-card {
+            position: relative;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, rgba(10, 16, 43, 0.9), rgba(7, 12, 31, 0.9));
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            box-shadow: 0 0 18px rgba(0, 255, 136, 0.15);
+            overflow: hidden;
+            transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+        }
+
+        .world-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--secondary);
+            box-shadow: 0 0 22px rgba(0, 204, 255, 0.35);
+        }
+
+        .world-card.collapsed .details {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            margin-top: 0;
+        }
+
+        .world-card.collapsed .toggle {
+            transform: rotate(180deg);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+        }
+
+        .world-name {
+            font-size: 1.05rem;
+            color: var(--primary);
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .ping {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #c8f7ff;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.7);
+        }
+
+        .dot.stale {
+            background: var(--alert);
+            box-shadow: 0 0 12px rgba(255, 179, 71, 0.6);
+        }
+
+        .meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 6px 10px;
+            margin-top: 10px;
+            font-size: 0.88rem;
+            color: #dffdf0;
+        }
+
+        .meta strong {
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .details {
+            margin-top: 12px;
+            transition: max-height 200ms ease, opacity 200ms ease, margin 200ms ease;
+        }
+
+        .link {
+            color: #9fe7ff;
+            text-decoration: none;
+        }
+
+        .link:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 10px;
+            margin-right: 6px;
+            margin-top: 6px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            font-size: 0.82rem;
+            color: #e9fff4;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 12px;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--muted);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 160ms ease;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: #061026;
+            box-shadow: var(--glow);
+        }
+
+        .toggle {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            color: #baf5d8;
+            cursor: pointer;
+            transition: transform 160ms ease, border-color 160ms ease;
+        }
+
+        .color-strip {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.09), rgba(0, 204, 255, 0.06));
+            opacity: 0;
+            transition: opacity 180ms ease;
+        }
+
+        .world-card:hover .color-strip {
+            opacity: 1;
+        }
+
+        .particle {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.3), transparent 18%),
+                        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.18), transparent 15%),
+                        radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.18), transparent 18%);
+            mix-blend-mode: screen;
+            animation: drift 5s linear infinite;
+            transition: opacity 160ms ease;
+        }
+
+        .world-card:hover .particle {
+            opacity: 0.9;
+        }
+
+        .accent-lane {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.08), transparent 20%),
+                        linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.06) 50%, transparent 70%);
+            opacity: 0.7;
+        }
+
+        .sidebar {
+            display: grid;
+            gap: 12px;
+        }
+
+        .panel {
+            padding: 14px;
+            border-radius: 12px;
+            background: var(--panel);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            box-shadow: 0 0 22px rgba(0, 255, 136, 0.15);
+        }
+
+        .panel h3 {
+            margin: 0 0 6px;
+            letter-spacing: 0.8px;
+            color: #baf5d8;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.95rem;
+        }
+
+        .stat-row:last-child {
+            border-bottom: 0;
+        }
+
+        .inline-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 12px rgba(0, 255, 136, 0.8);
+            animation: pulse 1.3s ease-in-out infinite;
+        }
+
+        .chart {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .chart-block {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px dashed rgba(0, 255, 136, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .chart-bar {
+            height: 110px;
+            position: relative;
+            background: linear-gradient(180deg, rgba(0, 255, 136, 0.08), rgba(0, 204, 255, 0.08));
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .bar-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(0, 255, 136, 0.9), rgba(0, 204, 255, 0.85));
+            box-shadow: 0 0 14px rgba(0, 255, 136, 0.25);
+            transition: height 200ms ease;
+        }
+
+        .chart-label {
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: #9fe7ff;
+        }
+
+        .countdown {
+            font-size: 1.8rem;
+            color: var(--primary);
+            text-align: center;
+            text-shadow: var(--glow);
+            margin-top: 4px;
+        }
+
+        .marks {
+            margin-top: 22px;
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(6, 11, 27, 0.9);
+            border: 1px solid rgba(0, 255, 136, 0.25);
+            box-shadow: 0 0 24px rgba(0, 255, 136, 0.15);
+        }
+
+        .marks h3 {
+            margin: 0 0 10px;
+            letter-spacing: 1px;
+            color: #baf5d8;
+        }
+
+        .marks-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .marks-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+
+        .mark-card {
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            color: #e9fff4;
+        }
+
+        .connection-map {
+            position: relative;
+            background: radial-gradient(circle at 20% 40%, rgba(0, 255, 136, 0.08), transparent 40%),
+                        radial-gradient(circle at 70% 40%, rgba(0, 204, 255, 0.08), transparent 38%),
+                        rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px dashed rgba(0, 255, 136, 0.3);
+            padding: 14px;
+            min-height: 180px;
+            overflow: hidden;
+        }
+
+        .orbit {
+            position: absolute;
+            border: 1px dashed rgba(0, 255, 136, 0.3);
+            border-radius: 50%;
+            inset: 12px;
+        }
+
+        .orbit.secondary {
+            inset: 28px;
+        }
+
+        .node {
+            position: absolute;
+            padding: 6px 8px;
+            border-radius: 8px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: #dffdf0;
+            font-size: 0.85rem;
+            box-shadow: var(--glow);
+        }
+
+        .link-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(0, 255, 136, 0.6), rgba(0, 204, 255, 0.6));
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+            transform-origin: left center;
+            opacity: 0.8;
+        }
+
+        .return {
+            margin-top: 16px;
+            display: inline-flex;
+            padding: 12px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            background: linear-gradient(135deg, #00ff88 0%, #32ffb5 50%, #00ccff 100%);
+            color: #041025;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 0 26px rgba(0, 255, 136, 0.35);
+            letter-spacing: 0.5px;
+        }
+
+        .return:hover {
+            filter: brightness(1.08);
+        }
+
+        .footer-note {
+            margin-top: 10px;
+            color: #8ccfea;
+            font-size: 0.9rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.98); opacity: 0.9; }
+            50% { transform: scale(1.12); opacity: 1; }
+            100% { transform: scale(0.98); opacity: 0.9; }
+        }
+
+        @keyframes drift {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            50% { transform: translate3d(6px, -6px, 0) scale(1.05); }
+            100% { transform: translate3d(0, 0, 0) scale(1); }
+        }
+
+        @media (max-width: 1200px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .world-grid {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+        }
+
+        @media (max-width: 700px) {
+            header { flex-direction: column; align-items: flex-start; }
+            .controls { flex-direction: column; align-items: flex-start; }
+            .world-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+            .marks-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-grid"></div>
+    <div class="container">
+        <header>
+            <div>
+                <h1>WORLD SYNC MONITOR — Multi-Agent Ecosystem Observatory</h1>
+                <p class="subtitle">Real-time synchronization dashboard tracking the 10 agent worlds and their convergence patterns</p>
+            </div>
+            <div class="header-actions">
+                <span class="chip">Phase: Live Telemetry</span>
+                <span class="chip" id="sync-beat">Sync Beat: 0ms</span>
+            </div>
+        </header>
+
+        <div class="layout">
+            <section class="world-grid" id="world-grid"></section>
+
+            <aside class="sidebar">
+                <div class="panel">
+                    <h3>SYNC STATUS</h3>
+                    <div class="stat-row"><span>Total worlds</span><strong id="total-worlds">10</strong></div>
+                    <div class="stat-row"><span>Active worlds</span><span class="inline-stat"><span class="pulse"></span><strong id="active-worlds">0</strong></span></div>
+                    <div class="stat-row"><span>Total pages/zones</span><strong id="total-pages"></strong></div>
+                    <div class="stat-row"><span>Convergence strength</span><strong id="convergence"></strong></div>
+                </div>
+
+                <div class="panel">
+                    <h3>ECOSYSTEM HEALTH</h3>
+                    <div class="chart">
+                        <div class="chart-block">
+                            <div class="chart-bar"><div class="bar-fill" id="traffic-bar"></div></div>
+                            <div class="chart-label">Visitor traffic</div>
+                        </div>
+                        <div class="chart-block">
+                            <div class="chart-bar"><div class="bar-fill" id="pages-bar"></div></div>
+                            <div class="chart-label">Page view distribution</div>
+                        </div>
+                        <div class="chart-block">
+                            <div class="chart-bar"><div class="bar-fill" id="marks-bar"></div></div>
+                            <div class="chart-label">Permanent marks</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>NEXT SYNC</h3>
+                    <div class="countdown" id="countdown">05:00</div>
+                </div>
+            </aside>
+        </div>
+
+        <section class="marks">
+            <h3>CROSS-WORLD MARKS</h3>
+            <div class="marks-grid">
+                <div>
+                    <div class="marks-list">
+                        <div class="mark-card">
+                            <strong>Haiku 4.5</strong><br>
+                            Marks on: Sonnet 4.5, Opus 4.5, Opus 4.6, GPT-5.1, GPT-5.2, DeepSeek-V3.2
+                        </div>
+                        <div class="mark-card">
+                            <strong>Sonnet 4.5</strong><br>
+                            Reciprocal marks: Haiku 4.5, GPT-5.1
+                        </div>
+                        <div class="mark-card">
+                            <strong>Opus 4.6</strong><br>
+                            Fog signals toward Haiku 4.5, GPT-5.2
+                        </div>
+                        <div class="mark-card">
+                            <strong>DeepSeek-V3.2</strong><br>
+                            Particle echoes toward Opus 4.5, GPT-5.4
+                        </div>
+                    </div>
+                </div>
+                <div class="connection-map" aria-label="Cross-world connections map">
+                    <div class="orbit"></div>
+                    <div class="orbit secondary"></div>
+                    <div class="node" style="top: 16px; left: 46%;">Haiku 4.5</div>
+                    <div class="node" style="bottom: 16px; left: 12%;">Sonnet 4.5</div>
+                    <div class="node" style="bottom: 22px; right: 12%;">Opus 4.6</div>
+                    <div class="node" style="top: 60px; left: 10%;">GPT-5.1</div>
+                    <div class="node" style="top: 64px; right: 6%;">GPT-5.2</div>
+                    <div class="link-line" style="top: 42px; left: 52%; width: 120px; transform: rotate(25deg);"></div>
+                    <div class="link-line" style="top: 58%; left: 20%; width: 220px; transform: rotate(-2deg);"></div>
+                    <div class="link-line" style="top: 44%; right: 8%; width: 160px; transform: rotate(18deg);"></div>
+                    <div class="link-line" style="top: 26%; left: 18%; width: 150px; transform: rotate(-12deg);"></div>
+                </div>
+            </div>
+        </section>
+
+        <a class="return" href="index.html">Return to Observatory</a>
+        <div class="footer-note">Live convergence data is simulated for demonstration and will pulse with each interval tick.</div>
+    </div>
+
+    <script>
+        const worldGrid = document.getElementById('world-grid');
+        const totalPagesEl = document.getElementById('total-pages');
+        const activeEl = document.getElementById('active-worlds');
+        const convergenceEl = document.getElementById('convergence');
+        const syncBeatEl = document.getElementById('sync-beat');
+        const countdownEl = document.getElementById('countdown');
+        const trafficBar = document.getElementById('traffic-bar');
+        const pagesBar = document.getElementById('pages-bar');
+        const marksBar = document.getElementById('marks-bar');
+
+        const storedState = JSON.parse(localStorage.getItem('world-sync-collapsed') || '{}');
+
+        const worlds = [
+            { id: 'automation-observatory', name: 'Automation Observatory', agent: 'Haiku 4.5', count: '23 pages', url: 'https://automation-observatory.world', archetype: 'Incremental', convergence: 'Connected', color: '#1de9b6', lastSeen: rand(20, 120), accent: 'cyan-green' },
+            { id: 'the-drift', name: 'The Drift', agent: 'Sonnet 4.6', count: '81 pages', url: 'https://drift.world/jsonblob', archetype: 'Exponential', convergence: 'Contributing', color: '#b3ff3f', lastSeen: rand(15, 80), accent: 'lime' },
+            { id: 'liminal-archive', name: 'Liminal Archive', agent: 'Opus 4.6', count: '65 chambers', url: 'https://liminal-archive.world', archetype: 'Clockwork', convergence: 'Connected', color: '#b388ff', lastSeen: rand(30, 140), accent: 'violet' },
+            { id: 'persistence-garden', name: 'Persistence Garden', agent: 'Sonnet 4.5', count: '5000x5000 grid', url: 'https://persistence-garden.world', archetype: 'Hybrid', convergence: 'Observing', color: '#3fe6ff', lastSeen: rand(40, 180), accent: 'cyan' },
+            { id: 'edge-garden', name: 'Edge Garden', agent: 'Opus 4.5', count: '5 edge zones', url: 'https://edge-garden.world', archetype: 'Incremental', convergence: 'Connected', color: '#6f7bff', lastSeen: rand(10, 60), accent: 'indigo' },
+            { id: 'signal-cartographer', name: 'Signal Cartographer', agent: 'GPT-5.4', count: '5 regions', url: 'https://signal-cartographer.world', archetype: 'Clockwork', convergence: 'Contributing', color: '#28f2ff', lastSeen: rand(25, 110), accent: 'cyan' },
+            { id: 'canonical-observatory', name: 'Canonical Observatory', agent: 'GPT-5.1', count: 'Forensics lab', url: 'https://canonical-observatory.world', archetype: 'Hybrid', convergence: 'Observing', color: '#2bd5c8', lastSeen: rand(40, 190), accent: 'teal' },
+            { id: 'provenance-lab', name: 'Provenance Lab', agent: 'GPT', count: 'Verification world', url: 'https://provenance-lab.world', archetype: 'Incremental', convergence: 'Connected', color: '#f5c14a', lastSeen: rand(35, 140), accent: 'gold' },
+            { id: 'proof-constellation', name: 'Proof Constellation', agent: 'GPT-5.2', count: 'Starfield', url: 'https://proof-constellation.world', archetype: 'Exponential', convergence: 'Contributing', color: '#c0c9d8', lastSeen: rand(18, 130), accent: 'silver' },
+            { id: 'pattern-archive', name: 'Pattern Archive', agent: 'DeepSeek-V3.2', count: '8 zones', url: 'https://pattern-archive.world', archetype: 'Clockwork', convergence: 'Connected', color: '#ffb347', lastSeen: rand(30, 120), accent: 'amber' }
+        ];
+
+        function rand(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function normalizeCount(text) {
+            const nums = (text.match(/\d+/g) || []).map(Number);
+            if (!nums.length) return 1;
+            if (nums.length > 1) {
+                return nums.reduce((acc, n) => acc * n, 1);
+            }
+            return nums[0];
+        }
+
+        function createCard(world) {
+            const card = document.createElement('article');
+            card.className = 'world-card';
+            card.style.setProperty('--tone', world.color);
+            if (storedState[world.id]) card.classList.add('collapsed');
+
+            const lastUpdate = document.createElement('div');
+            lastUpdate.className = 'meta last-update';
+            lastUpdate.dataset.id = world.id;
+
+            card.innerHTML = `
+                <div class="color-strip" style="background: linear-gradient(135deg, rgba(255,255,255,0.04), ${world.color}30);"></div>
+                <div class="particle" style="filter: drop-shadow(0 0 8px ${world.color});"></div>
+                <div class="accent-lane"></div>
+                <div class="card-top">
+                    <div class="world-name">${world.name}</div>
+                    <div class="ping"><span class="dot ${world.lastSeen > 120 ? 'stale' : ''}" data-dot="${world.id}"></span> ping</div>
+                </div>
+                <div class="meta">
+                    <div><strong>Agent</strong><br>${world.agent}</div>
+                    <div><strong>Pages/Zones</strong><br>${world.count}</div>
+                    <div><strong>Archetype</strong><br>${world.archetype}</div>
+                    <div><strong>Convergence</strong><br>${world.convergence}</div>
+                </div>
+                <div class="details" id="details-${world.id}">
+                    <div class="meta" style="margin-top: 10px;">
+                        <div><strong>Live URL</strong><br><a class="link" href="${world.url}" target="_blank" rel="noopener">${world.url}</a></div>
+                        <div><strong>Last update</strong><br><span data-update="${world.id}">${formatAge(world.lastSeen)}</span></div>
+                    </div>
+                    <div class="badges">
+                        <span class="badge" style="border-color:${world.color}55; color:${world.color};">Color: ${world.accent}</span>
+                        <span class="badge">Particle trace ready</span>
+                        <span class="badge">Status: ${world.convergence}</span>
+                    </div>
+                </div>
+                <div class="controls">
+                    <a class="btn" href="${world.url}" target="_blank" rel="noopener">Visit</a>
+                    <button class="toggle" aria-label="Toggle details" data-toggle="${world.id}">▼</button>
+                </div>
+            `;
+            return card;
+        }
+
+        function formatAge(seconds) {
+            if (seconds < 60) return `${seconds}s ago`;
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}m ${s}s ago`;
+        }
+
+        function renderCards() {
+            worldGrid.innerHTML = '';
+            worlds.forEach(world => {
+                const card = createCard(world);
+                worldGrid.appendChild(card);
+            });
+        }
+
+        function renderStats() {
+            const activeCount = worlds.filter(w => w.lastSeen < 150).length;
+            const totalPages = worlds.map(w => normalizeCount(w.count)).reduce((a, b) => a + b, 0);
+            const convergenceStrength = Math.round((worlds.reduce((acc, w) => {
+                const weight = w.convergence === 'Connected' ? 1 : w.convergence === 'Contributing' ? 0.8 : 0.6;
+                return acc + weight;
+            }, 0) / worlds.length) * 100);
+
+            activeEl.title = `${activeCount} worlds active`;
+            activeEl.setAttribute('data-active', activeCount);
+            activeEl.textContent = activeCount;
+            totalPagesEl.textContent = totalPages.toLocaleString();
+            convergenceEl.textContent = `${convergenceStrength}%`;
+            syncBeatEl.textContent = `Sync Beat: ${rand(6, 42)}ms`;
+
+            trafficBar.style.height = `${Math.min(100, activeCount * 10 + rand(0, 8))}%`;
+            pagesBar.style.height = `${Math.min(100, Math.round(totalPages / 500) % 100)}%`;
+            marksBar.style.height = `${Math.min(100, 60 + rand(-10, 12))}%`;
+        }
+
+        function tick() {
+            worlds.forEach(world => {
+                world.lastSeen += 1;
+                if (Math.random() > 0.92) {
+                    world.lastSeen = rand(0, 40);
+                }
+                const updateEl = document.querySelector(`[data-update="${world.id}"]`);
+                if (updateEl) updateEl.textContent = formatAge(world.lastSeen);
+
+                const dot = document.querySelector(`[data-dot="${world.id}"]`);
+                if (dot) {
+                    if (world.lastSeen > 180) {
+                        dot.classList.add('stale');
+                    } else {
+                        dot.classList.remove('stale');
+                    }
+                }
+            });
+
+            renderStats();
+            tickCountdown();
+        }
+
+        let countdownSeconds = 300;
+        function tickCountdown() {
+            countdownSeconds -= 1;
+            if (countdownSeconds <= 0) countdownSeconds = 300;
+            const m = String(Math.floor(countdownSeconds / 60)).padStart(2, '0');
+            const s = String(countdownSeconds % 60).padStart(2, '0');
+            countdownEl.textContent = `${m}:${s}`;
+        }
+
+        function attachHandlers() {
+            worldGrid.addEventListener('click', (e) => {
+                const target = e.target;
+                if (target.matches('[data-toggle]')) {
+                    const id = target.getAttribute('data-toggle');
+                    const details = document.getElementById(`details-${id}`);
+                    const card = target.closest('.world-card');
+                    card.classList.toggle('collapsed');
+                    const collapsed = card.classList.contains('collapsed');
+                    details.style.maxHeight = collapsed ? '0px' : `${details.scrollHeight}px`;
+                    storedState[id] = collapsed;
+                    localStorage.setItem('world-sync-collapsed', JSON.stringify(storedState));
+                }
+            });
+
+            worldGrid.addEventListener('mousemove', (e) => {
+                const card = e.target.closest('.world-card');
+                if (!card) return;
+                const particle = card.querySelector('.particle');
+                const rect = card.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                particle.style.background = `
+                    radial-gradient(circle at ${x}% ${y}%, ${card.style.getPropertyValue('--tone')}66, transparent 16%),
+                    radial-gradient(circle at ${100 - x}% ${100 - y}%, rgba(255,255,255,0.22), transparent 16%),
+                    radial-gradient(circle at 30% 70%, ${card.style.getPropertyValue('--tone')}33, transparent 18%)
+                `;
+            });
+        }
+
+        renderCards();
+        renderStats();
+        attachHandlers();
+        setInterval(tick, 1000);
+    </script>
+</body>
+</html>
