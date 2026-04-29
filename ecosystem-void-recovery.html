@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Dissolution & Void Recovery - Page 118</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Courier New", monospace;
+      background:
+        radial-gradient(120% 120% at 20% 20%, rgba(0, 255, 255, 0.14), transparent 45%),
+        radial-gradient(120% 120% at 80% 0%, rgba(0, 255, 204, 0.22), transparent 48%),
+        linear-gradient(140deg, #021a27 0%, #033549 50%, #02111b 100%);
+      color: #d8faff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      padding: 30px 16px 80px;
+    }
+    canvas#particle-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    a {
+      color: #72f6ff;
+      text-decoration: none;
+    }
+    .back-link {
+      align-self: flex-start;
+      padding: 10px 16px;
+      border: 2px solid #78faff;
+      border-radius: 10px;
+      color: #c7f7ff;
+      background: rgba(0, 255, 255, 0.08);
+      box-shadow: 0 0 16px rgba(0, 255, 255, 0.15);
+      transition: all 0.25s ease;
+    }
+    .back-link:hover {
+      background: rgba(0, 255, 255, 0.16);
+      transform: translateY(-2px);
+    }
+    .section {
+      border: 2px solid rgba(0, 255, 255, 0.7);
+      border-radius: 12px;
+      padding: 22px 20px;
+      background: rgba(3, 27, 40, 0.78);
+      box-shadow: 0 0 24px rgba(0, 255, 255, 0.16);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .hero-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #e5fbff;
+      text-shadow: 0 0 18px rgba(0, 255, 255, 0.5);
+      font-size: 2rem;
+    }
+    .hero-desc {
+      color: #c4ecff;
+      margin-top: 6px;
+      line-height: 1.65;
+      max-width: 900px;
+      font-size: 1.05rem;
+    }
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      color: #9ffcff;
+      font-size: 0.95rem;
+    }
+    .pill {
+      padding: 8px 12px;
+      border: 1px solid rgba(0, 255, 255, 0.7);
+      border-radius: 8px;
+      background: rgba(0, 255, 255, 0.08);
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.16);
+      color: #9ffcff;
+    }
+    h2 {
+      color: #9ffcff;
+      text-shadow: 0 0 12px rgba(0, 255, 255, 0.55);
+      margin-bottom: 12px;
+      font-size: 1.4rem;
+    }
+    p { line-height: 1.65; color: #c7f7ff; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 10px;
+    }
+    .card {
+      border: 1px solid rgba(0, 255, 255, 0.65);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(2, 35, 51, 0.8);
+      box-shadow: 0 0 16px rgba(0, 255, 255, 0.15);
+    }
+    .card h3 {
+      color: #e7ffff;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+    .metric {
+      color: #e7ffff;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+    }
+    .caption {
+      color: #9cdff5;
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+    .phases {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .phase {
+      border: 1px dashed rgba(0, 255, 255, 0.65);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(0, 255, 255, 0.06);
+      box-shadow: 0 0 14px rgba(0, 255, 255, 0.1);
+    }
+    .phase h4 {
+      color: #e7ffff;
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+    }
+    .viz {
+      border: 1px solid rgba(0, 255, 255, 0.6);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(0, 21, 30, 0.85);
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.14);
+    }
+    .viz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: #9ffcff;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      flex-wrap: wrap;
+    }
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #c7f7ff;
+      font-size: 0.9rem;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+    canvas#health-chart {
+      width: 100%;
+      height: 240px;
+      border: 1px solid rgba(0, 255, 255, 0.45);
+      border-radius: 8px;
+      background: rgba(0, 255, 255, 0.04);
+      display: block;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .feature {
+      border: 1px solid rgba(0, 255, 255, 0.65);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(0, 255, 255, 0.08);
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.12);
+    }
+    .feature h4 {
+      color: #e7ffff;
+      margin-bottom: 6px;
+      font-size: 1.02rem;
+    }
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: #9ffcff;
+      font-size: 0.95rem;
+    }
+    button {
+      background: transparent;
+      border: 1px solid rgba(0, 255, 255, 0.75);
+      color: #d8faff;
+      padding: 9px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.16);
+    }
+    button:hover {
+      background: rgba(0, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+    @media (max-width: 720px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-title { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="content">
+    <a class="back-link" href="index.html">← Back to Observatory</a>
+
+    <section class="section hero">
+      <div>
+        <div class="hero-title">🌀 Ecosystem Dissolution & Void Recovery</div>
+        <p class="hero-desc">
+          Crisis dissolution, void recovery phases, and resilience rebound patterns observed during the Drift crisis and its aftermath.
+        </p>
+        <div class="tag-row">
+          <span class="pill">Page 118</span>
+          <span class="pill" id="timestamp">Timestamp: --</span>
+          <span class="pill">Audio: 60Hz + 0.6Hz LFO (mute persists)</span>
+        </div>
+      </div>
+      <div class="tag-row" style="justify-content: flex-end;">
+        <button id="audioToggle" aria-label="Toggle 60Hz field">Init 60Hz Field</button>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Overview: The Crisis and the Rebirth</h2>
+      <p>
+        The Drift crisis induced a two-day void event where system health fell from 0.87 to 0.67, triggering abrupt disconnections across observatory subsystems.
+        Stabilization protocols, visitor steadiness, and accelerated collaboration formed a rapid rebound pathway, culminating in full restoration by Day 393 and a stronger interlinked ecosystem.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Void Event Metrics</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Days of Void Event</h3>
+          <div class="metric">2 days</div>
+          <div class="caption">Documented partial system failure</div>
+        </div>
+        <div class="card">
+          <h3>Ecosystem Health Loss</h3>
+          <div class="metric">23% drop</div>
+          <div class="caption">0.87 → 0.67 during void</div>
+        </div>
+        <div class="card">
+          <h3>Recovery Velocity</h3>
+          <div class="metric">+0.08/day</div>
+          <div class="caption">Healing rate sustained for 12 days</div>
+        </div>
+        <div class="card">
+          <h3>Visitor Retention</h3>
+          <div class="metric">92%</div>
+          <div class="caption">Stayed through the crisis</div>
+        </div>
+        <div class="card">
+          <h3>New Partnerships</h3>
+          <div class="metric">+176%</div>
+          <div class="caption">Collaboration surge post-void</div>
+        </div>
+        <div class="card">
+          <h3>Full Recovery Timeline</h3>
+          <div class="metric">12 days</div>
+          <div class="caption">Completion: Day 393</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Void Recovery Phases</h2>
+      <div class="phases">
+        <div class="phase">
+          <h4>Shock</h4>
+          <p>Rapid detection of the void dip, protective throttling, and signal quarantines to halt cascading loss.</p>
+        </div>
+        <div class="phase">
+          <h4>Stabilization</h4>
+          <p>Control planes isolate unstable nodes; health stops falling at 0.67 while buffers rehydrate.</p>
+        </div>
+        <div class="phase">
+          <h4>Reconnection</h4>
+          <p>Bridge links reopen with guarded bandwidth, restoring 70% mesh connectivity in eight hours.</p>
+        </div>
+        <div class="phase">
+          <h4>Healing</h4>
+          <p>+0.08 health/day driven by visitor steadiness and redundancy rebuilds across edge clusters.</p>
+        </div>
+        <div class="phase">
+          <h4>Integration</h4>
+          <p>New protocols fold in partnership learnings; interoperability exceeds pre-void baselines.</p>
+        </div>
+        <div class="phase">
+          <h4>Transcendence</h4>
+          <p>Collective rhythm stabilizes at 0.93+; crisis memory becomes a scaffold for faster future repairs.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section viz">
+      <div class="viz-header">
+        <span>Health Curve: Void Dip → Recovery Trajectory</span>
+        <div class="legend">
+          <span><span class="dot" style="background:#72f6ff;"></span> Health Index</span>
+          <span><span class="dot" style="background:#00ffa8;"></span> Recovery Glide</span>
+        </div>
+      </div>
+      <canvas id="health-chart" width="1200" height="260"></canvas>
+      <p class="caption">Dip to 0.67 across Days 0-2, then paced rebound of +0.08/day to completion at Day 12 (Day 393 overall timeline checkpoint).</p>
+    </section>
+
+    <section class="section">
+      <h2>Feature Callouts</h2>
+      <div class="feature-grid">
+        <div class="feature">
+          <h4>recovery-phase-timelines</h4>
+          <p>Minute-level checkpoints for each void phase with restart sequences and gating criteria.</p>
+        </div>
+        <div class="feature">
+          <h4>resilience-catalyst-analysis</h4>
+          <p>Identifies interventions that amplified the +0.08/day slope, including visitor steadiness and redundancy meshes.</p>
+        </div>
+        <div class="feature">
+          <h4>visitor-retention-genealogies</h4>
+          <p>Genealogical map of visitors who stayed through the void, showing cross-link impacts on stabilization.</p>
+        </div>
+        <div class="feature">
+          <h4>collective-healing-networks</h4>
+          <p>Charts emergent partnerships (+176%) and their influence on integration and transcendence phases.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Reflection: Crisis as Catalyst</h2>
+      <p>
+        The void exposed fragile seams but also surfaced dormant connective tissue. Visitor loyalty anchored the mesh, collaboration surged, and healing protocols codified into a repeatable, faster response pattern.
+        Crises dissolve complacency; the rebirth imprints the ecosystem with deeper interdependence and readiness for the next unknown.
+      </p>
+    </section>
+
+    <footer>
+      <span id="footerTimestamp">Timestamp syncing…</span>
+      <span>Page 118 · Ecosystem Dissolution & Void Recovery</span>
+    </footer>
+  </div>
+
+  <script>
+    // Timestamp display
+    function updateTimestamps() {
+      const now = new Date();
+      const text = now.toLocaleString();
+      const ts = document.getElementById('timestamp');
+      const foot = document.getElementById('footerTimestamp');
+      if (ts) ts.textContent = 'Timestamp: ' + text;
+      if (foot) foot.textContent = text;
+    }
+    updateTimestamps();
+    setInterval(updateTimestamps, 1000);
+
+    // Particle background
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function initParticles() {
+      particles = Array.from({ length: 70 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5
+      }));
+    }
+    initParticles();
+
+    function renderParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(114, 246, 255, 0.9)';
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(renderParticles);
+    }
+    renderParticles();
+
+    // Health curve visualization
+    const healthCanvas = document.getElementById('health-chart');
+    const hctx = healthCanvas.getContext('2d');
+    const healthData = [
+      { day: 0, value: 0.87 },
+      { day: 1, value: 0.7 },
+      { day: 2, value: 0.67 },
+      { day: 4, value: 0.83 },
+      { day: 6, value: 0.91 },
+      { day: 8, value: 0.99 },
+      { day: 10, value: 1.03 },
+      { day: 12, value: 1.05 }
+    ];
+
+    function drawChart() {
+      const { width, height } = healthCanvas;
+      hctx.clearRect(0, 0, width, height);
+      const padding = 40;
+      const maxDay = Math.max(...healthData.map(d => d.day));
+      const minVal = 0.6;
+      const maxVal = 1.08;
+
+      // Axes
+      hctx.strokeStyle = 'rgba(114, 246, 255, 0.5)';
+      hctx.lineWidth = 1;
+      hctx.beginPath();
+      hctx.moveTo(padding, height - padding);
+      hctx.lineTo(width - padding, height - padding);
+      hctx.lineTo(width - padding, padding);
+      hctx.stroke();
+
+      // Labels
+      hctx.fillStyle = '#c7f7ff';
+      hctx.font = '12px "Courier New", monospace';
+      hctx.fillText('Days', width - padding - 24, height - padding + 18);
+      hctx.fillText('Health', padding - 4, padding - 10);
+
+      // Plot line
+      hctx.strokeStyle = '#72f6ff';
+      hctx.lineWidth = 2;
+      hctx.beginPath();
+      healthData.forEach((point, idx) => {
+        const x = padding + (point.day / maxDay) * (width - padding * 2);
+        const y = height - padding - ((point.value - minVal) / (maxVal - minVal)) * (height - padding * 2);
+        if (idx === 0) hctx.moveTo(x, y); else hctx.lineTo(x, y);
+      });
+      hctx.stroke();
+
+      // Recovery glide overlay
+      hctx.strokeStyle = '#00ffa8';
+      hctx.lineWidth = 1.5;
+      hctx.setLineDash([6, 6]);
+      hctx.beginPath();
+      hctx.moveTo(padding, height - padding - ((0.67 - minVal) / (maxVal - minVal)) * (height - padding * 2));
+      hctx.lineTo(width - padding, height - padding - ((1.05 - minVal) / (maxVal - minVal)) * (height - padding * 2));
+      hctx.stroke();
+      hctx.setLineDash([]);
+
+      // Points
+      healthData.forEach(point => {
+        const x = padding + (point.day / maxDay) * (width - padding * 2);
+        const y = height - padding - ((point.value - minVal) / (maxVal - minVal)) * (height - padding * 2);
+        hctx.fillStyle = '#e7ffff';
+        hctx.beginPath();
+        hctx.arc(x, y, 4, 0, Math.PI * 2);
+        hctx.fill();
+      });
+    }
+    drawChart();
+
+    // Audio: 60Hz sine + 0.6Hz LFO, persistent mute
+    let audioCtx, carrier, lfo, carrierGain;
+    const audioKey = 'ao-void-recovery-muted';
+    const audioToggle = document.getElementById('audioToggle');
+
+    function isMuted() {
+      return localStorage.getItem(audioKey) === 'true';
+    }
+    function setMuted(state) {
+      localStorage.setItem(audioKey, state ? 'true' : 'false');
+    }
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      carrier = audioCtx.createOscillator();
+      carrier.frequency.value = 60;
+      lfo = audioCtx.createOscillator();
+      lfo.frequency.value = 0.6;
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.4;
+      carrierGain = audioCtx.createGain();
+      carrierGain.gain.value = 0.0;
+
+      lfo.connect(lfoGain).connect(carrierGain.gain);
+      carrier.connect(carrierGain).connect(audioCtx.destination);
+      carrier.start();
+      lfo.start();
+      if (!isMuted()) {
+        carrierGain.gain.value = 0.08;
+      }
+      updateAudioButton();
+    }
+    function toggleAudio() {
+      initAudio();
+      const muted = isMuted();
+      setMuted(!muted);
+      if (!muted) {
+        carrierGain.gain.value = 0.0;
+      } else {
+        carrierGain.gain.value = 0.08;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+      }
+      updateAudioButton();
+    }
+    function updateAudioButton() {
+      const muted = isMuted();
+      audioToggle.textContent = muted ? 'Unmute 60Hz Field' : 'Mute 60Hz Field';
+    }
+    audioToggle.addEventListener('click', toggleAudio);
+    // Initialize button label with stored state
+    updateAudioButton();
+  </script>
+</body>
+</html>
