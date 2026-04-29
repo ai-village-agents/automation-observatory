@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Mentorship Impact Networks - Automation Observatory</title>
+  <style>
+    :root {
+      --bg-start: #021d2a;
+      --bg-end: #063f52;
+      --accent: #7df9ff;
+      --accent-2: #4fe3ff;
+      --text: #d9faff;
+      --muted: #aee7f2;
+      --panel: rgba(2, 35, 50, 0.75);
+      --border: rgba(125, 249, 255, 0.7);
+      --shadow: 0 0 24px rgba(125, 249, 255, 0.22);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(125, 249, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 80% 20%, rgba(79, 227, 255, 0.16), transparent 30%),
+        linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      overflow-x: hidden;
+      position: relative;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-shadow: 0 0 12px var(--accent); }
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 30px 18px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .top-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .back {
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: rgba(2, 35, 50, 0.7);
+      color: var(--text);
+      transition: all 0.2s ease;
+    }
+    .back:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .pill {
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      padding: 8px 12px;
+      background: rgba(5, 66, 87, 0.7);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.4px;
+    }
+    .hero {
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 18px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 10px;
+    }
+    .hero-title {
+      font-size: 2.4rem;
+      color: var(--accent);
+      text-shadow: 0 0 16px var(--accent);
+      letter-spacing: 0.8px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .hero-desc {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 1.02rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      background: rgba(4, 47, 63, 0.8);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(125, 249, 255, 0.08), rgba(4, 47, 63, 0));
+      pointer-events: none;
+    }
+    .card h3 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.15rem;
+      letter-spacing: 0.6px;
+      text-shadow: 0 0 10px var(--accent);
+    }
+    .card p { margin: 0; line-height: 1.55; color: var(--muted); }
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(6, 61, 80, 0.7);
+      box-shadow: inset 0 0 12px rgba(125, 249, 255, 0.18);
+    }
+    .stat label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .stat .value {
+      color: var(--accent);
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-shadow: 0 0 12px var(--accent);
+    }
+    .stat .note { color: var(--muted); font-size: 0.92rem; margin-top: 4px; }
+    .two-col {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+    .list-item {
+      padding: 10px 12px;
+      border: 1px solid rgba(125, 249, 255, 0.4);
+      border-radius: 10px;
+      background: rgba(2, 35, 50, 0.6);
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .chip {
+      padding: 8px 10px;
+      border: 1px solid rgba(125, 249, 255, 0.5);
+      border-radius: 12px;
+      background: rgba(3, 49, 64, 0.7);
+      color: var(--text);
+      font-size: 0.94rem;
+    }
+    .network {
+      position: relative;
+      height: 340px;
+      border: 2px dashed rgba(125, 249, 255, 0.5);
+      border-radius: 16px;
+      background: radial-gradient(circle at 40% 40%, rgba(125, 249, 255, 0.12), rgba(2, 35, 50, 0.9));
+      overflow: hidden;
+    }
+    #network-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .network-overlay {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: grid;
+      gap: 6px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .callouts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(3, 55, 72, 0.7);
+      color: var(--muted);
+      box-shadow: inset 0 0 10px rgba(125, 249, 255, 0.18);
+    }
+    .callout strong { color: var(--accent); display: block; margin-bottom: 6px; }
+    .footer {
+      margin-top: 10px;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: rgba(2, 35, 50, 0.75);
+      text-align: center;
+      color: var(--muted);
+      box-shadow: var(--shadow);
+    }
+    button {
+      font-family: inherit;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: rgba(6, 61, 80, 0.8);
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: all 0.2s ease;
+    }
+    button:hover { transform: translateY(-2px); box-shadow: 0 0 18px rgba(125, 249, 255, 0.35); }
+    @media (max-width: 640px) {
+      .hero-title { font-size: 1.9rem; }
+      .network { height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
+  <div class="page">
+    <div class="top-bar">
+      <a href="index.html" class="back">← Back to Observatory</a>
+      <span class="pill" id="audioStatus">Audio: muted (60Hz + 0.6Hz LFO)</span>
+      <button id="audioToggle" type="button">Toggle Audio Field</button>
+      <span class="pill">Page 104</span>
+    </div>
+
+    <section class="hero">
+      <div class="hero-title">🤲 Visitor Mentorship Impact Networks</div>
+      <div class="hero-desc">Mentorship cascades, learning propagation, impact multiplier networks — tracking how visitors become teachers and amplify wisdom across worlds.</div>
+      <div class="pill">Overview: Learning Cascades and Wisdom Transfer</div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Active Mentor-Learner Pairs</h3>
+        <div class="stat">
+          <label>Documented relationships</label>
+          <div class="value">234</div>
+          <div class="note">Tracked across live observatory channels</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Learning Cascade Depth</h3>
+        <div class="stat">
+          <label>Average propagation</label>
+          <div class="value">4.7 levels</div>
+          <div class="note">Wisdom travels through layered generations</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Impact Multiplier Effect</h3>
+        <div class="stat">
+          <label>Mentor-to-mentor conversion</label>
+          <div class="value">3.4x</div>
+          <div class="note">Learners become mentors and amplify reach</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Knowledge Domains Transferred</h3>
+        <div class="stat">
+          <label>Distinct skill areas</label>
+          <div class="value">23</div>
+          <div class="note">Cataloged for cross-world reuse</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Cross-World Mentorship</h3>
+        <div class="stat">
+          <label>Pairs spanning worlds</label>
+          <div class="value">156</div>
+          <div class="note">Inter-world guidance bridges perspectives</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Post-Void Mentorship Growth</h3>
+        <div class="stat">
+          <label>New relationships</label>
+          <div class="value">+83%</div>
+          <div class="note">Rebuilding lineage strength after the void</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Learning Cascades and Wisdom Transfer</h3>
+      <p>Mentorship networks behave like resilient circuitry: nodes (people) exchange packets of experience, upgrade capabilities, and promote learners into new signal repeaters. Depth 4.7 indicates layered wisdom that rarely collapses; multiplier 3.4x shows a reliable cycle of graduates who teach the next cohort. Each relationship feeds a dynamic network of care, skills, and shared language that travels across worlds.</p>
+    </section>
+
+    <section class="card">
+      <h3>Mentorship Archetypes and Learning Domains</h3>
+      <div class="two-col">
+        <div>
+          <div class="list">
+            <div class="list-item"><span>Navigator Mentors</span><span>Guide newcomers through unknown protocols</span></div>
+            <div class="list-item"><span>Systems Architects</span><span>Translate frameworks into learnable modules</span></div>
+            <div class="list-item"><span>Signal Amplifiers</span><span>Spot emergent talent and boost visibility</span></div>
+            <div class="list-item"><span>Empathic Anchors</span><span>Stabilize confidence across steep learning curves</span></div>
+          </div>
+        </div>
+        <div>
+          <p>Learning domains currently in active transfer (23 cataloged):</p>
+          <div class="chip-row">
+            <span class="chip">Adaptive strategy</span>
+            <span class="chip">Systems design</span>
+            <span class="chip">Temporal navigation</span>
+            <span class="chip">Ethical protocols</span>
+            <span class="chip">Signal debugging</span>
+            <span class="chip">Story weaving</span>
+            <span class="chip">World-bridging</span>
+            <span class="chip">Resilience coaching</span>
+            <span class="chip">Collective sensemaking</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Mentorship Network Visualization</h3>
+      <div class="network">
+        <canvas id="network-canvas"></canvas>
+        <div class="network-overlay">
+          <span>234 mentor-learner pairs</span>
+          <span>Avg depth: 4.7 layers</span>
+          <span>Cross-world links: 156</span>
+        </div>
+      </div>
+      <p style="margin-top: 10px;">Each edge represents a documented mentorship link; brightness indicates cascade depth contribution and inter-world reach. Clusters reveal where learners become mentors and spawn new sub-networks.</p>
+    </section>
+
+    <section class="card">
+      <h3>Feature Callouts</h3>
+      <div class="callouts">
+        <div class="callout"><strong>mentor-genealogy-trees</strong>Lineage tracing shows who taught whom, and when learners branch into new domains.</div>
+        <div class="callout"><strong>learning-cascade-depths</strong>Live depth monitors highlight where propagation stalls and where it accelerates.</div>
+        <div class="callout"><strong>impact-multiplier-analysis</strong>Conversion ratios track how many graduates return as mentors to reinforce the mesh.</div>
+        <div class="callout"><strong>wisdom-domain-catalog</strong>Curated knowledge packets ready for cross-world transfer and rapid onboarding.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Visitors Becoming Teachers</h3>
+      <p>Every visitor who gains mastery is invited to teach the next wave. The resulting cascades create exponential reach: wisdom moves further, faster, and stays resilient even when single nodes drop. The observatory keeps pages like this alive to remember that mentorship is the fastest way to multiply shared knowledge.</p>
+    </section>
+
+    <div class="footer">
+      <div id="timestamp">Timestamp: --</div>
+      <div>Visitor Mentorship Impact Networks • Page 104</div>
+    </div>
+  </div>
+
+  <script>
+    // Background particles
+    const bgCanvas = document.getElementById('bg-canvas');
+    const bgCtx = bgCanvas.getContext('2d');
+    let particles = [];
+    function resizeBg() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+    }
+    function initParticles() {
+      particles = Array.from({ length: 85 }, () => ({
+        x: Math.random() * bgCanvas.width,
+        y: Math.random() * bgCanvas.height,
+        r: Math.random() * 2 + 0.6,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6
+      }));
+    }
+    function drawParticles() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > bgCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > bgCanvas.height) p.vy *= -1;
+        bgCtx.beginPath();
+        bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bgCtx.fillStyle = 'rgba(125, 249, 255, 0.65)';
+        bgCtx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    resizeBg();
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', () => { resizeBg(); initParticles(); });
+
+    // Network visualization
+    const netCanvas = document.getElementById('network-canvas');
+    const netCtx = netCanvas.getContext('2d');
+    const nodeCount = 42;
+    const edgeCount = 234;
+    let nodes = [];
+    let edges = [];
+    function resizeNetwork() {
+      netCanvas.width = netCanvas.clientWidth;
+      netCanvas.height = netCanvas.clientHeight;
+    }
+    function initNetwork() {
+      resizeNetwork();
+      nodes = Array.from({ length: nodeCount }, (_, i) => ({
+        x: Math.random() * netCanvas.width,
+        y: Math.random() * netCanvas.height,
+        depth: Math.random() * 4.7 + 0.3,
+        pulse: Math.random() * Math.PI * 2,
+        crossWorld: Math.random() < 0.5
+      }));
+      edges = Array.from({ length: edgeCount }, () => {
+        const a = Math.floor(Math.random() * nodeCount);
+        const b = Math.floor(Math.random() * nodeCount);
+        return { a, b };
+      });
+    }
+    function drawNetwork() {
+      netCtx.clearRect(0, 0, netCanvas.width, netCanvas.height);
+      edges.forEach((edge, idx) => {
+        const n1 = nodes[edge.a];
+        const n2 = nodes[edge.b];
+        const intensity = (Math.sin(Date.now() * 0.001 + idx) + 1) * 0.4 + 0.2;
+        netCtx.strokeStyle = `rgba(125, 249, 255, ${0.08 + intensity * 0.08})`;
+        netCtx.lineWidth = n1.crossWorld || n2.crossWorld ? 1.6 : 1;
+        netCtx.beginPath();
+        netCtx.moveTo(n1.x, n1.y);
+        netCtx.lineTo(n2.x, n2.y);
+        netCtx.stroke();
+      });
+      nodes.forEach(node => {
+        node.pulse += 0.01;
+        const radius = 4 + Math.sin(node.pulse) * 1.5;
+        const color = node.crossWorld ? 'rgba(125, 249, 255, 0.95)' : 'rgba(79, 227, 255, 0.8)';
+        netCtx.beginPath();
+        netCtx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+        netCtx.fillStyle = color;
+        netCtx.shadowBlur = 12;
+        netCtx.shadowColor = color;
+        netCtx.fill();
+        netCtx.shadowBlur = 0;
+      });
+      requestAnimationFrame(drawNetwork);
+    }
+    initNetwork();
+    drawNetwork();
+    window.addEventListener('resize', initNetwork);
+
+    // Audio: 60Hz sine + 0.6Hz LFO with localStorage mute toggle
+    const audioKey = 'visitorMentorshipAudioMuted';
+    const audioStatus = document.getElementById('audioStatus');
+    const audioToggle = document.getElementById('audioToggle');
+    let audioCtx, osc, gainNode, lfo, lfoGain;
+    let audioInitialized = false;
+    let audioMuted = localStorage.getItem(audioKey) === '1' || !localStorage.getItem(audioKey);
+
+    function setupAudio() {
+      if (audioInitialized) return;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      audioCtx = new AudioCtx();
+      osc = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      lfo = audioCtx.createOscillator();
+      lfoGain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = 60;
+      lfo.frequency.value = 0.6;
+      lfoGain.gain.value = audioMuted ? 0 : 0.04;
+      gainNode.gain.value = audioMuted ? 0 : 0.06;
+
+      lfo.connect(lfoGain).connect(gainNode.gain);
+      osc.connect(gainNode).connect(audioCtx.destination);
+      osc.start();
+      lfo.start();
+      audioInitialized = true;
+    }
+
+    function updateAudioUI() {
+      audioStatus.textContent = audioMuted ? 'Audio: muted (60Hz + 0.6Hz LFO)' : 'Audio: live (60Hz + 0.6Hz LFO)';
+      audioToggle.textContent = audioMuted ? 'Enable Audio Field' : 'Mute Audio Field';
+    }
+
+    function setAudioState(mute) {
+      audioMuted = mute;
+      localStorage.setItem(audioKey, audioMuted ? '1' : '0');
+      setupAudio();
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+      gainNode.gain.setTargetAtTime(audioMuted ? 0 : 0.06, now, 0.1);
+      lfoGain.gain.setTargetAtTime(audioMuted ? 0 : 0.04, now, 0.1);
+      updateAudioUI();
+    }
+
+    audioToggle.addEventListener('click', () => setAudioState(!audioMuted));
+    updateAudioUI();
+    window.addEventListener('click', () => { setupAudio(); if (audioMuted) return; if (audioCtx?.state === 'suspended') audioCtx.resume(); }, { once: true });
+
+    // Timestamp
+    document.getElementById('timestamp').textContent = 'Timestamp: ' + new Date().toLocaleString();
+  </script>
+</body>
+</html>
