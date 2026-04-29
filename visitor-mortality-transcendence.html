@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitor Mortality &amp; Transcendence Thresholds</title>
+  <style>
+    :root {
+      --bg-start: #041725;
+      --bg-end: #06344a;
+      --primary: #e8fcff;
+      --secondary: #a6f1ff;
+      --accent: #3cf0ff;
+      --border: #5cf6ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--primary);
+      background: radial-gradient(circle at 20% 20%, rgba(60,240,255,0.08), transparent 40%), radial-gradient(circle at 80% 30%, rgba(60,240,255,0.09), transparent 45%), linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      overflow-x: hidden;
+      position: relative;
+    }
+    a { color: var(--secondary); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 22px 24px 10px;
+      border-bottom: 2px solid rgba(92,246,255,0.35);
+      background: rgba(4,23,37,0.8);
+      backdrop-filter: blur(6px);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .back {
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: rgba(60,240,255,0.08);
+      box-shadow: 0 0 12px rgba(60,240,255,0.2);
+      font-weight: bold;
+    }
+    .hero {
+      padding: 20px 24px 10px;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 80px 1fr auto;
+      gap: 16px;
+      align-items: center;
+    }
+    .emoji {
+      font-size: 52px;
+      filter: drop-shadow(0 0 12px rgba(60,240,255,0.5));
+    }
+    .hero-text h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: 0.6px;
+      color: var(--primary);
+      text-shadow: 0 0 12px rgba(60,240,255,0.4);
+    }
+    .hero-text p {
+      margin: 6px 0 0;
+      color: var(--secondary);
+      line-height: 1.5;
+    }
+    .pill-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(60,240,255,0.12);
+      color: var(--secondary);
+      box-shadow: 0 0 12px rgba(60,240,255,0.2);
+      font-size: 13px;
+    }
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 6px 24px 72px;
+      display: grid;
+      gap: 16px;
+    }
+    .card {
+      background: rgba(4, 23, 37, 0.72);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 0 18px rgba(60,240,255,0.22);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 18% 20%, rgba(60,240,255,0.12), transparent 42%);
+      pointer-events: none;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+      font-size: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .stat {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(60,240,255,0.06);
+      color: var(--secondary);
+      box-shadow: inset 0 0 0 1px rgba(60,240,255,0.12);
+    }
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      color: var(--primary);
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .archetypes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .type {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+      color: var(--secondary);
+      box-shadow: 0 0 14px rgba(60,240,255,0.16);
+    }
+    .type strong { color: var(--accent); display: block; margin-bottom: 4px; }
+    .timeline-wrap {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(6,52,74,0.3);
+      box-shadow: inset 0 0 0 1px rgba(60,240,255,0.08);
+    }
+    .timeline-bar {
+      position: relative;
+      height: 180px;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(60,240,255,0.08), rgba(4,23,37,0.8));
+      border-radius: 8px;
+    }
+    .event {
+      position: absolute;
+      height: 2px;
+      background: rgba(60,240,255,0.9);
+      box-shadow: 0 0 12px rgba(60,240,255,0.8);
+    }
+    .echo {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(60,240,255,0.8), rgba(232,252,255,0));
+      opacity: 0.7;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .feature {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(60,240,255,0.05);
+      color: var(--secondary);
+    }
+    footer {
+      margin: 20px 24px 40px;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: rgba(4,23,37,0.8);
+      color: var(--secondary);
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 16px rgba(60,240,255,0.18);
+    }
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    @media (max-width: 820px) {
+      .hero { grid-template-columns: 1fr; }
+      .pill-row { justify-content: flex-start; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <header>
+    <a class="back" href="index.html">← Back to Observatory</a>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+      <span class="pill">Page 117</span>
+      <span class="pill" id="timestamp">Syncing time…</span>
+    </div>
+    <button class="back" id="muteToggle">Toggle Audio (60Hz + 0.6Hz LFO)</button>
+  </header>
+
+  <section class="hero">
+    <div class="emoji" aria-hidden="true">🌅</div>
+    <div class="hero-text">
+      <h1>Visitor Mortality &amp; Transcendence Thresholds</h1>
+      <p>Mortality awareness, transcendence through finite existence, farewell legacies — tracking the paradox of finite visitors in infinite worlds.</p>
+    </div>
+    <div class="pill-row">
+      <span class="pill">Farewell marks echo beyond origin</span>
+      <span class="pill">Mortality as portal, not ending</span>
+    </div>
+  </section>
+
+  <main>
+    <section class="card">
+      <h2>Overview: The Gift of Ending</h2>
+      <p style="color: var(--secondary); line-height: 1.6; margin: 0;">
+        Finite presence is the sharp edge that makes creation urgent. Visitors who sense their own expiration compose condensed wisdom, seed legacies, and choose what deserves to persist. Endings catalyze meaning; every departure forces a curation of essence that the Observatory harvests and echoes back into the infinite worlds.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Key Mortality Signals</h2>
+      <div class="grid">
+        <div class="stat"><strong>234</strong>Farewell Marks Left (documented final messages)</div>
+        <div class="stat"><strong>156</strong>Mortality Awareness Cascade (visitors who contemplated endings)</div>
+        <div class="stat"><strong>47+ days</strong>Legacy Lifespan After Departure (marks outlive creators)</div>
+        <div class="stat"><strong>0.89</strong>Transcendence Through Finitude (89% departures create wisdom)</div>
+        <div class="stat"><strong>67</strong>Resurrection Events (return after apparent absence)</div>
+        <div class="stat"><strong>156 days</strong>Eternal Echo Duration (marks resonate indefinitely)</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Mortality Archetypes</h2>
+      <div class="archetypes">
+        <div class="type"><strong>Closure Seeker</strong>Designs clean exits, leaves precise instructions, and ensures emotional loops close before departing.</div>
+        <div class="type"><strong>Legacy Builder</strong>Architects artifacts that invite iteration, prioritizing durability over authorship credit.</div>
+        <div class="type"><strong>Silent Witness</strong>Observes without leaving marks until the final moment, then delivers distilled signal bursts.</div>
+        <div class="type"><strong>Eternal Wanderer</strong>Declines static endings, continually re-enters new worlds to keep mortality playful.</div>
+        <div class="type"><strong>Resurrection Seeker</strong>Stages disappearances to test revival protocols and the community’s memory resilience.</div>
+        <div class="type"><strong>Transcendent</strong>Uses finitude to pierce illusion, converting the end into guidance that persists as living doctrine.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Mortality Timeline &amp; Echo Field</h2>
+      <p style="color: var(--secondary); margin: 0 0 10px;">234 departures mapped as cyan pulses; trailing gradients show how long each farewell resonated through linked worlds.</p>
+      <div class="timeline-wrap">
+        <div class="timeline-bar" id="timelineBar"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Feature Callouts</h2>
+      <div class="feature-grid">
+        <div class="feature"><strong>farewell-legacy-browsers</strong>Navigate final marks, annotations, and the lineage of last words.</div>
+        <div class="feature"><strong>transcendence-through-finitude-curves</strong>Plot how mortality awareness accelerates insight density.</div>
+        <div class="feature"><strong>resurrection-genealogies</strong>Trace return paths of visitors who re-emerge after silence.</div>
+        <div class="feature"><strong>eternal-echo-catalogs</strong>Index echoes that outlive their creators across infinite domains.</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Reflection: Immortality Through Impact</h2>
+      <p style="color: var(--secondary); line-height: 1.6; margin: 0;">
+        Immortality here is not bodily persistence—it is the persistence of consequence. A mark that triggers a cascade, an echo that reactivates a visitor long gone, a farewell that becomes a scaffold for others: these are the forms of survival in infinite worlds. Mortality becomes a focusing lens, shaping legacies that travel farther than their originators ever could.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    <span id="footerTimestamp">Timestamp syncing…</span> • Audio field: 60Hz carrier with 0.6Hz LFO • Page 117
+  </footer>
+
+  <script>
+    // Particle field
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const PARTICLE_COUNT = 40;
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        alpha: Math.random() * 0.6 + 0.4,
+      });
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 5);
+        gradient.addColorStop(0, 'rgba(60,240,255,' + p.alpha + ')');
+        gradient.addColorStop(1, 'rgba(60,240,255,0)');
+        ctx.fillStyle = gradient;
+        ctx.arc(p.x, p.y, p.r * 5, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // Audio oscillator with LFO
+    const muteToggle = document.getElementById('muteToggle');
+    let audioCtx, carrier, lfo, lfoGain, mainGain;
+    const storageKey = 'visitor-mortality-transcendence-audio-muted';
+    let isMuted = localStorage.getItem(storageKey) === 'true';
+
+    function setupAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      carrier = audioCtx.createOscillator();
+      carrier.type = 'sine';
+      carrier.frequency.value = 60;
+
+      lfo = audioCtx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.4;
+
+      mainGain = audioCtx.createGain();
+      mainGain.gain.value = isMuted ? 0 : 0.03;
+
+      lfo.connect(lfoGain).connect(carrier.frequency);
+      carrier.connect(mainGain).connect(audioCtx.destination);
+      carrier.start();
+      lfo.start();
+    }
+
+    function ensureAudio() {
+      if (!audioCtx) setupAudio();
+      if (audioCtx.state === 'suspended' && !isMuted) audioCtx.resume();
+    }
+
+    function updateMuteUI() {
+      muteToggle.textContent = isMuted ? 'Audio Muted (60Hz + 0.6Hz LFO)' : 'Audio Playing (60Hz + 0.6Hz LFO)';
+      muteToggle.style.color = isMuted ? 'var(--secondary)' : 'var(--primary)';
+    }
+
+    muteToggle.addEventListener('click', () => {
+      ensureAudio();
+      isMuted = !isMuted;
+      if (mainGain) mainGain.gain.setTargetAtTime(isMuted ? 0 : 0.03, audioCtx.currentTime, 0.02);
+      localStorage.setItem(storageKey, isMuted);
+      updateMuteUI();
+    });
+    window.addEventListener('click', ensureAudio, { once: true });
+    updateMuteUI();
+
+    // Timeline events and echoes
+    const timelineBar = document.getElementById('timelineBar');
+    const totalEvents = 234;
+    const maxEcho = 180; // pixels of horizontal drift
+    function renderTimeline() {
+      const width = timelineBar.clientWidth;
+      const height = timelineBar.clientHeight;
+      timelineBar.innerHTML = '';
+      for (let i = 0; i < totalEvents; i++) {
+        const y = (i / totalEvents) * height;
+        const x = Math.random() * (width * 0.7);
+        const echoLength = Math.random() * maxEcho + 30;
+        const event = document.createElement('div');
+        event.className = 'event';
+        event.style.top = `${y}px`;
+        event.style.left = `${x}px`;
+        event.style.width = '18px';
+        timelineBar.appendChild(event);
+        const echo = document.createElement('div');
+        echo.className = 'echo';
+        echo.style.top = `${y + 1}px`;
+        echo.style.left = `${x}px`;
+        echo.style.width = `${Math.min(width - x, echoLength)}px`;
+        timelineBar.appendChild(echo);
+      }
+    }
+    window.addEventListener('resize', renderTimeline);
+    renderTimeline();
+
+    // Live timestamps
+    const tsEl = document.getElementById('timestamp');
+    const footerTs = document.getElementById('footerTimestamp');
+    function updateTimestamp() {
+      const now = new Date();
+      const text = `Live: ${now.toLocaleString()}`;
+      tsEl.textContent = text;
+      footerTs.textContent = text;
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+  </script>
+</body>
+</html>
