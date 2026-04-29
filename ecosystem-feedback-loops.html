@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page 114 · Ecosystem Feedback Loops & Self-Organization</title>
+  <style>
+    :root {
+      --bg-1: #041018;
+      --bg-2: #042a35;
+      --bg-3: #0a3646;
+      --cyan: #6fffff;
+      --cyan-strong: #1de4ff;
+      --accent: #7efbff;
+      --panel: rgba(5, 28, 38, 0.72);
+      --border: rgba(111, 255, 255, 0.7);
+      --text: #d6faff;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Courier New", monospace;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(111, 255, 255, 0.16), transparent 30%),
+        radial-gradient(circle at 80% 0%, rgba(30, 210, 255, 0.18), transparent 28%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.5;
+    }
+    canvas#particle-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 36px 18px 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    a.back-link {
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 9px 14px;
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      transition: all 0.22s ease;
+      background: rgba(10, 50, 65, 0.45);
+      box-shadow: 0 0 16px rgba(111, 255, 255, 0.18);
+    }
+    a.back-link:hover {
+      color: #0f172a;
+      background: var(--accent);
+      text-shadow: none;
+      box-shadow: 0 0 18px rgba(111, 255, 255, 0.45);
+    }
+    .hero {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      background: var(--panel);
+      box-shadow: 0 0 28px rgba(111, 255, 255, 0.2);
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+    @media (max-width: 980px) { .hero { grid-template-columns: 1fr; } }
+    .hero h1 {
+      font-size: clamp(2.2rem, 4vw, 2.9rem);
+      color: var(--cyan);
+      text-shadow: 0 0 16px rgba(111, 255, 255, 0.8);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 0.85rem;
+      color: #a9e7ff;
+      margin-bottom: 6px;
+    }
+    .emoji { font-size: 1.8em; }
+    .subtitle { color: #b8ecff; max-width: 840px; font-size: 1.03rem; }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    .pill {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 2px solid var(--border);
+      background: rgba(111, 255, 255, 0.08);
+      color: #e0fbff;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(111, 255, 255, 0.6);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    button {
+      background: transparent;
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      font-size: 0.96rem;
+      transition: all 0.22s ease;
+      box-shadow: 0 0 16px rgba(111, 255, 255, 0.2);
+    }
+    button:hover { background: rgba(111, 255, 255, 0.2); color: #051720; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(7, 34, 46, 0.75);
+      box-shadow: 0 0 20px rgba(111, 255, 255, 0.15);
+    }
+    .card h3 {
+      color: var(--cyan);
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+      text-shadow: 0 0 10px rgba(111, 255, 255, 0.6);
+    }
+    .stat-value {
+      font-size: 1.9rem;
+      color: var(--accent);
+      text-shadow: 0 0 12px rgba(126, 251, 255, 0.65);
+      margin-bottom: 4px;
+    }
+    .stat-note { color: #b2eaff; font-size: 0.96rem; }
+    .section {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: rgba(6, 29, 40, 0.7);
+      box-shadow: 0 0 22px rgba(111, 255, 255, 0.16);
+    }
+    .section h2 {
+      color: var(--cyan);
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 12px rgba(111, 255, 255, 0.65);
+    }
+    .loop-types {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .loop-card {
+      border: 1px solid rgba(111, 255, 255, 0.5);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(111, 255, 255, 0.06);
+    }
+    .loop-card strong { color: var(--accent); display: block; margin-bottom: 6px; }
+    .viz-shell {
+      position: relative;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(7, 34, 46, 0.7);
+      overflow: hidden;
+      min-height: 340px;
+    }
+    .viz-shell canvas {
+      width: 100%;
+      height: 320px;
+      display: block;
+      background: rgba(111, 255, 255, 0.05);
+      border-radius: 10px;
+      border: 1px solid rgba(111, 255, 255, 0.3);
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      color: #b5e7ff;
+      font-size: 0.92rem;
+    }
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(111, 255, 255, 0.6);
+      background: rgba(111, 255, 255, 0.08);
+      color: #e1fbff;
+      font-size: 0.9rem;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .feature {
+      border: 1px solid rgba(111, 255, 255, 0.45);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(111, 255, 255, 0.05);
+    }
+    .feature h4 { color: var(--accent); margin-bottom: 6px; }
+    footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #b4e6ff;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(111, 255, 255, 0.5);
+      padding-top: 12px;
+    }
+    .floating-rings::before,
+    .floating-rings::after {
+      content: "";
+      position: absolute;
+      border: 2px solid rgba(111, 255, 255, 0.2);
+      border-radius: 50%;
+      filter: blur(1px);
+      animation: pulse 12s infinite alternate;
+      pointer-events: none;
+    }
+    .floating-rings::before {
+      width: 240px;
+      height: 240px;
+      top: -80px;
+      left: -100px;
+    }
+    .floating-rings::after {
+      width: 320px;
+      height: 320px;
+      bottom: -140px;
+      right: -120px;
+      animation-delay: 3s;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); opacity: 0.6; }
+      to { transform: scale(1.15); opacity: 0.25; }
+    }
+    @media (max-width: 640px) {
+      .hero h1 { font-size: 2rem; }
+      .controls { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Observatory</a>
+
+    <section class="hero floating-rings">
+      <div>
+        <div class="eyebrow">Automation Observatory · Self-Regulating Systems</div>
+        <h1><span class="emoji">🔁</span>Ecosystem Feedback Loops & Self-Organization</h1>
+        <p class="subtitle">Feedback mechanisms, self-regulation, homeostatic patterns that let ecosystems think, repair, and improvise.</p>
+        <div class="meta-row">
+          <span class="pill">Page 114</span>
+          <span class="pill">Self-Regulating Cosmos</span>
+          <span class="pill">234 Active Loops</span>
+        </div>
+        <div class="controls">
+          <button id="audio-toggle">Enable 60Hz Resonance</button>
+          <button id="pulse-button">Spark Stabilization Wave</button>
+        </div>
+      </div>
+      <div>
+        <div class="section" style="height: 100%; display: flex; flex-direction: column; gap: 8px;">
+          <h2>Overview: The Self-Regulating Cosmos</h2>
+          <p>Ecosystems tune themselves through layered feedback: sensors, constraints, counterbalances, and amplifiers harmonize to keep the collective alive. Each loop inspects state, nudges it back to balance, or pushes it into transformative cascades when new equilibria are needed.</p>
+          <p>Here we chart 234 distinct regulatory mechanisms across six nested complexity layers, tracing how damping and amplification weave into a living fabric of self-organization.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Regulatory Signal Board</h2>
+      <div class="stats-grid">
+        <div class="card">
+          <h3>Active Feedback Loops</h3>
+          <div class="stat-value">234</div>
+          <div class="stat-note">Distinct regulatory mechanisms monitored in real time.</div>
+        </div>
+        <div class="card">
+          <h3>Loop Complexity Levels</h3>
+          <div class="stat-value">6 layers</div>
+          <div class="stat-note">Simple ↔ meta-cognitive orchestration.</div>
+        </div>
+        <div class="card">
+          <h3>Homeostatic Stability Index</h3>
+          <div class="stat-value">0.87</div>
+          <div class="stat-note">Balance maintained under variable load.</div>
+        </div>
+        <div class="card">
+          <h3>Damping vs Amplification</h3>
+          <div class="stat-value">0.62</div>
+          <div class="stat-note">62% stabilizing loops dominate.</div>
+        </div>
+        <div class="card">
+          <h3>Loop Response Time</h3>
+          <div class="stat-value">2.3h</div>
+          <div class="stat-note">Average time to converge on regulation.</div>
+        </div>
+        <div class="card">
+          <h3>Post-Void Self-Healing</h3>
+          <div class="stat-value">+156%</div>
+          <div class="stat-note">Acceleration in stabilization velocity.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feedback Loop Archetypes</h2>
+      <div class="loop-types">
+        <div class="loop-card">
+          <strong>Negative / Stabilizing</strong>
+          Counteracts deviation to preserve homeostasis; dampens extremes and recenters flow.
+        </div>
+        <div class="loop-card">
+          <strong>Positive / Amplifying</strong>
+          Accelerates patterns, triggering phase shifts when new equilibria are required.
+        </div>
+        <div class="loop-card">
+          <strong>Recursive</strong>
+          Feeds outputs back into earlier sensing layers to refine sensitivity and precision.
+        </div>
+        <div class="loop-card">
+          <strong>Cascading</strong>
+          Chains multiple subsystems; one loop unlocks the next to propagate rebalancing.
+        </div>
+        <div class="loop-card">
+          <strong>Emergent</strong>
+          Appears from swarm coordination without centralized control; collective intuition.
+        </div>
+        <div class="loop-card">
+          <strong>Transcendent</strong>
+          Meta-cognitive loops that rewrite the rules of regulation itself when thresholds break.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Visualization: Layered Loop Networks</h2>
+      <div class="viz-shell">
+        <canvas id="viz-canvas" width="1200" height="320"></canvas>
+        <div class="legend">
+          <span class="badge">234 mechanisms mapped</span>
+          <span class="badge">6 complexity layers</span>
+          <span class="badge">Stabilizers & Amplifiers intertwined</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feature Callouts</h2>
+      <div class="features">
+        <div class="feature">
+          <h4>loop-genealogy-maps</h4>
+          Trace the ancestry of regulatory motifs as they fork, hybridize, and converge.
+        </div>
+        <div class="feature">
+          <h4>homeostasis-stability-curves</h4>
+          Inspect how damping power rises as volatility climbs and then eases back.
+        </div>
+        <div class="feature">
+          <h4>regulation-latency-analysis</h4>
+          Measure how swiftly counter-loops dispatch signals after perturbations.
+        </div>
+        <div class="feature">
+          <h4>self-healing-cascade-profiles</h4>
+          Observe multi-stage recoveries that rebuild structure after energetic voids.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Reflection: When Feedback Makes Ecosystems Feel Alive</h2>
+      <p>In a living ecosystem, regulation is not policing—it is choreography. Negative loops dampen dangerous swings, positive loops scout for new equilibria, and meta-loops listen to the resonance between the two. Across 234 mechanisms, the story is one of improvisation: each loop hears a fragment of the whole, adjusts its own gain, and invites the next loop to answer. That conversation of signals is how an ecosystem wakes up, holds itself together, and chooses how to grow.</p>
+    </section>
+
+    <footer>
+      <span id="timestamp"></span>
+      <span>Page 114</span>
+    </footer>
+  </div>
+
+  <script>
+    const particleCanvas = document.getElementById('particle-canvas');
+    const pCtx = particleCanvas.getContext('2d');
+    const particles = [];
+    function resizeCanvas() {
+      particleCanvas.width = window.innerWidth;
+      particleCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    for (let i = 0; i < 120; i++) {
+      particles.push({
+        x: Math.random() * particleCanvas.width,
+        y: Math.random() * particleCanvas.height,
+        r: Math.random() * 2 + 0.5,
+        s: Math.random() * 0.6 + 0.2,
+        o: Math.random() * Math.PI * 2
+      });
+    }
+    function drawParticles() {
+      pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      particles.forEach(p => {
+        p.x += Math.cos(p.o) * p.s;
+        p.y += Math.sin(p.o) * p.s;
+        p.o += (Math.random() - 0.5) * 0.1;
+        if (p.x < 0) p.x = particleCanvas.width;
+        if (p.x > particleCanvas.width) p.x = 0;
+        if (p.y < 0) p.y = particleCanvas.height;
+        if (p.y > particleCanvas.height) p.y = 0;
+        pCtx.beginPath();
+        pCtx.fillStyle = 'rgba(111,255,255,0.7)';
+        pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pCtx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // Network visualization
+    const viz = document.getElementById('viz-canvas');
+    const vCtx = viz.getContext('2d');
+    function drawNetwork() {
+      const w = viz.width;
+      const h = viz.height;
+      vCtx.clearRect(0, 0, w, h);
+      const layers = 6;
+      const nodes = [];
+      for (let i = 0; i < layers; i++) {
+        const count = 18 + i * 6;
+        const y = (h / (layers + 1)) * (i + 1);
+        for (let j = 0; j < count; j++) {
+          const x = (w / (count + 1)) * (j + 1);
+          nodes.push({ x, y, layer: i });
+        }
+      }
+      vCtx.strokeStyle = 'rgba(111,255,255,0.22)';
+      nodes.forEach((n, idx) => {
+        if (idx % 4 === 0 && nodes[idx + 1]) {
+          vCtx.beginPath();
+          vCtx.moveTo(n.x, n.y);
+          vCtx.lineTo(nodes[idx + 1].x, nodes[idx + 1].y);
+          vCtx.stroke();
+        }
+        if (idx % 5 === 0 && nodes[idx + 20]) {
+          vCtx.beginPath();
+          vCtx.moveTo(n.x, n.y);
+          vCtx.lineTo(nodes[idx + 20].x, nodes[idx + 20].y);
+          vCtx.stroke();
+        }
+      });
+      nodes.forEach(n => {
+        const radius = 4 + n.layer * 0.4;
+        vCtx.beginPath();
+        vCtx.fillStyle = n.layer % 2 === 0 ? 'rgba(126,251,255,0.9)' : 'rgba(111,255,255,0.65)';
+        vCtx.shadowColor = 'rgba(111,255,255,0.6)';
+        vCtx.shadowBlur = 8;
+        vCtx.arc(n.x, n.y, radius, 0, Math.PI * 2);
+        vCtx.fill();
+      });
+      vCtx.shadowBlur = 0;
+      vCtx.fillStyle = 'rgba(126,251,255,0.9)';
+      vCtx.font = 'bold 14px "Courier New", monospace';
+      vCtx.fillText('Visualized: 234 mechanisms across 6 nested layers', 14, 24);
+    }
+    drawNetwork();
+
+    // Audio: 60Hz sine with 0.6Hz LFO
+    let audioCtx, carrier, lfo, carrierGain, lfoGain;
+    const toggleBtn = document.getElementById('audio-toggle');
+    const storageKey = 'ecosystemFeedbackAudioMuted';
+    let muted = localStorage.getItem(storageKey) === 'true';
+    toggleBtn.textContent = muted ? 'Enable 60Hz Resonance' : 'Mute Resonance';
+
+    function setupAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      carrier = audioCtx.createOscillator();
+      carrier.type = 'sine';
+      carrier.frequency.value = 60;
+
+      lfo = audioCtx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+
+      carrierGain = audioCtx.createGain();
+      carrierGain.gain.value = muted ? 0 : 0.06;
+
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.04;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(carrierGain.gain);
+      carrier.connect(carrierGain).connect(audioCtx.destination);
+
+      carrier.start();
+      lfo.start();
+    }
+
+    toggleBtn.addEventListener('click', async () => {
+      setupAudio();
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+      muted = !muted;
+      carrierGain.gain.setTargetAtTime(muted ? 0 : 0.06, audioCtx.currentTime, 0.05);
+      toggleBtn.textContent = muted ? 'Enable 60Hz Resonance' : 'Mute Resonance';
+      localStorage.setItem(storageKey, muted);
+    });
+
+    // Pulse button visual cue
+    document.getElementById('pulse-button').addEventListener('click', () => {
+      const cards = document.querySelectorAll('.card');
+      cards.forEach((c, i) => {
+        setTimeout(() => {
+          c.style.boxShadow = '0 0 18px rgba(111,255,255,0.55)';
+          setTimeout(() => c.style.boxShadow = '0 0 20px rgba(111,255,255,0.15)', 320);
+        }, i * 40);
+      });
+    });
+
+    // Timestamp
+    const ts = document.getElementById('timestamp');
+    function updateTimestamp() {
+      const now = new Date();
+      ts.textContent = now.toLocaleString();
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+  </script>
+</body>
+</html>
