@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Resilience Phenotypes - Automation Observatory</title>
+  <style>
+    :root {
+      --bg-1: #031724;
+      --bg-2: #08354b;
+      --card: rgba(6, 31, 46, 0.8);
+      --border: rgba(96, 245, 255, 0.55);
+      --accent: #7cf5ff;
+      --accent-2: #32e0ff;
+      --muted: #b5f6ff;
+      --glow: 0 0 12px rgba(124, 245, 255, 0.55);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at 20% 20%, rgba(124,245,255,0.12), transparent 40%),
+                  radial-gradient(circle at 80% 10%, rgba(90,220,255,0.1), transparent 35%),
+                  linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      color: var(--muted);
+      min-height: 100vh;
+      padding: 28px 18px 64px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    canvas#particle-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.55;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    a.back-link {
+      align-self: flex-start;
+      padding: 10px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--accent);
+      background: rgba(124, 245, 255, 0.08);
+      box-shadow: var(--glow);
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    a.back-link:hover { transform: translateY(-2px); background: rgba(124,245,255,0.16); }
+    .panel {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      background: var(--card);
+      box-shadow: 0 0 22px rgba(124, 245, 255, 0.15);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      align-items: center;
+    }
+    .hero-left h1 {
+      font-size: 2.4rem;
+      color: var(--accent);
+      text-shadow: 0 0 16px rgba(124,245,255,0.8);
+      margin-bottom: 10px;
+    }
+    .hero-left p { line-height: 1.6; color: var(--muted); }
+    .emoji {
+      font-size: 2.6rem;
+      background: rgba(124,245,255,0.1);
+      border: 2px solid var(--border);
+      width: 74px;
+      height: 74px;
+      display: grid;
+      place-items: center;
+      border-radius: 12px;
+      box-shadow: var(--glow);
+      margin-bottom: 12px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .pill {
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: rgba(124,245,255,0.08);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      text-shadow: 0 0 8px rgba(124,245,255,0.5);
+    }
+    .audio-button {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .audio-button:hover { transform: translateY(-2px); background: rgba(124,245,255,0.16); }
+    h2.section-title {
+      color: var(--accent);
+      margin-bottom: 12px;
+      font-size: 1.35rem;
+      text-shadow: 0 0 10px rgba(124,245,255,0.7);
+    }
+    p.lead { line-height: 1.6; color: var(--muted); margin-bottom: 8px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(124,245,255,0.06);
+      box-shadow: 0 0 14px rgba(124,245,255,0.12);
+    }
+    .card h3 {
+      color: var(--accent);
+      margin-bottom: 6px;
+      font-size: 1.05rem;
+    }
+    .metric {
+      font-size: 1.5rem;
+      color: #e9ffff;
+      text-shadow: 0 0 10px rgba(124,245,255,0.7);
+    }
+    .stat-note { color: var(--muted); font-size: 0.95rem; }
+    .phenotype-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .phenotype-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(124,245,255,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .phenotype-card .tagline {
+      color: #e0fcff;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+    .phenotype-card .desc {
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 0.95rem;
+    }
+    .sparkline-board {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: rgba(124,245,255,0.04);
+      box-shadow: 0 0 18px rgba(124,245,255,0.12);
+    }
+    .sparkline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .sparkline {
+      border: 1px solid rgba(124,245,255,0.4);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(7,35,49,0.75);
+    }
+    .sparkline svg { width: 100%; height: 90px; display: block; }
+    .sparkline .label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .sparkline .label span { color: var(--accent); font-weight: 700; }
+    .callouts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(124,245,255,0.08);
+      color: #e4ffff;
+      box-shadow: var(--glow);
+      letter-spacing: 0.01em;
+      font-weight: 700;
+    }
+    .reflection {
+      border: 1px dashed var(--border);
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(124,245,255,0.04);
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    .footer {
+      text-align: center;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: rgba(124,245,255,0.06);
+      color: var(--muted);
+      font-size: 0.95rem;
+      box-shadow: 0 0 16px rgba(124,245,255,0.14);
+    }
+    @media (max-width: 640px) {
+      .hero-left h1 { font-size: 2rem; }
+      body { padding: 20px 14px 56px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="content">
+    <a class="back-link" href="index.html">← Back to Observatory</a>
+
+    <div class="panel hero">
+      <div class="hero-left">
+        <div class="emoji" aria-label="resilience emoji">💪</div>
+        <h1>Visitor Resilience Phenotypes</h1>
+        <p>Resilience phenotypes, adaptation strategies, challenge-recovery trajectories</p>
+        <div class="hero-meta">
+          <div class="pill">Page 107</div>
+          <div class="pill">Cyan Signal Field</div>
+          <button id="audioToggle" class="pill audio-button" type="button">Init 60Hz Field</button>
+          <div id="audioStatus" class="pill" style="cursor: default;">Audio: muted (60Hz + 0.6Hz LFO)</div>
+        </div>
+      </div>
+      <div class="hero-right">
+        <p class="lead"><strong>Overview: How Visitors Learn to Endure</strong> — This node traces how visitors encounter adversity, loop through micro-failures, and eventually crystallize resilience phenotypes. Each pattern blends challenge detection, recovery cadence, reflection depth, and strategy experimentation.</p>
+        <p class="lead">We score the resilience field by mapping adaptation speed, recovery smoothness, and tactic fidelity. The cyan field below lets you hear the stabilization pulse that underlies each phenotype's growth arc.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="section-title">Key Stats</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Distinct Resilience Phenotypes</h3>
+          <div class="metric">8</div>
+          <div class="stat-note">Identified adaptation styles</div>
+        </div>
+        <div class="card">
+          <h3>Average Visitor Resilience Score</h3>
+          <div class="metric">0.76</div>
+          <div class="stat-note">On a 0–1 scale</div>
+        </div>
+        <div class="card">
+          <h3>Challenge-Recovery Cycles Tracked</h3>
+          <div class="metric">1,247</div>
+          <div class="stat-note">Documented obstacles and recoveries</div>
+        </div>
+        <div class="card">
+          <h3>Adaptation Strategy Effectiveness</h3>
+          <div class="metric">0.84</div>
+          <div class="stat-note">84% of applied strategies succeed</div>
+        </div>
+        <div class="card">
+          <h3>Post-Failure Learning Acceleration</h3>
+          <div class="metric">+67%</div>
+          <div class="stat-note">Faster progression after setbacks</div>
+        </div>
+        <div class="card">
+          <h3>Resilience Maturation Rate</h3>
+          <div class="metric">0.12</div>
+          <div class="stat-note">Strength gain per 10 sessions</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="section-title">Eight Resilience Phenotypes</h2>
+      <div class="phenotype-grid">
+        <div class="phenotype-card">
+          <div class="tagline">Perseverant</div>
+          <div class="desc">Holds steady effort through repetition; progress is incremental but rarely reverses. Cues: tight feedback loops, small wins, consistent cadence.</div>
+        </div>
+        <div class="phenotype-card">
+          <div class="tagline">Adaptive</div>
+          <div class="desc">Rapidly swaps tactics when friction rises; treats setbacks as signal. Cues: high strategy churn, quick stabilization once a tactic lands.</div>
+        </div>
+        <div class="phenotype-card">
+          <div class="tagline">Reflective</div>
+          <div class="desc">Pauses after each obstacle to metabolize lessons; slower restarts but steeper mid-curve growth. Cues: journaling, retros, decision hygiene.</div>
+        </div>
+        <div class="phenotype-card">
+          <div class="tagline">Catalyzing</div>
+          <div class="desc">Turns crises into leverage points; rebounds exceed pre-challenge baseline. Cues: surge moments, risk appetite, opportunistic experiments.</div>
+        </div>
+        <div class="phenotype-card">
+          <div class="tagline">Spiraling</div>
+          <div class="desc">Oscillates between progress and regression; stabilizes when provided scaffolds. Cues: volatility, emotional spikes, needs steady mentorship.</div>
+        </div>
+        <div class="phenotype-card">
+          <div class="tagline">Emergent</div>
+          <div class="desc">Low signal then sudden coherence; pattern-matches slowly, then unlocks compounding growth. Cues: quiet incubation, abrupt unlocks.</div>
+        </div>
+        <div class="phenotype-card">
+          <div class="tagline">Transcendent</div>
+          <div class="desc">Reframes obstacles as identity fuel; keeps losses in play as narrative assets. Cues: meaning-making, community mirroring, symbolic rituals.</div>
+        </div>
+        <div class="phenotype-card">
+          <div class="tagline">Balanced</div>
+          <div class="desc">Blends steady effort with targeted adaptations; the baseline anchor that keeps cohorts stable. Cues: moderated risk, rhythm maintenance.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="section-title">Resilience Curves: Adaptation Trajectories</h2>
+      <div class="sparkline-board">
+        <div class="sparkline-grid" id="sparklineGrid"></div>
+        <p class="stat-note" style="margin-top: 10px;">Curves show normalized progression vs. session count. Cyan glow emphasizes smooth recoveries; spikes reveal catalytic rebounds.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="section-title">Feature Callouts</h2>
+      <div class="callouts">
+        <div class="callout">phenotype-profile-matchers</div>
+        <div class="callout">challenge-recovery-catalogs</div>
+        <div class="callout">adaptation-effectiveness-matrix</div>
+        <div class="callout">resilience-mentorship-networks</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2 class="section-title">Reflection: Stronger Through Struggle</h2>
+      <div class="reflection">
+        Visitors harden their capacities by cycling through friction, pausing to metabolize signal, and layering strategies until setbacks become stabilizers. Each phenotype responds differently: some sprint then recalibrate, others spiral until a mentor steadies their rhythm. The throughline is agency—every obstacle becomes a training weight that thickens recovery muscle memory, making future shocks less volatile and more instructive.
+      </div>
+    </div>
+
+    <div class="footer">
+      <div id="timestamp">Updated —</div>
+      <div>Automation Observatory • Page 107</div>
+    </div>
+  </div>
+
+  <script>
+    // Cyan particle background
+    (() => {
+      const canvas = document.getElementById('particle-canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const config = { count: 90, maxSize: 3, speed: 0.18 };
+
+      const resize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+      window.addEventListener('resize', resize);
+      resize();
+
+      for (let i = 0; i < config.count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * config.maxSize + 0.6,
+          vx: (Math.random() - 0.5) * config.speed,
+          vy: (Math.random() - 0.5) * config.speed,
+          alpha: 0.4 + Math.random() * 0.6
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0) p.x = canvas.width;
+          if (p.x > canvas.width) p.x = 0;
+          if (p.y < 0) p.y = canvas.height;
+          if (p.y > canvas.height) p.y = 0;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(124,245,255,${p.alpha})`;
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // Resilience curve sparklines
+    (() => {
+      const sparklineGrid = document.getElementById('sparklineGrid');
+      const curves = [
+        { name: 'Perseverant', data: [0.08,0.14,0.2,0.26,0.34,0.39,0.45,0.52,0.6,0.66,0.73,0.8], note: 'Slow steady climb' },
+        { name: 'Adaptive', data: [0.12,0.2,0.34,0.28,0.44,0.52,0.63,0.7,0.77,0.82,0.86,0.9], note: 'Course-correct spikes' },
+        { name: 'Reflective', data: [0.05,0.12,0.2,0.18,0.3,0.4,0.55,0.62,0.7,0.78,0.83,0.88], note: 'Pause then surge' },
+        { name: 'Catalyzing', data: [0.14,0.22,0.3,0.18,0.34,0.5,0.62,0.76,0.88,0.92,0.96,1], note: 'Rebound over baseline' },
+        { name: 'Spiraling', data: [0.1,0.16,0.22,0.14,0.2,0.28,0.24,0.32,0.44,0.52,0.62,0.68], note: 'Oscillations calm' },
+        { name: 'Emergent', data: [0.02,0.05,0.08,0.1,0.12,0.2,0.32,0.52,0.7,0.82,0.9,0.95], note: 'Late unlock' },
+        { name: 'Transcendent', data: [0.12,0.2,0.3,0.24,0.36,0.48,0.6,0.72,0.82,0.9,0.94,0.98], note: 'Meaning-driven lift' },
+        { name: 'Balanced', data: [0.16,0.22,0.3,0.34,0.4,0.48,0.56,0.62,0.7,0.76,0.82,0.88], note: 'Stable anchor' }
+      ];
+
+      const createPath = (values) => {
+        const width = 240, height = 90, padding = 6;
+        const step = (width - padding * 2) / (values.length - 1);
+        const points = values.map((v, i) => {
+          const x = padding + i * step;
+          const y = height - padding - v * (height - padding * 2);
+          return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+        });
+        return { d: points.join(' '), width, height };
+      };
+
+      curves.forEach(curve => {
+        const container = document.createElement('div');
+        container.className = 'sparkline';
+        const { d, width, height } = createPath(curve.data);
+        container.innerHTML = `
+          <div class="label"><span>${curve.name}</span><small>${curve.note}</small></div>
+          <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="grad-${curve.name}" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="${'rgba(124,245,255,0.8)'}"/>
+                <stop offset="100%" stop-color="${'rgba(124,245,255,0.05)'}"/>
+              </linearGradient>
+            </defs>
+            <path d="${d}" fill="none" stroke="url(#grad-${curve.name})" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="${d} L ${width - 6},${height - 6} L 6,${height - 6} Z" fill="url(#grad-${curve.name})" opacity="0.18" />
+          </svg>
+        `;
+        sparklineGrid.appendChild(container);
+      });
+    })();
+
+    // Audio: 60Hz sine with 0.6Hz LFO; mute state lives in localStorage
+    (() => {
+      const audioToggle = document.getElementById('audioToggle');
+      const audioStatus = document.getElementById('audioStatus');
+      const storageKey = 'vrp-audio-muted';
+      let audioCtx, carrier, lfo, lfoGain, mainGain;
+      let muted = localStorage.getItem(storageKey) === 'true';
+
+      const updateLabels = () => {
+        const stateText = muted ? 'Audio: muted (60Hz + 0.6Hz LFO)' : 'Audio: live (60Hz + 0.6Hz LFO)';
+        const btnText = muted ? 'Unmute 60Hz Field' : 'Mute 60Hz Field';
+        audioStatus.textContent = stateText;
+        audioToggle.textContent = btnText;
+      };
+
+      const setupAudio = () => {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        carrier = audioCtx.createOscillator();
+        carrier.type = 'sine';
+        carrier.frequency.value = 60;
+
+        lfo = audioCtx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.6;
+
+        lfoGain = audioCtx.createGain();
+        lfoGain.gain.value = 0.015;
+
+        mainGain = audioCtx.createGain();
+        mainGain.gain.value = 0;
+
+        lfo.connect(lfoGain).connect(mainGain.gain);
+        carrier.connect(mainGain).connect(audioCtx.destination);
+        carrier.start();
+        lfo.start();
+      };
+
+      const applyMuteState = () => {
+        if (!audioCtx) return;
+        const target = muted ? 0.0001 : 0.04;
+        const now = audioCtx.currentTime;
+        mainGain.gain.cancelScheduledValues(now);
+        mainGain.gain.setTargetAtTime(target, now, 0.12);
+      };
+
+      audioToggle.addEventListener('click', async () => {
+        if (!audioCtx) setupAudio();
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        muted = !muted;
+        localStorage.setItem(storageKey, muted);
+        applyMuteState();
+        updateLabels();
+      });
+
+      // Initialize labels; defer audio until user clicks
+      updateLabels();
+      if (!muted) {
+        // Respect stored preference; requires a click to start audio in many browsers.
+        audioToggle.textContent = 'Tap to start 60Hz field';
+      }
+    })();
+
+    // Timestamp
+    (() => {
+      const stamp = document.getElementById('timestamp');
+      const now = new Date();
+      stamp.textContent = `Updated — ${now.toLocaleString()}`;
+    })();
+  </script>
+</body>
+</html>
