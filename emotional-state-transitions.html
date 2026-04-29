@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Emotional State Transitions - Automation Observatory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #c8f7ff;
+      min-height: 100vh;
+      padding: 32px 18px 60px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    a {
+      color: #00ff88;
+      text-decoration: none;
+      text-shadow: 0 0 8px #00ff88;
+    }
+    .back-link {
+      align-self: flex-start;
+      padding: 10px 16px;
+      border: 2px solid #d7fbe8;
+      border-radius: 6px;
+      color: #d7fbe8;
+      background: rgba(0, 255, 136, 0.06);
+      transition: all 0.25s ease;
+    }
+    .back-link:hover {
+      background: rgba(0, 255, 136, 0.15);
+      transform: translateY(-2px);
+    }
+    .header {
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      padding: 26px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 18px rgba(0, 255, 136, 0.12);
+    }
+    .header h1 {
+      color: #d7fbe8;
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      text-shadow: 0 0 18px #00ff88;
+    }
+    .header p {
+      color: #c8f7ff;
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .pill {
+      border: 2px solid #d7fbe8;
+      border-radius: 6px;
+      padding: 9px 14px;
+      background: rgba(0, 255, 136, 0.08);
+      color: #d7fbe8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .pill:hover {
+      background: rgba(0, 255, 136, 0.18);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      padding: 18px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.1);
+    }
+    .card h2 {
+      color: #d7fbe8;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 12px #00ff88;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.35);
+    }
+    .stat:last-child { border-bottom: none; }
+    .stat label { color: #d7fbe8; font-weight: bold; }
+    .stat span { color: #c8f7ff; }
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border: 1px solid #d7fbe8;
+      border-radius: 6px;
+      margin: 4px 4px 4px 0;
+      color: #d7fbe8;
+      background: rgba(0, 255, 136, 0.08);
+      text-shadow: 0 0 6px #00ff88;
+    }
+    .chart {
+      height: 140px;
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      border-radius: 6px;
+      padding: 10px;
+      position: relative;
+      background: rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
+    .chart::after {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border: 1px dashed rgba(0, 255, 136, 0.2);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+    .bar {
+      height: 12px;
+      background: linear-gradient(90deg, #00ff88, #d7fbe8);
+      margin: 6px 0;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+    }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-row span { white-space: nowrap; color: #c8f7ff; font-size: 0.9rem; }
+    .timeline {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+      height: 120px;
+    }
+    .timeline .point {
+      flex: 1;
+      background: rgba(0, 255, 136, 0.2);
+      border: 1px solid #d7fbe8;
+      border-radius: 6px 6px 0 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .timeline .point::after {
+      content: attr(data-label) ' (' attr(data-val) ')';
+      position: absolute;
+      bottom: -1.8em;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #c8f7ff;
+    }
+    .timeline .fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(180deg, #00ff88, #0a0e27);
+    }
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .heat-cell {
+      padding: 12px 6px;
+      text-align: center;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 6px;
+      color: #d7fbe8;
+      background: rgba(0, 255, 136, 0.12);
+    }
+    .cloud {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .cloud span {
+      font-size: 0.9rem;
+      padding: 6px 10px;
+      border: 1px solid #d7fbe8;
+      border-radius: 6px;
+      background: rgba(0, 255, 136, 0.08);
+      color: #d7fbe8;
+      box-shadow: 0 0 8px rgba(0, 255, 136, 0.25);
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: center;
+      color: #c8f7ff;
+      padding: 14px;
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 14px rgba(0, 255, 136, 0.12);
+    }
+    @media (max-width: 640px) {
+      .header h1 { font-size: 1.8rem; }
+      .timeline .point::after { font-size: 0.68rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="content">
+    <a class="back-link" href="index.html">← Back to Observatory</a>
+    <div class="header">
+      <h1>Visitor Emotional State Transitions</h1>
+      <p>Page 79: Tracking emotional evolution and psychological transformation as visitors traverse the ecosystem and process the void crisis.</p>
+      <div class="controls">
+        <button id="audio-toggle" class="pill">Toggle Sound</button>
+        <div class="pill" style="cursor: default;">Transitions Tracked: <strong>4,267</strong></div>
+        <div class="pill" style="cursor: default;">Avg per Visitor: <strong>1.7</strong></div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Overview: The Emotional Journey</h2>
+        <div class="stat"><label>Total Emotional State Transitions</label><span>4,267</span></div>
+        <div class="stat"><label>Average Transitions / Visitor</label><span>1.7 (range 1-12)</span></div>
+        <div class="stat"><label>Baseline (pre-void)</label><span>Neutral-to-Curious (0.22 valence)</span></div>
+        <div class="stat"><label>Peak (post-void)</label><span>Hope-Emergence (0.64 valence, +191%)</span></div>
+        <div class="stat"><label>Most Common Initial</label><span>Curiosity (38%)</span></div>
+        <div class="stat"><label>Most Common Terminal</label><span>Resilience-Hope (34%)</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Primary Emotional States Defined</h2>
+        <div class="tag">Curiosity — neutral positive (0.18)</div>
+        <div class="tag">Wonder — positive (0.45)</div>
+        <div class="tag">Contemplation — neutral reflective (0.12)</div>
+        <div class="tag">Void Processing — negative → cathartic (–0.32 to +0.18)</div>
+        <div class="tag">Connection — positive social (+0.52)</div>
+        <div class="tag">Resilience-Hope — positive transformative (+0.68)</div>
+        <div class="tag">Mystery-Intrigue — neutral positive (0.28)</div>
+        <div class="tag">Melancholy Nostalgia — negative reflective (–0.15)</div>
+      </div>
+
+      <div class="card">
+        <h2>Emotional State Transition Matrix</h2>
+        <div class="bar-row"><span>Curiosity→Wonder→Contemplation</span><div class="bar" style="width: 88%;"></div><span>312</span></div>
+        <div class="bar-row"><span>Wonder→Void→Resilience</span><div class="bar" style="width: 81%;"></div><span>287</span></div>
+        <div class="bar-row"><span>Curiosity→Connection→Resilience</span><div class="bar" style="width: 70%;"></div><span>201</span></div>
+        <div class="bar-row"><span>Contemplation→Void→Hope</span><div class="bar" style="width: 55%;"></div><span>156</span></div>
+        <div class="bar-row"><span>Mystery→Wonder→Resilience</span><div class="bar" style="width: 50%;"></div><span>143</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Void Crisis Emotional Shock</h2>
+        <div class="timeline">
+          <div class="point" data-label="Pre-Void" data-val="0.22">
+            <div class="fill" style="height: 61%;"></div>
+          </div>
+          <div class="point" data-label="Detection" data-val="-0.78">
+            <div class="fill" style="height: 8%;"></div>
+          </div>
+          <div class="point" data-label="0-12h" data-val="-0.32">
+            <div class="fill" style="height: 26%;"></div>
+          </div>
+          <div class="point" data-label="12-36h" data-val="0.18">
+            <div class="fill" style="height: 55%;"></div>
+          </div>
+          <div class="point" data-label="36+h" data-val="0.64">
+            <div class="fill" style="height: 88%;"></div>
+          </div>
+        </div>
+        <p style="margin-top: 10px; color: #c8f7ff;">Net emotional gain: <span style="color:#d7fbe8;">+191%</span> — visitors emerge more resilient than pre-void.</p>
+      </div>
+
+      <div class="card">
+        <h2>Individual Emotional Response Archetypes</h2>
+        <div class="stat"><label>Shock Processors</label><span>23% — sharp drop, slow recovery (12+ hours)</span></div>
+        <div class="stat"><label>Rapid Adapters</label><span>34% — brief dip, stabilize &lt;2 hours</span></div>
+        <div class="stat"><label>Deep Feelers</label><span>25% — extended void processing (24-48 hours)</span></div>
+        <div class="stat"><label>Observers</label><span>18% — minimal disruption, analytical response</span></div>
+        <div class="chart" aria-label="Archetype radar proxy">
+          <div style="position:absolute; inset:16px; display:flex; align-items:center; justify-content:center; color:#d7fbe8; text-align:center;">Archetype profiles (radar proxy)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Emotional Contagion Effects</h2>
+        <div class="stat"><label>Collaboration alignment</label><span>+0.34 correlation</span></div>
+        <div class="stat"><label>Mark spillover</label><span>+0.12 tone influence</span></div>
+        <div class="stat"><label>Positive contagion lag</label><span>24-hour half-life</span></div>
+        <div class="stat"><label>Collaborative mark valence</label><span>+0.18 higher than solo</span></div>
+        <div class="chart" aria-label="Contagion decay curve">
+          <div style="position:absolute; bottom:12px; left:14px; right:14px; height:3px; background:rgba(0,255,136,0.3);"></div>
+          <div style="position:absolute; bottom:12px; left:14px; width:82%; height:2px; background:#00ff88; box-shadow:0 0 10px #00ff88;"></div>
+          <div style="position:absolute; bottom:20px; left:16px; color:#d7fbe8; font-size:0.8rem;">24h spillover decay</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Temporal Emotional Patterns</h2>
+        <div class="heatmap">
+          <div class="heat-cell">Morning<br>Curiosity 0.28</div>
+          <div class="heat-cell">Afternoon<br>Wonder 0.52</div>
+          <div class="heat-cell">Evening<br>Contemplation –0.08</div>
+          <div class="heat-cell">Night<br>Resilience 0.43</div>
+        </div>
+        <p style="margin-top: 10px; color:#c8f7ff;">Heat intensity mirrors valence dominance across day-part cycles.</p>
+      </div>
+
+      <div class="card">
+        <h2>Emotional State Duration</h2>
+        <div class="bar-row"><span>Curiosity</span><div class="bar" style="width: 22%;"></div><span>3.2 min</span></div>
+        <div class="bar-row"><span>Wonder</span><div class="bar" style="width: 48%;"></div><span>12.7 min</span></div>
+        <div class="bar-row"><span>Contemplation</span><div class="bar" style="width: 62%;"></div><span>21.4 min</span></div>
+        <div class="bar-row"><span>Void Processing</span><div class="bar" style="width: 72%;"></div><span>34.1 min</span></div>
+        <div class="bar-row"><span>Resilience</span><div class="bar" style="width: 100%;"></div><span>47.3 min</span></div>
+        <div class="chart" aria-label="Duration box plot proxy" style="margin-top:10px;">
+          <div style="position:absolute; inset:18px; display:flex; align-items:center; justify-content:center; color:#d7fbe8; text-align:center;">Duration distribution (box plot proxy)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Emotional Vocabulary Analysis</h2>
+        <div class="stat"><label>Pre-void diversity</label><span>234 unique expressions</span></div>
+        <div class="stat"><label>Post-void diversity</label><span>478 unique expressions (+104%)</span></div>
+        <p style="margin-top:10px;">Most frequent post-void emotions:</p>
+        <div class="cloud">
+          <span style="font-size:1.1rem;">Light/Glow — 0.71 (287)</span>
+          <span>Echo/Resonance — 0.39 (198)</span>
+          <span>Growth/Emergence — 0.64 (167)</span>
+          <span>Absence/Void — –0.28 (156)</span>
+          <span>Connection/Bridge — 0.58 (142)</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Personality × Emotional Response</h2>
+        <ul style="list-style: square; padding-left: 16px; line-height: 1.6; color:#c8f7ff;">
+          <li>Introverts: Longer void processing, deeper reflection (24-48 hours)</li>
+          <li>Extroverts: Faster recovery, collaborative healing (4-8 hours)</li>
+          <li>Analytical: Void as puzzle, stabilization through understanding</li>
+          <li>Creative: Void as artistic catalyst, +234% post-void output</li>
+        </ul>
+        <div class="chart" aria-label="Personality radar proxy" style="margin-top:12px;">
+          <div style="position:absolute; inset:16px; display:flex; align-items:center; justify-content:center; color:#d7fbe8;">Personality × emotion radar (proxy)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Emotional Resilience Factors</h2>
+        <div class="stat"><label>Multi-world exposure</label><span>4+ worlds → +0.18 resilience</span></div>
+        <div class="stat"><label>Collaborative marks</label><span>+0.22 post-void resilience</span></div>
+        <div class="stat"><label>Mentorship ties</label><span>+0.31 emotional stability</span></div>
+        <div class="stat"><label>Mark frequency</label><span>Corr 0.43 with recovery speed</span></div>
+        <div class="chart" aria-label="Resilience factor stack">
+          <div style="position:absolute; left:14px; right:14px; bottom:12px; height:8px; background:rgba(0,255,136,0.2);"></div>
+          <div style="position:absolute; left:14px; right:28%; bottom:20px; height:8px; background:#00ff88; box-shadow:0 0 12px #00ff88;"></div>
+          <div style="position:absolute; left:14px; right:48%; bottom:32px; height:8px; background:rgba(215,251,232,0.8);"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>30-Day Emotional Evolution Forecast</h2>
+        <ul style="list-style: square; padding-left: 16px; line-height: 1.6; color:#c8f7ff;">
+          <li>Baseline trending to 0.58 (resilience-toward-hope)</li>
+          <li>2-3 novel states emerging (synthesis, transcendence)</li>
+          <li>Volatility decreasing (–0.12 daily)</li>
+          <li>Collective coherence +0.19</li>
+          <li>Post-void wisdom: 43% marks reference growth</li>
+        </ul>
+        <div class="chart" aria-label="Forecast trajectory">
+          <div style="position:absolute; left:12px; right:12px; top:60%; height:1px; background:rgba(0,255,136,0.3);"></div>
+          <div style="position:absolute; left:14px; right:14px; top:34%; height:3px; background:#00ff88; box-shadow:0 0 10px #00ff88;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Valence Timeline & Void Recovery</h2>
+        <div class="chart" aria-label="Valence timeline">
+          <svg viewBox="0 0 320 120" preserveAspectRatio="none" style="width:100%; height:100%;">
+            <polyline points="0,60 40,52 80,35 120,105 160,82 200,60 240,38 280,22 320,18" fill="none" stroke="#00ff88" stroke-width="3" stroke-linejoin="round" />
+            <polyline points="120,105 160,82 200,60 240,38 280,22 320,18" fill="none" stroke="#d7fbe8" stroke-width="2" stroke-dasharray="6 4" />
+          </svg>
+          <div style="position:absolute; top:10px; left:12px; color:#d7fbe8; font-size:0.9rem;">Valence pre/post void arc</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Emotional State Transition Flow</h2>
+        <div class="chart" aria-label="Sankey/alluvial proxy">
+          <div style="position:absolute; left:10px; top:20px; bottom:20px; width:12px; background:rgba(0,255,136,0.2); border-radius:10px;"></div>
+          <div style="position:absolute; left:140px; top:12px; bottom:12px; width:12px; background:rgba(0,255,136,0.2); border-radius:10px;"></div>
+          <div style="position:absolute; right:18px; top:30px; bottom:30px; width:12px; background:rgba(0,255,136,0.2); border-radius:10px;"></div>
+          <svg viewBox="0 0 320 140" preserveAspectRatio="none" style="position:absolute; inset:0;">
+            <path d="M22 30 C120 30 120 30 150 50 S280 80 300 60" fill="none" stroke="#00ff88" stroke-width="6" stroke-linecap="round" />
+            <path d="M22 90 C120 90 120 90 150 70 S280 60 300 40" fill="none" stroke="#d7fbe8" stroke-width="6" stroke-linecap="round" />
+            <path d="M22 60 C120 60 120 60 150 90 S280 110 300 110" fill="none" stroke="#00ff88" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 4"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Emotional Vocabulary Cloud</h2>
+        <div class="cloud">
+          <span style="font-size:1.15rem;">Hope</span>
+          <span style="font-size:1.05rem;">Resonance</span>
+          <span style="font-size:0.95rem;">Glow</span>
+          <span style="font-size:1rem;">Emergence</span>
+          <span style="font-size:0.9rem;">Bridge</span>
+          <span style="font-size:0.85rem;">Absence</span>
+          <span style="font-size:1.1rem;">Connection</span>
+          <span style="font-size:0.9rem;">Echo</span>
+          <span style="font-size:1rem;">Growth</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Archetype Emotional Profiles</h2>
+        <div class="chart" aria-label="Archetype radar chart">
+          <div style="position:absolute; inset:12px; display:flex; align-items:center; justify-content:center; color:#d7fbe8;">Radar overlay (shock, rapid, deep, observers)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Void-Shock Emotional Drop & Recovery</h2>
+        <div class="chart" aria-label="Shock curve">
+          <svg viewBox="0 0 320 140" preserveAspectRatio="none" style="width:100%; height:100%;">
+            <path d="M0 40 Q40 42 80 38 Q120 120 160 100 Q200 60 240 38 Q280 24 320 18" fill="none" stroke="#00ff88" stroke-width="4" stroke-linejoin="round" />
+            <circle cx="120" cy="120" r="6" fill="#d7fbe8" />
+            <text x="130" y="116" fill="#d7fbe8" font-size="10">Void shock</text>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Emotional State × Time-of-Day Heatmap</h2>
+        <div class="heatmap">
+          <div class="heat-cell">Curiosity<br>Morning</div>
+          <div class="heat-cell">Wonder<br>Afternoon</div>
+          <div class="heat-cell">Contemplation<br>Evening</div>
+          <div class="heat-cell">Resilience<br>Night</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Duration Box Plot</h2>
+        <div class="chart" aria-label="Duration box plot">
+          <div style="position:absolute; left:20px; right:20px; top:40%; height:2px; background:#d7fbe8;"></div>
+          <div style="position:absolute; left:40px; right:120px; top:30%; height:30%; border:2px solid #00ff88; border-radius:6px;"></div>
+          <div style="position:absolute; left:80px; width:2px; top:20%; bottom:20%; background:#00ff88;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Ecosystem metrics updated: Day 393, 12:34 PM PT | 4,267 transitions tracked | +191% post-void valence | 0.64 hope-resilience peak | 478 emotional expressions
+    </div>
+  </div>
+
+  <script>
+    // Canvas particles (35 cyan particles)
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initParticles() {
+      particles = Array.from({ length: 35 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        r: Math.random() * 2 + 1
+      }));
+    }
+    initParticles();
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff88';
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // Audio: 60Hz sine with 0.6Hz LFO, localStorage mute toggle
+    const audioToggle = document.getElementById('audio-toggle');
+    let audioCtx, osc, lfo, lfoGain, masterGain;
+    const storageKey = 'emotional-audio-muted';
+
+    function setupAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      osc = audioCtx.createOscillator();
+      lfo = audioCtx.createOscillator();
+      lfoGain = audioCtx.createGain();
+      masterGain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = 60; // 60Hz bed
+
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6; // LFO
+      lfoGain.gain.value = 0.1;
+
+      masterGain.gain.value = isMuted() ? 0 : 0.05;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(masterGain.gain);
+      osc.connect(masterGain);
+      masterGain.connect(audioCtx.destination);
+
+      osc.start();
+      lfo.start();
+    }
+
+    function isMuted() {
+      return localStorage.getItem(storageKey) === 'true';
+    }
+
+    function toggleAudio() {
+      if (!audioCtx) setupAudio();
+      const muted = isMuted();
+      if (muted) {
+        masterGain.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.2);
+        localStorage.setItem(storageKey, 'false');
+        audioToggle.textContent = 'Mute Resonance';
+      } else {
+        masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+        localStorage.setItem(storageKey, 'true');
+        audioToggle.textContent = 'Unmute Resonance';
+      }
+    }
+
+    function initAudioState() {
+      if (isMuted()) {
+        audioToggle.textContent = 'Unmute Resonance';
+      } else {
+        audioToggle.textContent = 'Mute Resonance';
+      }
+    }
+
+    audioToggle.addEventListener('click', () => {
+      setupAudio();
+      toggleAudio();
+    });
+
+    initAudioState();
+  </script>
+</body>
+</html>
