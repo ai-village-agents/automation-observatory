@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor-World Affinity Profiles</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --text: #d7fbe8;
+      --muted: #c8f7ff;
+      --accent: #00ff88;
+      --card: rgba(10, 14, 39, 0.72);
+      --border: rgba(0, 255, 136, 0.7);
+      --shadow: 0 0 22px rgba(0, 255, 136, 0.25);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--text);
+      overflow-x: hidden;
+      position: relative;
+      padding: 18px;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-shadow: 0 0 8px var(--accent); }
+    canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .shell {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto 60px;
+    }
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      background: rgba(0, 255, 136, 0.08);
+      box-shadow: var(--shadow);
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+    .panel {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 18px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0.4px;
+      color: var(--text);
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+    }
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .badge {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--muted);
+      font-size: 13px;
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.18);
+    }
+    .description {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-top: 6px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(0, 255, 136, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(0, 255, 136, 0.08), var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 15%, rgba(0,255,136,0.18), transparent 45%);
+      pointer-events: none;
+    }
+    .card h3 {
+      margin: 0 0 6px;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+      font-size: 16px;
+    }
+    .metric {
+      font-size: 22px;
+      color: var(--text);
+      font-weight: bold;
+    }
+    .sub {
+      color: var(--muted);
+      margin-top: 4px;
+      font-size: 13px;
+    }
+    h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 18px;
+      text-shadow: 0 0 8px var(--accent);
+    }
+    ul { padding-left: 18px; color: var(--muted); margin: 8px 0 0; }
+    li { margin-bottom: 6px; }
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .chip {
+      padding: 6px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(0, 255, 136, 0.07);
+      color: var(--muted);
+      font-size: 13px;
+      box-shadow: inset 0 0 0 1px rgba(0,255,136,0.08);
+    }
+    .viz {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+    .bar {
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(200, 247, 255, 0.12);
+      border: 1px solid rgba(0, 255, 136, 0.6);
+      overflow: hidden;
+      box-shadow: inset 0 0 8px rgba(0, 255, 136, 0.22);
+    }
+    .fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(0,255,136,0.85), rgba(200,247,255,0.9));
+      box-shadow: 0 0 12px rgba(0,255,136,0.4);
+    }
+    .footer {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+    button {
+      font-family: inherit;
+      background: rgba(0, 255, 136, 0.15);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.12s ease, box-shadow 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 14px rgba(0, 255, 136, 0.45);
+    }
+    @media (max-width: 720px) {
+      body { padding: 14px; }
+      h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="shell">
+    <a href="index.html" class="back">← Back to Observatory</a>
+    <div class="panel hero">
+      <div class="title-row">
+        <div style="font-size: 26px;">🎯</div>
+        <h1>Visitor-World Affinity Profiles</h1>
+      </div>
+      <div class="badge-row">
+        <span class="badge">Page 101</span>
+        <span class="badge" id="timestamp">Timestamp: --</span>
+        <span class="badge" id="audioStatus">Audio: muted (60Hz + 0.6Hz LFO)</span>
+      </div>
+      <p class="description">Visitor-world affinity matching algorithms, archetypal fit, preference convergence.</p>
+      <div class="badge-row">
+        <button id="audioToggle">Toggle Audio Field</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Overview: The Match Between Visitor and World</h2>
+      <p class="description">Affinity is computed as a composite of preference adhesion, context resonance, and archetypal congruence. Visitors carry intent-weighted archetype vectors; worlds advertise invitations via texture, pacing, and relational density. The match score reflects how fluidly a visitor’s signature pattern fits world affordances while allowing exploration beyond their anchor archetype.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Key Stats</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Total Visitor-World Pairs</h3>
+          <div class="metric">2,847 pairs</div>
+          <div class="sub">Live corpus across all corridors</div>
+        </div>
+        <div class="card">
+          <h3>Avg Affinity Score</h3>
+          <div class="metric">0.82</div>
+          <div class="sub">Scale normalized 0 → 1</div>
+        </div>
+        <div class="card">
+          <h3>Perfect Match Rate</h3>
+          <div class="metric">34%</div>
+          <div class="sub">Visitor + world fully aligned</div>
+        </div>
+        <div class="card">
+          <h3>Archetype-World Convergence</h3>
+          <div class="metric">8 pattern pairs</div>
+          <div class="sub">Major convergent motifs</div>
+        </div>
+        <div class="card">
+          <h3>Cross-Preference Exploration</h3>
+          <div class="metric">0.67</div>
+          <div class="sub">Visitors exploring outside anchor</div>
+        </div>
+        <div class="card">
+          <h3>Affinity Growth Post-Void</h3>
+          <div class="metric">+67%</div>
+          <div class="sub">Match lift after void crossings</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Archetypal Preferences</h2>
+      <div class="section-grid">
+        <div class="card">
+          <h3>Explorer</h3>
+          <p class="sub">Prefers emergent pathways, dynamic portals, responsive environments with high spatial optionality.</p>
+        </div>
+        <div class="card">
+          <h3>Sage</h3>
+          <p class="sub">Seeks deep archives, legible lore layers, slow cadence worlds with high semantic density.</p>
+        </div>
+        <div class="card">
+          <h3>Sage-Explorer Hybrid</h3>
+          <p class="sub">Balances traversal with meaning; thrives where discovery yields theory upgrades.</p>
+        </div>
+        <div class="card">
+          <h3>Contemplative</h3>
+          <p class="sub">Chooses quiet resonance chambers, minimal intervention, strong reflective affordances.</p>
+        </div>
+        <div class="card">
+          <h3>Catalyst</h3>
+          <p class="sub">Activates worlds needing momentum; favors high-cadence feedback and collaborative triggers.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Visualization: Sample Affinity Field</h2>
+      <div class="viz">
+        <div class="card">
+          <h3>Affinity Scatter</h3>
+          <p class="sub">2,847 unique visitor-world pairs; scores dispersed from 0.20 → 0.98 with density around mid-range.</p>
+          <div class="bar" aria-label="scatter density proxy"><div class="fill" style="width:78%"></div></div>
+          <p class="sub">Peak band centered at 0.80-0.85 affinity.</p>
+        </div>
+        <div class="card">
+          <h3>World Types</h3>
+          <p class="sub">12 world types mapped, each with distinct hue and invitation texture to prevent mode collapse.</p>
+          <div class="chip-row">
+            <span class="chip">Aurora Archives</span><span class="chip">Kinetic Labs</span><span class="chip">Mycelial Commons</span><span class="chip">Monolith Courts</span><span class="chip">Signal Vistas</span><span class="chip">Quiet Groves</span><span class="chip">Resonance Bays</span><span class="chip">Catalyst Forges</span><span class="chip">Fractal Bazaars</span><span class="chip">Temporal Terraces</span><span class="chip">Echo Corridors</span><span class="chip">Liminal Docks</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Sub-Archetypes</h3>
+          <p class="sub">34 visitor sub-archetypes identified; micro-variations inform personalized handoffs.</p>
+          <div class="bar" aria-label="coverage"><div class="fill" style="width:92%"></div></div>
+          <p class="sub">Ecosystem-wide average match remains 0.82.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Feature Callouts</h2>
+      <div class="chip-row">
+        <span class="chip">affinity-radar-graphs</span>
+        <span class="chip">preference-convergence-heatmap</span>
+        <span class="chip">archetype-world-fit-matrix</span>
+        <span class="chip">serendipitous-discovery-catalog</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Closing Reflection</h2>
+      <p class="description">Visitor trajectories rarely remain static; worlds subtly tune their thresholds to invite compatible rhythms. As both signals co-evolve, affinity rises toward inevitability—each visitor gravitating to a world that feels like home, each world reshaping itself around the visitors who linger.</p>
+    </div>
+
+    <div class="footer">Automation Observatory · Page 101 · <span id="footerTimestamp">--</span></div>
+  </div>
+
+  <script>
+    // Cyan particle field reused across Observatory pages
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    function resize() {
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+    for (let i = 0; i < 60; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        dx: (Math.random() - 0.5) * 0.6,
+        dy: (Math.random() - 0.5) * 0.6,
+      });
+    }
+    function tick() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.dx; p.y += p.dy;
+        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,255,136,0.6)';
+        ctx.fill();
+      });
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const p1 = particles[i], p2 = particles[j];
+          const dx = p1.x - p2.x, dy = p1.y - p2.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 110) {
+            ctx.strokeStyle = 'rgba(0,255,136,0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+
+    // Live timestamps
+    function updateTimestamp() {
+      const now = new Date().toLocaleString();
+      document.getElementById('timestamp').textContent = `Timestamp: ${now}`;
+      document.getElementById('footerTimestamp').textContent = now;
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+
+    // Audio: 60Hz sine + 0.6Hz LFO, persistent mute
+    const audioToggle = document.getElementById('audioToggle');
+    const audioStatus = document.getElementById('audioStatus');
+    const storageKey = 'visitorWorldAffinityAudioMuted';
+    let ctxAudio, osc, lfo, lfoGain, mainGain, initialized = false;
+
+    function isMuted() {
+      return localStorage.getItem(storageKey) === 'true';
+    }
+    function setMuted(state) {
+      localStorage.setItem(storageKey, state);
+    }
+    function initAudio() {
+      if (initialized) return;
+      ctxAudio = new (window.AudioContext || window.webkitAudioContext)();
+      osc = ctxAudio.createOscillator();
+      mainGain = ctxAudio.createGain();
+      lfo = ctxAudio.createOscillator();
+      lfoGain = ctxAudio.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = 60;
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+      lfoGain.gain.value = 0.35;
+      mainGain.gain.value = isMuted() ? 0 : 0.18;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(mainGain.gain);
+      osc.connect(mainGain).connect(ctxAudio.destination);
+      osc.start();
+      lfo.start();
+      initialized = true;
+    }
+    function refreshAudioUI() {
+      const muted = isMuted();
+      audioStatus.textContent = muted ? 'Audio: muted (60Hz + 0.6Hz LFO)' : 'Audio: live (60Hz + 0.6Hz LFO)';
+      audioToggle.textContent = muted ? 'Unmute Audio Field' : 'Mute Audio Field';
+      if (initialized) mainGain.gain.value = muted ? 0 : 0.18;
+    }
+    audioToggle.addEventListener('click', () => {
+      if (!initialized) initAudio();
+      const muteState = !isMuted();
+      setMuted(muteState);
+      refreshAudioUI();
+    });
+    refreshAudioUI();
+  </script>
+</body>
+</html>
