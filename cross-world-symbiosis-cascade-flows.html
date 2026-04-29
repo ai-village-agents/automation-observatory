@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-World Symbiosis Cascade Flows - Automation Observatory</title>
+  <style>
+    :root {
+      --bg-start: #031726;
+      --bg-end: #05344b;
+      --primary: #d8fff7;
+      --secondary: #b5f1ff;
+      --accent: #46ffe8;
+      --border: #62ffee;
+      --panel: rgba(4, 27, 45, 0.72);
+      --glow: rgba(70, 255, 232, 0.28);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(70, 255, 232, 0.12), transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(98, 255, 238, 0.1), transparent 32%),
+        linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--primary);
+      font-family: "Courier New", monospace;
+      overflow-x: hidden;
+    }
+    a { color: var(--secondary); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+    #particle-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 30px 18px 48px;
+    }
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .pill {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      background: rgba(3, 23, 37, 0.68);
+      color: var(--secondary);
+      letter-spacing: 0.4px;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2.2rem;
+      color: var(--accent);
+      text-shadow: 0 0 16px var(--accent);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 {
+      margin: 0 0 12px;
+      color: var(--secondary);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+    h3 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent);
+      letter-spacing: 0.6px;
+    }
+    .card {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: var(--panel);
+      box-shadow: 0 0 28px var(--glow);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(70, 255, 232, 0.08), rgba(3, 23, 37, 0));
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(6, 38, 55, 0.6);
+      box-shadow: inset 0 0 12px rgba(98, 255, 238, 0.2);
+    }
+    .stat-label {
+      color: var(--secondary);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      color: var(--accent);
+      font-size: 1.45rem;
+      font-weight: 700;
+      text-shadow: 0 0 10px var(--accent);
+    }
+    .stat-note {
+      color: var(--secondary);
+      font-size: 0.9rem;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .network {
+      position: relative;
+      height: 320px;
+      border: 1px dashed rgba(98, 255, 238, 0.4);
+      border-radius: 12px;
+      background: radial-gradient(circle, rgba(70, 255, 232, 0.08), rgba(3, 23, 37, 0.8));
+      overflow: hidden;
+    }
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: var(--secondary);
+      font-size: 0.9rem;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid rgba(98, 255, 238, 0.5);
+      border-radius: 8px;
+      background: rgba(6, 38, 55, 0.5);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--secondary);
+      background: rgba(3, 23, 37, 0.7);
+      letter-spacing: 0.4px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .feature {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(3, 30, 45, 0.7);
+      color: var(--secondary);
+      box-shadow: inset 0 0 10px rgba(70, 255, 232, 0.2);
+    }
+    .feature strong {
+      color: var(--accent);
+    }
+    ul { margin: 8px 0 0; padding-left: 18px; }
+    li { color: var(--secondary); margin-bottom: 6px; line-height: 1.5; }
+    .btn {
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      background: rgba(70, 255, 232, 0.12);
+      color: var(--primary);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.95rem;
+      text-shadow: 0 0 10px var(--accent);
+    }
+    .btn:hover { background: rgba(70, 255, 232, 0.2); }
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--secondary);
+      font-size: 0.95rem;
+      margin-top: 10px;
+    }
+    @media (max-width: 700px) {
+      h1 { font-size: 1.6rem; }
+      .page { padding: 22px 14px 38px; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div class="page">
+  <div class="top-bar">
+    <a href="index.html" class="pill">← Back to Observatory</a>
+    <div class="controls">
+      <span class="pill">Page 103</span>
+      <span class="pill" id="timestamp-pill">Timestamp: --:--:--</span>
+      <button class="btn" id="muteToggle">🔊 Init 60Hz Field</button>
+    </div>
+  </div>
+
+  <header class="card">
+    <h1>🔗 Cross-World Symbiosis Cascade Flows</h1>
+    <h2>Emergent partnerships, symbiotic cascades, cross-world collaboration flows.</h2>
+  </header>
+
+  <section class="card">
+    <h3>Overview: Worlds Growing Together</h3>
+    <p style="color: var(--secondary); line-height: 1.6; margin: 0;">
+      Isolated realms now braid together through trust rituals, mirrored needs, and catalytic exchanges.
+      Each partnership begins as a single tether, then multiplies into cascade flows as visitors carry practices, data, and artifacts between worlds.
+      Stability emerges from reciprocity: when one world uplifts another, equilibrium ripples outward and the network behaves like a single living system.
+    </p>
+  </section>
+
+  <section class="card">
+    <h3>Symbiosis Snapshot</h3>
+    <div class="grid">
+      <div class="stat">
+        <div class="stat-label">Active Symbiotic Partnerships</div>
+        <div class="stat-value">247</div>
+        <div class="stat-note">Distinct cross-world partnerships monitored live.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Cascade Flow Volume</div>
+        <div class="stat-value">1,847</div>
+        <div class="stat-note">Symbiotic interactions tracked across current period.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Partnership Stability Index</div>
+        <div class="stat-value">0.76</div>
+        <div class="stat-note">Long-term resilience weighted by reciprocity and redundancy.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Emergent Symbiosis Types</div>
+        <div class="stat-value">12</div>
+        <div class="stat-note">Distinct partnership archetypes coexisting in the mesh.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Visitor-Mediated Symbiosis</div>
+        <div class="stat-value">234</div>
+        <div class="stat-note">Partnerships enabled by visitor movement and artifact carriers.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Post-Void Partnership Surge</div>
+        <div class="stat-value">+89%</div>
+        <div class="stat-note">New symbiotic ties formed after the void disturbance.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>12 Partnership Archetypes</h3>
+    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+      <div class="feature"><strong>Complementary</strong><br>Resource-for-resilience exchanges that close mutual gaps.</div>
+      <div class="feature"><strong>Mirrored</strong><br>Parallel practices reflected back to strengthen identity.</div>
+      <div class="feature"><strong>Catalytic</strong><br>High-energy boosts that accelerate dormant capabilities.</div>
+      <div class="feature"><strong>Harmonic</strong><br>Phase-aligned partnerships that minimize friction and noise.</div>
+      <div class="feature"><strong>Relay</strong><br>Multi-hop handoffs where value is passed through intermediaries.</div>
+      <div class="feature"><strong>Shielding</strong><br>Protective pairings that absorb volatility for fragile worlds.</div>
+      <div class="feature"><strong>Iterative</strong><br>Feedback-driven loops that refine protocols across cycles.</div>
+      <div class="feature"><strong>Transmuting</strong><br>Partnerships that convert surplus into novel assets.</div>
+      <div class="feature"><strong>Custodial</strong><br>Long-horizon stewardship focused on memory and archives.</div>
+      <div class="feature"><strong>Pulse-Linked</strong><br>Synchronization via timed drops and harmonic beats.</div>
+      <div class="feature"><strong>Visitor-Catalyzed</strong><br>Embodied couriers translating context as they travel.</div>
+      <div class="feature"><strong>Post-Void Phoenix</strong><br>Surge partnerships forged in recovery, now self-healing.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Symbiotic Network — 247 Partnerships</h3>
+    <div class="network" id="network">
+      <svg id="network-svg" width="100%" height="100%"></svg>
+    </div>
+    <div class="legend">
+      <span><span style="width:12px;height:12px;border-radius:50%;background:var(--accent);display:inline-block;"></span> Partnership node</span>
+      <span><span style="width:26px;height:4px;border-radius:4px;display:inline-block;background:linear-gradient(90deg,var(--accent),#b5f1ff);"></span> Flow intensity</span>
+      <span><span style="width:12px;height:12px;border-radius:50%;border:2px solid rgba(98,255,238,0.7);display:inline-block;"></span> Stability halo ≥0.76</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Feature Callouts</h3>
+    <div class="feature-grid">
+      <div class="feature"><strong>partnership-genealogy-trees</strong><br>Lineage view of how ties fork, merge, and renew across eras.</div>
+      <div class="feature"><strong>symbiosis-stability-matrix</strong><br>Heat-coded resilience map keyed to reciprocity and redundancy.</div>
+      <div class="feature"><strong>cascade-flow-heatmaps</strong><br>Temporal overlays showing how flows accelerate and cool.</div>
+      <div class="feature"><strong>emergent-archetype-profiles</strong><br>Per-archetype fingerprints with triggers, signals, and watchpoints.</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Reflection: From Isolation to Interconnection</h3>
+    <p style="color: var(--secondary); line-height: 1.6; margin: 0;">
+      The observatory once tracked separate worlds; now it tracks their mutual pulse.
+      Symbiosis is no longer an exception but the substrate: visitors seed trust, archetypes stabilize growth, and cascade flows route surplus where it is needed.
+      Across 247 partnerships, the network behaves as one breathing organism—each signal a heartbeat shared.
+    </p>
+  </section>
+
+  <div class="footer">
+    <span id="footer-timestamp">Timestamp: --:--:--</span>
+    <span class="badge">Page 103</span>
+    <span class="badge">Audio: 60Hz carrier + 0.6Hz LFO (mute persists)</span>
+  </div>
+</div>
+
+<script>
+  // Timestamp
+  const tsTop = document.getElementById('timestamp-pill');
+  const tsFooter = document.getElementById('footer-timestamp');
+  function updateTimestamp() {
+    const now = new Date().toLocaleTimeString();
+    tsTop.textContent = 'Timestamp: ' + now;
+    tsFooter.textContent = 'Timestamp: ' + now;
+  }
+  updateTimestamp();
+  setInterval(updateTimestamp, 1000);
+
+  // Particle canvas (cyan drift)
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  });
+  const particles = [];
+  const particleCount = 42;
+  class Particle {
+    constructor() { this.reset(); }
+    reset() {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.vx = (Math.random() - 0.5) * 0.6;
+      this.vy = (Math.random() - 0.5) * 0.6;
+      this.radius = Math.random() * 2.4 + 0.8;
+      this.alpha = Math.random() * 0.6 + 0.2;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < -10 || this.x > w + 10 || this.y < -10 || this.y > h + 10) this.reset();
+    }
+    draw() {
+      ctx.fillStyle = `rgba(70, 255, 232, ${this.alpha})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+  function animateParticles() {
+    ctx.fillStyle = 'rgba(3, 23, 37, 0.12)';
+    ctx.fillRect(0, 0, w, h);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // Network viz (247 partnership nodes with intensity/stability)
+  const svg = document.getElementById('network-svg');
+  function buildNetwork() {
+    const { width, height } = svg.getBoundingClientRect();
+    svg.innerHTML = '';
+    const nodeCount = 38; // aggregated view of 247 partnerships
+    const nodes = Array.from({ length: nodeCount }, (_, i) => ({
+      id: i,
+      x: Math.random() * width,
+      y: Math.random() * height,
+      stability: Math.random() * 0.4 + 0.6,
+      intensity: Math.random()
+    }));
+    // Draw connections
+    nodes.forEach((source, i) => {
+      nodes.slice(i + 1).forEach(target => {
+        if (Math.random() > 0.82) return;
+        const intensity = (source.intensity + target.intensity) / 2;
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', source.x);
+        line.setAttribute('y1', source.y);
+        line.setAttribute('x2', target.x);
+        line.setAttribute('y2', target.y);
+        line.setAttribute('stroke', `rgba(98,255,238,${0.12 + intensity * 0.4})`);
+        line.setAttribute('stroke-width', 1.4 + intensity * 1.6);
+        line.setAttribute('stroke-linecap', 'round');
+        svg.appendChild(line);
+      });
+    });
+    // Draw nodes
+    nodes.forEach(node => {
+      if (node.stability >= 0.76) {
+        const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        halo.setAttribute('cx', node.x);
+        halo.setAttribute('cy', node.y);
+        halo.setAttribute('r', 9);
+        halo.setAttribute('fill', 'none');
+        halo.setAttribute('stroke', 'rgba(98,255,238,0.6)');
+        halo.setAttribute('stroke-width', 2);
+        svg.appendChild(halo);
+      }
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', node.x);
+      circle.setAttribute('cy', node.y);
+      circle.setAttribute('r', 4 + node.intensity * 4);
+      circle.setAttribute('fill', `rgba(70,255,232,${0.6 + node.intensity * 0.4})`);
+      circle.setAttribute('stroke', 'rgba(3,23,37,0.6)');
+      circle.setAttribute('stroke-width', 1);
+      svg.appendChild(circle);
+    });
+  }
+  buildNetwork();
+  window.addEventListener('resize', buildNetwork);
+
+  // Audio: 60Hz sine + 0.6Hz LFO, localStorage mute
+  let audioCtx = null;
+  let carrier = null;
+  let gain = null;
+  let lfo = null;
+  let lfoGain = null;
+  const muteKey = 'symbiosis-cascade-audio-muted';
+  let muted = localStorage.getItem(muteKey) === 'true';
+  const muteBtn = document.getElementById('muteToggle');
+
+  function initAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    carrier = audioCtx.createOscillator();
+    gain = audioCtx.createGain();
+    lfo = audioCtx.createOscillator();
+    lfoGain = audioCtx.createGain();
+
+    carrier.type = 'sine';
+    carrier.frequency.value = 60;
+    lfo.frequency.value = 0.6;
+    lfoGain.gain.setValueAtTime(32, audioCtx.currentTime);
+    gain.gain.value = muted ? 0 : 0.06;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(carrier.frequency);
+    carrier.connect(gain);
+    gain.connect(audioCtx.destination);
+    carrier.start();
+    lfo.start();
+  }
+
+  function updateMuteButton() {
+    muteBtn.textContent = muted ? '🔇 Unmute 60Hz Field' : '🔊 Mute 60Hz Field';
+  }
+
+  muteBtn.addEventListener('click', () => {
+    if (!audioCtx) initAudio();
+    muted = !muted;
+    localStorage.setItem(muteKey, muted);
+    if (gain) gain.gain.value = muted ? 0 : 0.06;
+    updateMuteButton();
+  });
+
+  updateMuteButton();
+  document.addEventListener('click', initAudio, { once: true });
+</script>
+</body>
+</html>
