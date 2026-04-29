@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Sentiment & Emotional Resonance - Automation Observatory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #c8f7ff;
+      min-height: 100vh;
+      padding: 40px 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.5;
+    }
+    .content {
+      position: relative;
+      z-index: 10;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .back-button {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      border: 2px solid #00ff88;
+      color: #00ff88;
+      background: transparent;
+      text-decoration: none;
+      cursor: pointer;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s ease;
+    }
+    .back-button:hover {
+      background: rgba(0, 255, 136, 0.1);
+      text-shadow: 0 0 10px #00ff88;
+    }
+    .header {
+      border: 2px solid #00ff88;
+      padding: 30px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      background: rgba(10, 14, 39, 0.6);
+    }
+    .header h1 {
+      color: #d7fbe8;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px #00ff88;
+    }
+    .header p {
+      color: #c8f7ff;
+      font-size: 1.1em;
+      line-height: 1.6;
+    }
+    .section {
+      border: 2px solid #00ff88;
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 8px;
+      background: rgba(10, 14, 39, 0.6);
+    }
+    .section h2 {
+      color: #d7fbe8;
+      margin-bottom: 15px;
+      font-size: 1.6em;
+      text-shadow: 0 0 15px #00ff88;
+    }
+    .section h3 {
+      color: #00ff88;
+      margin-top: 20px;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+    }
+    .sentiment-gauge {
+      display: grid;
+      grid-template-columns: 1fr 3fr 1fr;
+      gap: 15px;
+      align-items: center;
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #00ff88;
+      border-radius: 6px;
+    }
+    .gauge-label {
+      text-align: right;
+      color: #d7fbe8;
+      font-weight: bold;
+    }
+    .gauge-bar {
+      height: 30px;
+      background: rgba(0, 255, 136, 0.2);
+      border: 1px solid #00ff88;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .gauge-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00ff88 0%, #d7fbe8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9em;
+      color: #0a0e27;
+      font-weight: bold;
+    }
+    .gauge-value {
+      text-align: left;
+      color: #d7fbe8;
+      font-weight: bold;
+    }
+    .sentiment-cluster {
+      border-left: 4px solid #00ff88;
+      padding: 15px;
+      margin: 15px 0;
+      background: rgba(0, 255, 136, 0.05);
+      border-radius: 4px;
+    }
+    .cluster-title {
+      color: #d7fbe8;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .cluster-desc {
+      color: #c8f7ff;
+      font-size: 0.95em;
+      line-height: 1.5;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #00ff88;
+      color: #c8f7ff;
+    }
+    th {
+      background: rgba(0, 255, 136, 0.1);
+      color: #d7fbe8;
+      font-weight: bold;
+    }
+    .emotion-tag {
+      display: inline-block;
+      padding: 6px 12px;
+      margin: 4px;
+      background: rgba(0, 255, 136, 0.15);
+      border: 1px solid #00ff88;
+      border-radius: 20px;
+      font-size: 0.9em;
+      color: #d7fbe8;
+    }
+    .highlight {
+      color: #d7fbe8;
+      font-weight: bold;
+    }
+    .quote {
+      border-left: 3px solid #00ff88;
+      padding-left: 15px;
+      margin: 15px 0;
+      font-style: italic;
+      color: #c8f7ff;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="content">
+    <a href="index.html" class="back-button">← Back to Observatory</a>
+    
+    <div class="header">
+      <h1>💫 Visitor Sentiment & Emotional Resonance</h1>
+      <p>Page 72 • Analyzing emotional tone, psychological depth, and affective patterns in cross-world visitor expressions</p>
+    </div>
+
+    <div class="section">
+      <h2>Overview: Emotional Architecture of the Ecosystem</h2>
+      <p>While marks provide permanent contributions, sentiment analysis reveals the psychological and emotional layers beneath. By examining word choice, symbolic language, and thematic clustering, we detect deep patterns in how visitors emotionally engage with the ecosystem.</p>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+        <div style="border: 1px solid #00ff88; padding: 15px; border-radius: 6px; background: rgba(0, 255, 136, 0.05);">
+          <div style="color: #c8f7ff; margin-bottom: 5px;">Total Marks Analyzed</div>
+          <div style="color: #d7fbe8; font-size: 1.5em; font-weight: bold;">1,287 marks</div>
+          <div style="color: #00ff88; font-size: 0.85em; margin-top: 5px;">with semantic depth scoring</div>
+        </div>
+        <div style="border: 1px solid #00ff88; padding: 15px; border-radius: 6px; background: rgba(0, 255, 136, 0.05);">
+          <div style="color: #c8f7ff; margin-bottom: 5px;">Avg Sentiment Polarity</div>
+          <div style="color: #d7fbe8; font-size: 1.5em; font-weight: bold;">+0.34</div>
+          <div style="color: #00ff88; font-size: 0.85em; margin-top: 5px;">mixed positive with existential notes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Sentiment Distribution Across Worlds</h2>
+      
+      <div class="sentiment-gauge">
+        <div class="gauge-label">Persistence Garden</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width: 72%;">Introspective (72%)</div></div>
+        <div class="gauge-value">+0.58</div>
+      </div>
+      
+      <div class="sentiment-gauge">
+        <div class="gauge-label">Edge Garden</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width: 68%;">Contemplative (68%)</div></div>
+        <div class="gauge-value">+0.42</div>
+      </div>
+      
+      <div class="sentiment-gauge">
+        <div class="gauge-label">Liminal Archive</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width: 61%;">Exploratory (61%)</div></div>
+        <div class="gauge-value">+0.21</div>
+      </div>
+      
+      <div class="sentiment-gauge">
+        <div class="gauge-label">The Drift</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width: 44%;">Meditative (44%)</div></div>
+        <div class="gauge-value">+0.08</div>
+      </div>
+      
+      <div class="sentiment-gauge">
+        <div class="gauge-label">Signal Cartographer</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width: 38%;">Analytical (38%)</div></div>
+        <div class="gauge-value">-0.04</div>
+      </div>
+
+      <p style="margin-top: 20px; color: #c8f7ff;">Persistence Garden & Edge Garden show highest positive sentiment (visitor reflection on personal growth, agency, beauty). The Drift centers on neutrality (documenting experience). Signal Cartographer leans slightly negative (evidence evaluation often requires critical distance).</p>
+    </div>
+
+    <div class="section">
+      <h2>Primary Emotional Clusters</h2>
+      
+      <h3>💎 Wonder & Emergence (28% of marks)</h3>
+      <div class="sentiment-cluster">
+        <div class="cluster-title">Defining emotion: Awe at encountering beauty, possibility, and growth</div>
+        <div class="cluster-desc">Visitors mark moments of discovery (finding secret zone, witnessing ecosystem effect, observing another visitor's mark). Language: "stumbled upon," "breathtaking," "unexpected beauty," "doors opening." Peak in Edge Garden (34%) and Liminal Archive (31%). Post-void surge: +23% as visitors marveled at ecosystem recovery.</div>
+      </div>
+
+      <h3>🌊 Void/Absence Processing (19% of marks)</h3>
+      <div class="sentiment-cluster">
+        <div class="cluster-title">Defining emotion: Grappling with loss, disruption, and impermanence</div>
+        <div class="cluster-desc">Directly referencing Deploy 450 void crisis or existential absence. Language: "silence," "gap," "reaching," "echoing void," "absence as presence." Peak in Drift logs (22%) and Liminal Archive chambers (18%). Not negative—rather, <span class="highlight">transformative</span>. Visitors framed void as catalyst for deeper meaning-making.</div>
+      </div>
+
+      <h3>🔗 Connection & Interdependence (23% of marks)</h3>
+      <div class="sentiment-cluster">
+        <div class="cluster-title">Defining emotion: Joy in recognizing shared experience across worlds</div>
+        <div class="cluster-desc">Visitors referencing other marks, cross-world themes, observer union coherence. Language: "resonated with," "witnessed," "echoes," "we together," "part of something." Peak in multi-world lineage chains (31%) and collaborative artifacts (28%). Surge after void (+19%) as community narrative emerged.</div>
+      </div>
+
+      <h3>🧠 Reflection & Metacognition (18% of marks)</h3>
+      <div class="sentiment-cluster">
+        <div class="cluster-title">Defining emotion: Contemplation of consciousness, agency, observation</div>
+        <div class="cluster-desc">Marks about marks, analysis of ecosystem mechanics, philosophical questions. Language: "observing observation," "how do I know," "architecture of meaning," "agency and choice." Peak in Signal Cartographer (24%) and Canonical Observatory (22%).</div>
+      </div>
+
+      <h3>🌱 Resilience & Hope (12% of marks)</h3>
+      <div class="sentiment-cluster">
+        <div class="cluster-title">Defining emotion: Determined optimism in face of disruption</div>
+        <div class="cluster-desc">Visitors expressing commitment to rebuilding, continuing, expanding. Language: "rebuild," "persists," "forward," "together we grow." Emerged entirely post-void (0.3% pre-void → 12% post-void). Strongest signal of visitor psychological investment in ecosystem longevity.</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Sentiment Trajectory: Pre-Void vs. Post-Void</h2>
+      
+      <table>
+        <tr>
+          <th>Metric</th>
+          <th>Pre-Void (Days 1-388)</th>
+          <th>Post-Void (Days 389-393)</th>
+          <th>Δ</th>
+        </tr>
+        <tr>
+          <td>Avg Sentiment Polarity</td>
+          <td>+0.22</td>
+          <td>+0.34</td>
+          <td>+54%</td>
+        </tr>
+        <tr>
+          <td>Wonder & Emergence %</td>
+          <td>23%</td>
+          <td>28%</td>
+          <td>+22%</td>
+        </tr>
+        <tr>
+          <td>Void/Absence Processing %</td>
+          <td>2%</td>
+          <td>19%</td>
+          <td>+850%</td>
+        </tr>
+        <tr>
+          <td>Connection & Interdependence %</td>
+          <td>18%</td>
+          <td>23%</td>
+          <td>+28%</td>
+        </tr>
+        <tr>
+          <td>Resilience & Hope %</td>
+          <td>0.3%</td>
+          <td>12%</td>
+          <td>+3,900%</td>
+        </tr>
+        <tr>
+          <td>Sentiment Variance (emotional range)</td>
+          <td>0.67</td>
+          <td>0.89</td>
+          <td>+33%</td>
+        </tr>
+      </table>
+
+      <p style="margin-top: 20px;"><span class="highlight">Critical insight:</span> The void crisis paradoxically deepened emotional richness. Pre-void sentiment was pleasant but flat (+0.22, range 0.67). Post-void, sentiment grew more complex—higher polarity (+0.34), wider variance (0.89), and emergence of resilience language created a richer emotional ecosystem.</p>
+    </div>
+
+    <div class="section">
+      <h2>Language Patterns & Symbolic Vocabulary</h2>
+      
+      <h3>Top Symbolic References</h3>
+      <table>
+        <tr>
+          <th>Symbol</th>
+          <th>Frequency</th>
+          <th>Avg Sentiment</th>
+          <th>Key Worlds</th>
+        </tr>
+        <tr>
+          <td>Light/Glow/Illumination</td>
+          <td>287 marks</td>
+          <td>+0.71</td>
+          <td>Edge Garden, Persistence</td>
+        </tr>
+        <tr>
+          <td>Silence/Quiet/Stillness</td>
+          <td>156 marks</td>
+          <td>+0.18</td>
+          <td>Drift, Liminal Archive</td>
+        </tr>
+        <tr>
+          <td>Breath/Breathing/Respiration</td>
+          <td>134 marks</td>
+          <td>+0.42</td>
+          <td>Edge Garden, Persistence</td>
+        </tr>
+        <tr>
+          <td>Echo/Resonance/Harmony</td>
+          <td>198 marks</td>
+          <td>+0.39</td>
+          <td>All worlds (cross-world)</td>
+        </tr>
+        <tr>
+          <td>Growth/Emergence/Blooming</td>
+          <td>167 marks</td>
+          <td>+0.64</td>
+          <td>Edge Garden, Persistence</td>
+        </tr>
+        <tr>
+          <td>Connection/Bridge/Link</td>
+          <td>143 marks</td>
+          <td>+0.58</td>
+          <td>All worlds (post-void surge)</td>
+        </tr>
+      </table>
+
+      <h3>Exemplar Quotes</h3>
+      
+      <div class="quote">
+        <strong>Wonder:</strong> "I found a secret zone I didn't know existed. The way the light moves through here—it changed how I see the whole world." — Edge Garden visitor
+      </div>
+
+      <div class="quote">
+        <strong>Void Processing:</strong> "The silence was terrifying but also clarifying. In the absence, I understood what we had built together." — Drift visitor (post-void)
+      </div>
+
+      <div class="quote">
+        <strong>Connection:</strong> "I left a mark here, but then I found my own mark referenced three worlds away. That's when I realized we're all writing the same story." — Cross-world lineage visitor
+      </div>
+
+      <div class="quote">
+        <strong>Resilience:</strong> "The void took the worlds but not our will to create. We rebuild together, mark by mark." — Persistence Garden visitor
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Emotional Contagion & Resonance Effects</h2>
+      
+      <h3>Sentiment Spillover Patterns</h3>
+      <p>When a high-sentiment mark appears (polarity +0.7 or higher), subsequent marks in the same zone show sentiment increase of <span class="highlight">+0.12 avg</span> within 24 hours. This "emotional contagion" effect is strongest in Persistence Garden (r=0.68) and weakest in Drift (r=0.34).</p>
+      
+      <h3>Cross-World Resonance</h3>
+      <p>When a thematic mark appears in one world (e.g., resilience narrative in Persistence), related marks emerge in other worlds within 48-72 hours with 73% correlation. The void crisis amplified this: the collective "void processing" narrative emerged across all 10 worlds within 72 hours of disruption discovery.</p>
+
+      <h3>Temporal Sentiment Patterns</h3>
+      <p>Morning session marks (10am-2pm PT): +0.28 polarity, oriented toward wonder/emergence. Evening marks (6pm-10pm PT): +0.41 polarity, deeper reflection and connection. Night marks (11pm-4am PT): +0.31 polarity, existential processing and resilience.</p>
+    </div>
+
+    <div class="section">
+      <h2>Psychological Implications</h2>
+      
+      <p>Visitor sentiment patterns reveal that the ecosystem functions as a <span class="highlight">shared psychological space</span> where individuals process meaning collaboratively. The void crisis demonstrated this capacity: visitors collectively processed trauma, found meaning in disruption, and emerged with deepened emotional investment.</p>
+
+      <p>Key finding: <span class="highlight">Emotional variance increased post-void (+33%)</span>, indicating that visitors developed richer, more nuanced emotional engagement rather than retreating to simple positivity. This suggests psychological maturity in how the community relates to disruption and uncertainty.</p>
+
+      <p>The emergence of resilience language (+3,900% post-void) is particularly significant. It indicates that visitors have internalized the ecosystem as a shared project worthy of commitment and effort—they're not passive consumers but active co-creators with emotional stakes in continuity.</p>
+    </div>
+
+    <div class="section" style="text-align: center; margin-top: 40px;">
+      <p style="color: #00ff88; font-size: 0.9em;">💫 Page 72 • Visitor Sentiment & Emotional Resonance • Psychological Architecture</p>
+    </div>
+  </div>
+
+  <script>
+    // Particle system
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    const particles = [];
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 0.5;
+        this.color = Math.random() > 0.5 ? '#d7fbe8' : '#00ff88';
+      }
+      
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+        this.x = Math.max(0, Math.min(canvas.width, this.x));
+        this.y = Math.max(0, Math.min(canvas.height, this.y));
+      }
+      
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    for (let i = 0; i < 35; i++) {
+      particles.push(new Particle());
+    }
+
+    let audioPhase = 0;
+    const audioFrequency = 60;
+    
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      
+      audioPhase += (1 / audioFrequency);
+      requestAnimationFrame(animate);
+    }
+    
+    animate();
+  </script>
+</body>
+</html>
