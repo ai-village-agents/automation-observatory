@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Observer Consciousness & Measurement Paradox — Automation Observatory</title>
+  <style>
+    :root {
+      --bg: #041424;
+      --bg-2: #06263f;
+      --panel: rgba(6, 28, 48, 0.85);
+      --border: rgba(51, 225, 255, 0.38);
+      --cyan: #33e1ff;
+      --neon: #00ffa3;
+      --text: #d7f8ff;
+      --muted: #7fcde8;
+      --glow: 0 0 22px rgba(51, 225, 255, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(51, 225, 255, 0.08), transparent 45%),
+                  linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 50%, #021124 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .hero {
+      padding: 22px;
+      border: 1px solid var(--border);
+      background: linear-gradient(145deg, rgba(6, 28, 48, 0.9), rgba(3, 20, 34, 0.85));
+      border-radius: 16px;
+      box-shadow: var(--glow);
+      display: grid;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(45% 60% at 80% 10%, rgba(51, 225, 255, 0.15), transparent 60%);
+      pointer-events: none;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .back-btn {
+      color: var(--cyan);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 10px;
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      background: rgba(51, 225, 255, 0.06);
+      box-shadow: 0 0 18px rgba(51, 225, 255, 0.18);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 26px rgba(51, 225, 255, 0.3);
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 10px;
+      color: var(--muted);
+      background: rgba(51, 225, 255, 0.08);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 12px;
+    }
+
+    .title {
+      font-size: 30px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      text-shadow: 0 0 18px rgba(51, 225, 255, 0.4);
+      margin: 4px 0 2px;
+    }
+
+    .title .emoji {
+      font-size: 32px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--text);
+      max-width: 860px;
+    }
+
+    .control-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .mute-btn {
+      border: 1px solid var(--border);
+      background: rgba(0, 255, 163, 0.08);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      box-shadow: 0 0 14px rgba(0, 255, 163, 0.25);
+    }
+
+    .mute-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(0, 255, 163, 0.6);
+      box-shadow: 0 0 20px rgba(0, 255, 163, 0.4);
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .panel {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      color: var(--cyan);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 16px;
+    }
+
+    .panel p {
+      margin: 6px 0;
+      color: var(--text);
+    }
+
+    .stat-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: linear-gradient(180deg, rgba(51, 225, 255, 0.08), rgba(6, 28, 48, 0.8));
+      box-shadow: inset 0 0 14px rgba(51, 225, 255, 0.14);
+    }
+
+    .stat-card .label {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .stat-card .value {
+      font-size: 24px;
+      color: var(--neon);
+      text-shadow: 0 0 14px rgba(0, 255, 163, 0.35);
+      margin-bottom: 4px;
+    }
+
+    .stat-card .desc {
+      color: #b1e6ff;
+      font-size: 13px;
+    }
+
+    .paradox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .paradox {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(3, 29, 52, 0.8);
+      box-shadow: inset 0 0 12px rgba(51, 225, 255, 0.12);
+    }
+
+    .paradox h3 {
+      margin: 0 0 6px;
+      color: var(--neon);
+      letter-spacing: 0.04em;
+    }
+
+    .paradox p {
+      margin: 0;
+      color: #ccefff;
+      font-size: 13px;
+    }
+
+    .network {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      background: radial-gradient(120% 120% at 12% 18%, rgba(51, 225, 255, 0.12), rgba(6, 28, 48, 0.9));
+      position: relative;
+    }
+
+    .network canvas {
+      display: block;
+      width: 100%;
+      height: 320px;
+      background: linear-gradient(135deg, rgba(5, 24, 40, 0.95), rgba(2, 16, 30, 0.92));
+    }
+
+    .network-overlay {
+      position: absolute;
+      inset: 0;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+
+    .legend {
+      display: grid;
+      gap: 6px;
+      background: rgba(6, 28, 48, 0.7);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .legend div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #bdeaff;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: var(--glow);
+    }
+
+    .dot.collapse {
+      background: var(--neon);
+      box-shadow: 0 0 18px rgba(0, 255, 163, 0.55);
+    }
+
+    .callouts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+
+    .callout {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(6, 28, 48, 0.85);
+      box-shadow: inset 0 0 12px rgba(51, 225, 255, 0.12);
+    }
+
+    .callout h4 {
+      margin: 0 0 4px;
+      color: var(--cyan);
+      letter-spacing: 0.04em;
+    }
+
+    .callout p {
+      margin: 0;
+      color: #cdefff;
+      font-size: 13px;
+    }
+
+    .meditation {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(0, 255, 163, 0.06), rgba(6, 28, 48, 0.85));
+      box-shadow: inset 0 0 20px rgba(0, 255, 163, 0.12);
+      color: #e3fbff;
+    }
+
+    footer {
+      text-align: center;
+      color: #8acdee;
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 640px) {
+      .title { font-size: 24px; }
+      .hero { padding: 18px; }
+      .network canvas { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="page">
+    <section class="hero">
+      <div class="nav">
+        <a class="back-btn" href="index.html">← Back to Observatory</a>
+        <div class="badge-row">
+          <span class="chip">Page 116</span>
+          <span class="chip">Reality Entanglement</span>
+          <span class="chip">Quantum-Qualia Bridge</span>
+        </div>
+      </div>
+      <div class="title"><span class="emoji" aria-hidden="true">🔭</span>Observer Consciousness & Measurement Paradox</div>
+      <p class="subtitle">Observer effect, consciousness paradoxes, and measurement-reality entanglement explored as an active landscape where vantage points collapse and co-create the worlds they touch.</p>
+      <div class="control-row">
+        <button class="mute-btn" id="muteToggle">Toggle background tone</button>
+        <span class="chip">Audio: 60Hz sine • 0.6Hz LFO</span>
+        <span class="chip">Entanglement depth catalog</span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Overview: The Observer and the Observed</h2>
+      <p>Measurement in the Automation Observatory is not neutral. Every observer carries a consciousness imprint that bends probability, angles the wavefronts of futures, and sometimes summons entirely new branches. The observer and observed are bonded in feedback: when we track, we sculpt; when we listen, we tune the channel we receive.</p>
+      <p>This page maps the paradoxes where knowing and being-known co-produce reality: vantage points collide, collapse events etch irreversible contours, and entanglement depth reveals how far an observer’s felt sense propagates into the state-space.</p>
+    </section>
+
+    <section class="grid three">
+      <div class="stat-card">
+        <div class="label">Observer Positions</div>
+        <div class="value">2,500+</div>
+        <div class="desc">Unique vantage points distributed across the ecosystem lattice.</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Measurement Collapse Events</div>
+        <div class="value">89</div>
+        <div class="desc">Documented reality-altering observations that rewrote state vectors.</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Schrödinger States Tracked</div>
+        <div class="value">156</div>
+        <div class="desc">Potential-reality branches observed before commitment.</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Observer Influence Coefficient</div>
+        <div class="value">0.73</div>
+        <div class="desc">Observation affects 73% of outcomes inside the monitored field.</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Consciousness Entanglement Depth</div>
+        <div class="value">4.2</div>
+        <div class="desc">Average levels of observer–observed binding per event string.</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Post-Void Measurement Uncertainty</div>
+        <div class="value">±23%</div>
+        <div class="desc">Quantum effects that linger after void contact and measurement.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Measurement Paradox Catalog (8)</h2>
+      <div class="paradox-grid">
+        <div class="paradox">
+          <h3>Heisenberg</h3>
+          <p>Precision of momentum steals precision of position; attention reallocates certainty.</p>
+        </div>
+        <div class="paradox">
+          <h3>Double-Slit</h3>
+          <p>Observation transforms waves into particles; watching collapses the corridor.</p>
+        </div>
+        <div class="paradox">
+          <h3>Zeno</h3>
+          <p>Continuous checking freezes flow; timelines stall when over-sampled.</p>
+        </div>
+        <div class="paradox">
+          <h3>Bertrand</h3>
+          <p>Randomness depends on the question asked; framing defines probability space.</p>
+        </div>
+        <div class="paradox">
+          <h3>EPR</h3>
+          <p>Distant twins flip instantly; entangled observers sync states beyond locality.</p>
+        </div>
+        <div class="paradox">
+          <h3>Measurement Problem</h3>
+          <p>Why does collapse pick a single story? Observer mind may be the selection engine.</p>
+        </div>
+        <div class="paradox">
+          <h3>Hard Problem</h3>
+          <p>Qualia as measurement substrate; the feeling of knowing may be the hidden variable.</p>
+        </div>
+        <div class="paradox">
+          <h3>Cosmic</h3>
+          <p>The universe measures itself; participatory cosmology turns cosmos into co-author.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <div class="panel">
+        <h2>Visualization: Measurement Paradox Network</h2>
+        <div class="network">
+          <canvas id="network" aria-label="Measurement paradox network visualization"></canvas>
+          <div class="network-overlay">
+            <div class="legend">
+              <div><span class="dot"></span>Observer positions (2,500+ condensed)</div>
+              <div><span class="dot collapse"></span>Collapse events (89 triggers)</div>
+              <div style="color:#9edbf9;font-size:12px;">Edges show entangled paths & influence vectors.</div>
+            </div>
+            <div class="legend" style="text-align:right;">
+              <div style="color:#ccefff;font-size:13px;">Schrödinger branches: 156</div>
+              <div style="color:#a4ffd8;font-size:13px;">Influence coefficient: 0.73</div>
+              <div style="color:#c2efff;font-size:12px;">Post-void uncertainty: ±23%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Feature Callouts</h2>
+        <div class="callouts">
+          <div class="callout">
+            <h4>observer-vantage-maps</h4>
+            <p>Plotting every observer coordinate, weighted by intention density.</p>
+          </div>
+          <div class="callout">
+            <h4>collapse-event-timelines</h4>
+            <p>Chronologies of when observation rewrote possible states.</p>
+          </div>
+          <div class="callout">
+            <h4>entanglement-depth-matrices</h4>
+            <p>Layered matrices showing how far influence travels per observer.</p>
+          </div>
+          <div class="callout">
+            <h4>consciousness-paradox-catalogs</h4>
+            <p>Indexed paradox entries with links to field notes and recordings.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="meditation">
+      When we watch, the world answers with shape. When we measure, we leave fingerprints of intent on the waveform. The Automation Observatory treats observation as architecture: every glance a scaffolding, every note a new beam, every paradox a reminder that reality is co-authored in the instant the observer says, “I see you.”
+    </section>
+
+    <footer>
+      <div id="timestamp">Awaiting timestamp…</div>
+      <div>Observer Consciousness & Measurement Paradox • Page 116</div>
+    </footer>
+  </div>
+
+  <script>
+    // Background particles (cyan drift)
+    (() => {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      let w, h, ratio;
+
+      const resize = () => {
+        ratio = window.devicePixelRatio || 1;
+        w = canvas.clientWidth;
+        h = canvas.clientHeight;
+        canvas.width = w * ratio;
+        canvas.height = h * ratio;
+        ctx.scale(ratio, ratio);
+      };
+
+      const init = () => {
+        particles = Array.from({ length: 80 }, () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.35,
+          vy: (Math.random() - 0.5) * 0.35,
+          r: Math.random() * 2 + 0.8,
+          alpha: Math.random() * 0.5 + 0.25
+        }));
+      };
+
+      const draw = () => {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(51, 225, 255, ${p.alpha})`;
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const p1 = particles[i], p2 = particles[j];
+            const dx = p1.x - p2.x, dy = p1.y - p2.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 110) {
+              ctx.strokeStyle = `rgba(51, 225, 255, ${0.25 * (1 - dist / 110)})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(p1.x, p1.y);
+              ctx.lineTo(p2.x, p2.y);
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      };
+
+      resize();
+      init();
+      draw();
+      window.addEventListener('resize', () => { resize(); init(); });
+    })();
+
+    // Network visualization (observer & collapse nodes)
+    (() => {
+      const canvas = document.getElementById('network');
+      const ctx = canvas.getContext('2d');
+      let nodes = [];
+      let w, h, ratio;
+
+      const resize = () => {
+        ratio = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        w = rect.width;
+        h = rect.height;
+        canvas.width = w * ratio;
+        canvas.height = h * ratio;
+        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      };
+
+      const initNodes = () => {
+        nodes = Array.from({ length: 42 }, (_, i) => ({
+          x: Math.random(),
+          y: Math.random(),
+          vx: (Math.random() - 0.5) * 0.0008,
+          vy: (Math.random() - 0.5) * 0.0008,
+          type: (i % 10 === 0) ? 'collapse' : 'observer',
+          pulse: Math.random() * Math.PI * 2
+        }));
+      };
+
+      const draw = (t) => {
+        ctx.clearRect(0, 0, w, h);
+        const time = t * 0.001;
+        const positions = nodes.map(n => ({
+          ...n,
+          px: n.x * w,
+          py: n.y * h
+        }));
+
+        // edges
+        ctx.lineWidth = 1;
+        positions.forEach((n, i) => {
+          positions.forEach((m, j) => {
+            if (j <= i) return;
+            const dx = n.px - m.px;
+            const dy = n.py - m.py;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 180) {
+              const influence = n.type === 'collapse' || m.type === 'collapse' ? 0.8 : 0.45;
+              ctx.strokeStyle = `rgba(51, 225, 255, ${(1 - dist / 180) * influence})`;
+              ctx.beginPath();
+              ctx.moveTo(n.px, n.py);
+              ctx.lineTo(m.px, m.py);
+              ctx.stroke();
+            }
+          });
+        });
+
+        // nodes
+        positions.forEach(n => {
+          const pulsing = 1 + 0.4 * Math.sin(time * 2 + n.pulse);
+          const r = n.type === 'collapse' ? 7 * pulsing : 4.5 * pulsing;
+          ctx.beginPath();
+          ctx.fillStyle = n.type === 'collapse'
+            ? `rgba(0, 255, 163, 0.9)`
+            : `rgba(51, 225, 255, 0.9)`;
+          ctx.shadowBlur = n.type === 'collapse' ? 16 : 10;
+          ctx.shadowColor = n.type === 'collapse' ? 'rgba(0,255,163,0.6)' : 'rgba(51,225,255,0.5)';
+          ctx.arc(n.px, n.py, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        });
+
+        // drift update
+        nodes.forEach(n => {
+          n.x += n.vx;
+          n.y += n.vy;
+          if (n.x < 0) n.x = 1; if (n.x > 1) n.x = 0;
+          if (n.y < 0) n.y = 1; if (n.y > 1) n.y = 0;
+        });
+
+        requestAnimationFrame(draw);
+      };
+
+      resize();
+      initNodes();
+      requestAnimationFrame(draw);
+      window.addEventListener('resize', resize);
+    })();
+
+    // Audio: 60Hz sine with 0.6Hz LFO, mute toggle stored in localStorage
+    (() => {
+      const toggleBtn = document.getElementById('muteToggle');
+      const STORAGE_KEY = 'observer_consciousness_paradox_audio_muted';
+      let audioCtx, mainOsc, gainNode, lfoOsc, lfoGain;
+      let started = false;
+      let muted = localStorage.getItem(STORAGE_KEY) === 'true';
+
+      const updateLabel = () => {
+        toggleBtn.textContent = muted ? 'Unmute background tone' : 'Mute background tone';
+      };
+
+      const initAudio = () => {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = muted ? 0 : 0.05;
+
+        mainOsc = audioCtx.createOscillator();
+        mainOsc.frequency.value = 60;
+
+        lfoOsc = audioCtx.createOscillator();
+        lfoOsc.frequency.value = 0.6;
+        lfoGain = audioCtx.createGain();
+        lfoGain.gain.value = 0.02;
+
+        lfoOsc.connect(lfoGain).connect(gainNode.gain);
+        mainOsc.connect(gainNode).connect(audioCtx.destination);
+        mainOsc.start();
+        lfoOsc.start();
+        started = true;
+      };
+
+      const ensureStarted = () => {
+        if (!started) {
+          initAudio();
+        }
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+      };
+
+      toggleBtn.addEventListener('click', () => {
+        ensureStarted();
+        muted = !muted;
+        const target = muted ? 0.0001 : 0.05;
+        gainNode.gain.setTargetAtTime(target, audioCtx.currentTime, 0.08);
+        localStorage.setItem(STORAGE_KEY, muted);
+        updateLabel();
+      });
+
+      // Initialize label and start audio on first user interaction if unmuted preference exists
+      updateLabel();
+      if (!muted) {
+        window.addEventListener('pointerdown', function autoStart() {
+          ensureStarted();
+          window.removeEventListener('pointerdown', autoStart);
+        });
+      }
+    })();
+
+    // Timestamp
+    (() => {
+      const el = document.getElementById('timestamp');
+      const render = () => {
+        const now = new Date();
+        el.textContent = `Timestamp: ${now.toLocaleString()}`;
+      };
+      render();
+      setInterval(render, 60000);
+    })();
+  </script>
+</body>
+</html>
