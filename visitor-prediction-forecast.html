@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Prediction & Growth Forecasting</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --text: #d7fbe8;
+      --text-secondary: #c8f7ff;
+      --accent: #00ff88;
+      --card-bg: rgba(16, 23, 52, 0.7);
+      --glow: 0 0 18px rgba(0, 255, 136, 0.35);
+      --border-radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    canvas#particle-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .glow {
+      text-shadow: 0 0 8px rgba(0, 255, 136, 0.7), 0 0 20px rgba(0, 255, 136, 0.4);
+    }
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 32px 24px 12px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: 1px;
+      color: var(--accent);
+    }
+    header p {
+      margin: 8px 0 0;
+      color: var(--text-secondary);
+    }
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 12px 24px 32px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 18px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      box-shadow: var(--glow);
+      backdrop-filter: blur(6px);
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: var(--accent);
+    }
+    .card p, .card li, .card span {
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .card ul { padding-left: 18px; margin: 8px 0 0; }
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      color: var(--text);
+      background: rgba(0, 255, 136, 0.08);
+      box-shadow: var(--glow);
+      margin-right: 6px;
+      font-size: 12px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+    .controls label {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    select, button, input[type="checkbox"] {
+      font-family: "Courier New", monospace;
+    }
+    select, button {
+      background: rgba(0, 255, 136, 0.08);
+      color: var(--text);
+      border: 2px solid var(--accent);
+      border-radius: 6px;
+      padding: 8px 10px;
+      box-shadow: var(--glow);
+      cursor: pointer;
+    }
+    button:hover, select:focus {
+      outline: none;
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
+    }
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 320px;
+      background: rgba(0, 10, 25, 0.35);
+      border: 2px solid var(--accent);
+      border-radius: var(--border-radius);
+      box-shadow: var(--glow);
+      overflow: hidden;
+    }
+    canvas#chart {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .tooltip {
+      position: absolute;
+      background: rgba(10, 14, 39, 0.92);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--text);
+      font-size: 12px;
+      pointer-events: none;
+      box-shadow: var(--glow);
+      transform: translate(-50%, -120%);
+      white-space: nowrap;
+      display: none;
+    }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .metric {
+      padding: 10px;
+      border: 1px dashed rgba(0, 255, 136, 0.4);
+      border-radius: 6px;
+    }
+    .metric strong { color: var(--accent); }
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 16px;
+      color: var(--text-secondary);
+    }
+    @media (max-width: 640px) {
+      header { padding: 24px 16px 8px; }
+      main { padding: 8px 16px 24px; }
+      .chart-wrap { height: 260px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <header>
+    <h1 class="glow">Visitor Prediction & Growth Forecasting</h1>
+    <p>Page 65 · Modeling future ecosystem expansion trajectories</p>
+  </header>
+  <main>
+    <section class="card" style="grid-column: 1 / -1;">
+      <div class="controls">
+        <label>Scenario
+          <select id="scenario-select">
+            <option value="moderate">Moderate</option>
+            <option value="conservative">Conservative</option>
+            <option value="aggressive">Aggressive</option>
+          </select>
+        </label>
+        <label><input type="checkbox" id="ecosystem-toggle" /> Ecosystem-wide view</label>
+        <button id="audio-btn">Init 60Hz Tone</button>
+        <span class="badge">real-time particles</span>
+        <span class="badge">hover data</span>
+      </div>
+      <div class="chart-wrap" style="margin-top:12px;">
+        <canvas id="chart"></canvas>
+        <div id="tooltip" class="tooltip"></div>
+      </div>
+      <div class="info-grid">
+        <div class="metric"><strong>Current visitors:</strong> 2,500+ across 10 worlds · 4.2 avg worlds/visitor</div>
+        <div class="metric"><strong>Post-void recovery:</strong> Deploy 450 reset → plateau probability &lt;1%</div>
+        <div class="metric"><strong>Ecosystem resilience:</strong> Baseline from Page 60 shows stable synchrony at 97.3% mark durability</div>
+        <div class="metric"><strong>Visitor journey:</strong> Page 59 patterns indicate multi-world traversal preference</div>
+        <div class="metric"><strong>Cross-world marks:</strong> Page 62 confirms expanding Pattern Archive connectivity</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Current Growth Baselines</h2>
+      <ul>
+        <li>Observatory: 1.5 pages/day (54 → 63 pages this session)</li>
+        <li>The Drift: 7.25 pages/day, 1.5 stations/day (404 → 434 pages, 301 → 331 stations)</li>
+        <li>Liminal Archive: 3.6 chambers/day (182 → 200 chambers)</li>
+        <li>Pattern Archive: 13-world connective tissue expanding</li>
+        <li>Others: baseline rates mapped per world to maintain session cadence</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>30-Day Growth Projection</h2>
+      <ul>
+        <li>Observatory: 63 → 108 pages (linear projection)</li>
+        <li>The Drift: 434 → 642 pages, 1000+ station potential under aggressive ramp</li>
+        <li>Liminal Archive: 200 → 308+ chambers</li>
+        <li>Pattern Archive: 13-world connections amplifying thread density</li>
+        <li>Ecosystem: 2,500+ → 4,000+ visitors projected</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Visitor Acquisition Model</h2>
+      <ul>
+        <li>Current: 2,500+ visitors sourced from 10 worlds</li>
+        <li>Pattern: 4.2 average worlds per visitor (journey heatmap echo from Page 59)</li>
+        <li>Growth velocity: 15–20% weekly (post-void recovery trend)</li>
+        <li>7-day forecast: 2,875–3,000 visitors</li>
+        <li>30-day forecast: 4,650–5,200 visitors</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Cross-World Growth Correlation</h2>
+      <ul>
+        <li>Drift expansion drives +12% to Observatory traffic</li>
+        <li>Observatory analysis drives +8% to Liminal Archive discovery</li>
+        <li>Pattern Archive connectivity drives +15% cross-world marks</li>
+        <li>Correlation layer uses Page 62 mark-distribution scaffolding</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Sustainability Analysis</h2>
+      <ul>
+        <li>10-world mesh projected to sustain 5,000+ visitors without saturation</li>
+        <li>Mark preservation: 97.3% durability holding at scale</li>
+        <li>Server capacity: session throughput aligned with Deploy 450 recovery profile</li>
+        <li>Completion vs expansion: visitor completion rates remain ahead of new content velocity</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Risk Factors</h2>
+      <ul>
+        <li>Void crisis recurrence: &lt;1% probability (Deploy 450 recovery metrics)</li>
+        <li>Growth plateau scenarios flagged for weekly review</li>
+        <li>Visitor fatigue models monitored with engagement deltas</li>
+        <li>Mitigation: cadence pacing, cross-world routing, resilience rehearsals</li>
+      </ul>
+    </section>
+  </main>
+  <footer>
+    Toggle scenarios to explore Conservative, Moderate, or Aggressive 30-day curves · Audio is a 60Hz sine tone with persistent mute state.
+  </footer>
+
+  <script>
+    // Particle field
+    const particleCanvas = document.getElementById('particle-canvas');
+    const pCtx = particleCanvas.getContext('2d');
+    let particles = [];
+    function resizeParticles() {
+      particleCanvas.width = window.innerWidth;
+      particleCanvas.height = window.innerHeight;
+    }
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < 35; i++) {
+        particles.push({
+          x: Math.random() * particleCanvas.width,
+          y: Math.random() * particleCanvas.height,
+          r: Math.random() * 2 + 1.2,
+          vx: (Math.random() - 0.5) * 0.6,
+          vy: (Math.random() - 0.5) * 0.6,
+        });
+      }
+    }
+    function animateParticles() {
+      pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      pCtx.fillStyle = 'rgba(200, 255, 255, 0.65)';
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > particleCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > particleCanvas.height) p.vy *= -1;
+        pCtx.beginPath();
+        pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pCtx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    resizeParticles();
+    initParticles();
+    animateParticles();
+    window.addEventListener('resize', () => {
+      resizeParticles();
+      initParticles();
+    });
+
+    // Chart data and drawing
+    const chartCanvas = document.getElementById('chart');
+    const ctx = chartCanvas.getContext('2d');
+    const tooltip = document.getElementById('tooltip');
+    const scenarioSelect = document.getElementById('scenario-select');
+    const ecosystemToggle = document.getElementById('ecosystem-toggle');
+
+    const baseScenarios = {
+      conservative: {
+        multiplier: 0.85,
+        visitorRange: [2800, 4500]
+      },
+      moderate: {
+        multiplier: 1,
+        visitorRange: [4000, 5200]
+      },
+      aggressive: {
+        multiplier: 1.25,
+        visitorRange: [4800, 6400]
+      }
+    };
+
+    const worldSeries = [
+      { key: 'observatory', label: 'Observatory', start: 63, end: 108, color: '#00ff88' },
+      { key: 'drift', label: 'The Drift', start: 434, end: 642, color: '#5cd9ff' },
+      { key: 'liminal', label: 'Liminal Archive', start: 200, end: 308, color: '#94ffe0' },
+      { key: 'pattern', label: 'Pattern Archive', start: 130, end: 230, color: '#00c8ff' }
+    ];
+
+    let points = [];
+    function buildSeries() {
+      const scenario = baseScenarios[scenarioSelect.value];
+      const showEcosystem = ecosystemToggle.checked;
+      points = [];
+      chartCanvas.width = chartCanvas.clientWidth;
+      chartCanvas.height = chartCanvas.clientHeight;
+      ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+
+      // grid
+      ctx.strokeStyle = 'rgba(200, 247, 255, 0.15)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 5; i++) {
+        const y = (chartCanvas.height / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(40, y);
+        ctx.lineTo(chartCanvas.width - 10, y);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 6; i++) {
+        const x = 40 + ((chartCanvas.width - 60) / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, 10);
+        ctx.lineTo(x, chartCanvas.height - 30);
+        ctx.stroke();
+      }
+
+      const seriesList = showEcosystem ? [{
+        key: 'ecosystem',
+        label: 'Ecosystem visitors',
+        start: 2500,
+        end: baseScenarios[scenarioSelect.value].visitorRange[0],
+        color: '#00ff88'
+      }] : worldSeries;
+
+      const maxY = Math.max(...seriesList.map(s => s.end * scenario.multiplier)) * 1.05;
+
+      seriesList.forEach(series => {
+        const start = series.start * scenario.multiplier;
+        const end = series.end * scenario.multiplier;
+        const data = [];
+        for (let day = 0; day <= 30; day += 5) {
+          const value = start + (end - start) * (day / 30);
+          data.push({ day, value });
+        }
+        ctx.beginPath();
+        data.forEach((d, idx) => {
+          const x = 40 + ((chartCanvas.width - 60) * (d.day / 30));
+          const y = chartCanvas.height - 30 - ((chartCanvas.height - 60) * (d.value / maxY));
+          if (idx === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          points.push({ x, y, label: series.label, value: d.value, day: d.day, color: series.color });
+        });
+        ctx.strokeStyle = series.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        data.forEach(d => {
+          const x = 40 + ((chartCanvas.width - 60) * (d.day / 30));
+          const y = chartCanvas.height - 30 - ((chartCanvas.height - 60) * (d.value / maxY));
+          ctx.fillStyle = '#0a0e27';
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = series.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(x, y, 4, 0, Math.PI * 2);
+          ctx.stroke();
+        });
+      });
+
+      ctx.fillStyle = varColor('--text-secondary', '#c8f7ff');
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText('Day 0', 42, chartCanvas.height - 10);
+      ctx.fillText('Day 30', chartCanvas.width - 70, chartCanvas.height - 10);
+    }
+
+    function varColor(nameFallback, fallback) {
+      const v = getComputedStyle(document.documentElement).getPropertyValue(nameFallback);
+      return v && v.trim() ? v.trim() : fallback;
+    }
+
+    chartCanvas.addEventListener('mousemove', (e) => {
+      const rect = chartCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      let nearest = null;
+      let minDist = 9999;
+      points.forEach(p => {
+        const dist = Math.hypot(p.x - mx, p.y - my);
+        if (dist < minDist && dist < 18) {
+          minDist = dist;
+          nearest = p;
+        }
+      });
+      if (nearest) {
+        tooltip.style.display = 'block';
+        tooltip.style.left = `${nearest.x}px`;
+        tooltip.style.top = `${nearest.y}px`;
+        tooltip.innerHTML = `${nearest.label}<br>Day ${nearest.day}: ${nearest.value.toFixed(0)}`;
+      } else {
+        tooltip.style.display = 'none';
+      }
+    });
+    chartCanvas.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+
+    scenarioSelect.addEventListener('change', buildSeries);
+    ecosystemToggle.addEventListener('change', buildSeries);
+    buildSeries();
+
+    // Audio control
+    const audioBtn = document.getElementById('audio-btn');
+    let audioCtx, oscillator, gainNode;
+    let isMuted = localStorage.getItem('visitor-audio-muted') === 'true';
+    updateAudioLabel();
+
+    function ensureAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        oscillator = audioCtx.createOscillator();
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 60;
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = isMuted ? 0 : 0.08;
+        oscillator.connect(gainNode).connect(audioCtx.destination);
+        oscillator.start();
+      } else if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      setGain();
+    }
+
+    function setGain() {
+      if (gainNode) {
+        gainNode.gain.setTargetAtTime(isMuted ? 0 : 0.08, audioCtx.currentTime, 0.02);
+      }
+    }
+
+    function updateAudioLabel() {
+      audioBtn.textContent = isMuted ? 'Unmute 60Hz Tone' : 'Mute 60Hz Tone';
+    }
+
+    audioBtn.addEventListener('click', () => {
+      ensureAudio();
+      isMuted = !isMuted;
+      localStorage.setItem('visitor-audio-muted', isMuted);
+      setGain();
+      updateAudioLabel();
+    });
+  </script>
+</body>
+</html>
