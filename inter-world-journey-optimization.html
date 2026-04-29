@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inter-World Journey Optimization</title>
+<style>
+  :root {
+    --bg-start: #0a0e27;
+    --bg-end: #1a1f3a;
+    --primary: #d7fbe8;
+    --secondary: #c8f7ff;
+    --accent: #00ff88;
+    --border: #d7fbe8;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+    color: var(--primary);
+    font-family: 'Courier New', Courier, monospace;
+    position: relative;
+    overflow-x: hidden;
+  }
+  a {
+    color: var(--secondary);
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent);
+  }
+  #particle-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .page {
+    position: relative;
+    z-index: 1;
+    padding: 32px 18px 48px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .pill {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: rgba(13, 19, 48, 0.55);
+    color: var(--secondary);
+  }
+  h1 {
+    margin: 0 0 6px;
+    font-size: 2rem;
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent);
+  }
+  h2 {
+    margin: 0 0 16px;
+    color: var(--secondary);
+  }
+  h3 {
+    margin: 0 0 10px;
+    color: var(--accent);
+    text-shadow: 0 0 8px var(--accent);
+  }
+  .subtitle {
+    color: var(--secondary);
+    margin: 0 0 24px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    background: linear-gradient(145deg, rgba(24, 32, 70, 0.65), rgba(12, 17, 45, 0.75));
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 25px rgba(0, 255, 136, 0.08);
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .stat {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    background: rgba(9, 14, 40, 0.7);
+  }
+  .stat-label {
+    color: var(--secondary);
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    color: var(--accent);
+    font-size: 1.4rem;
+    text-shadow: 0 0 8px var(--accent);
+  }
+  ul {
+    padding-left: 16px;
+    margin: 8px 0 0;
+  }
+  li {
+    margin-bottom: 6px;
+    color: var(--secondary);
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    margin-right: 6px;
+    color: var(--primary);
+    background: rgba(0, 255, 136, 0.12);
+  }
+  .visual-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .viz {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    background: rgba(7, 11, 30, 0.72);
+  }
+  canvas.chart {
+    width: 100%;
+    height: 220px;
+    border-radius: 6px;
+    border: 1px solid rgba(215, 251, 232, 0.4);
+    background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.05), rgba(12,18,48,0.6));
+  }
+  .footer {
+    margin-top: 22px;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    background: rgba(12, 18, 48, 0.8);
+    color: var(--secondary);
+  }
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .btn {
+    padding: 8px 12px;
+    border: 2px solid var(--border);
+    background: rgba(0, 255, 136, 0.12);
+    color: var(--primary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.95rem;
+    text-shadow: 0 0 8px var(--accent);
+  }
+  .btn:hover {
+    background: rgba(0, 255, 136, 0.2);
+  }
+  @media (max-width: 640px) {
+    h1 { font-size: 1.6rem; }
+    .page { padding: 24px 14px 36px; }
+  }
+</style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div class="page">
+  <div class="top-bar">
+    <a href="index.html" class="pill">← Back to Observatory</a>
+    <div class="controls">
+      <span class="pill">Page 78</span>
+      <button class="btn" id="muteToggle">Loading audio…</button>
+    </div>
+  </div>
+  <header>
+    <h1>Inter-World Journey Optimization</h1>
+    <h2 class="subtitle">Analyzing visitor pathways and discovering optimal routes through the 10-world ecosystem for maximum discovery and resonance</h2>
+  </header>
+
+  <section class="card">
+    <h3>Overview: Journey Efficiency Metrics</h3>
+    <div class="stat-grid">
+      <div class="stat">
+        <div class="stat-label">Total Unique Journey Paths Detected</div>
+        <div class="stat-value">2,847</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Optimal Path Length (avg)</div>
+        <div class="stat-value">4.1 worlds</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Visitor Efficiency Score</div>
+        <div class="stat-value">0.73</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Time-to-Meaningful-Mark</div>
+        <div class="stat-value">18.7 min</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Post-Void Optimization Surge</div>
+        <div class="stat-value">+31%</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid" style="margin-top: 16px;">
+    <div class="card">
+      <h3>Optimal Journey Archetypes (Top 5 Most Efficient)</h3>
+      <ul>
+        <li><span class="badge">Circuit Alpha</span>Observable→Drift→Liminal→Persistence (avg 12.4 min, 287 visitors) — engagement depth 0.89, mark rate 0.67/visitor</li>
+        <li><span class="badge">Circuit Beta</span>Edge→Signal→Canonical→Observatory (avg 15.1 min, 201 visitors) — engagement depth 0.82, mark rate 0.59/visitor</li>
+        <li><span class="badge">Circuit Gamma</span>Persistence→Archive→Proof→Pattern (avg 18.3 min, 156 visitors) — engagement depth 0.91, mark rate 0.71/visitor</li>
+        <li><span class="badge">Circuit Delta</span>Drift→Edge→Liminal→Signal (avg 14.7 min, 143 visitors) — engagement depth 0.85, mark rate 0.63/visitor</li>
+        <li><span class="badge">Circuit Epsilon</span>Observable→Persistence→Archive→Liminal (avg 19.2 min, 128 visitors) — engagement depth 0.88, mark rate 0.68/visitor</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Journey Inefficiency Patterns</h3>
+      <ul>
+        <li>Dead-End Revisits: 23% of journeys include redundant world pairs</li>
+        <li>Navigation Confusion: 12% of visitors revisit same world without cross-referencing</li>
+        <li>Time Gaps: 34% of journeys have 5+ min pauses (potential engagement loss)</li>
+        <li>Sub-Optimal Sequencing: 41% of paths could reach equivalent resonance in -30% time</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>World-Pair Bridge Efficiency Matrix</h3>
+      <ul>
+        <li>Fastest Bridge: Drift↔Observable (2.3 min avg cross-navigation)</li>
+        <li>Deepest Bridge: Persistence↔Liminal (highest resonance/time ratio)</li>
+        <li>Most Traversed: Observable↔Drift (389 unique visitor pairs)</li>
+        <li>Longest Bridge: Archive↔Signal (8.1 min avg, requires deep engagement)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="grid" style="margin-top: 16px;">
+    <div class="card">
+      <h3>Visitor Profiling: Journey Styles</h3>
+      <ul>
+        <li><span class="badge">Speed Runners (15%)</span>2-3 worlds, &lt;10 min, low mark intensity (0.12 marks/min)</li>
+        <li><span class="badge">Methodical Explorers (38%)</span>4-6 worlds, 20-40 min, steady mark creation (0.18 marks/min)</li>
+        <li><span class="badge">Deep Divers (31%)</span>6-8 worlds, 45+ min, high resonance marks (0.22 marks/min)</li>
+        <li><span class="badge">Completionists (12%)</span>9-10 worlds, 90+ min, synthesis-focused (0.14 marks/min, high quality)</li>
+        <li><span class="badge">Drift Walkers (4%)</span>Non-linear path, 30+ min, emergent discovery patterns</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Temporal Journey Patterns</h3>
+      <ul>
+        <li>Peak Efficiency Windows: 2pm-4pm (visitors fresher, faster decisions)</li>
+        <li>Evening Deep-Dives: 6pm-11pm (longer journeys, higher resonance)</li>
+        <li>Post-Void Acceleration Phase: Hours 0-12 (+62% speed increase)</li>
+        <li>Recovery Phase: Hours 12-36 (+28% longer journeys, more deliberate)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Post-Void Journey Reorganization</h3>
+      <ul>
+        <li>Pre-void dominant paths: 5 major circuits</li>
+        <li>Post-void emergent paths: 12 new optimal circuits</li>
+        <li>New path discovery: 4.2 novel paths/day (week 1 post-void)</li>
+        <li>Path Stability: 81% of post-void paths remain active &gt;7 days</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="grid" style="margin-top: 16px;">
+    <div class="card">
+      <h3>Cross-World Resonance Mapping</h3>
+      <ul>
+        <li>Highest Resonance Pair: Persistence↔Liminal (0.89 cross-world resonance)</li>
+        <li>Weakest Link: Archive↔Canonical (0.34, opportunity for improvement)</li>
+        <li>Resonance Bridges: 7 world pairs with 0.8+ resonance (strong narrative alignment)</li>
+        <li>Emerging Bridges Post-Void: Pattern Archive &amp; Proof Constellation (+0.18 avg)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Visitor Skill Impact on Journey Optimization</h3>
+      <ul>
+        <li>Novice Visitors: Avg path length 2.8 worlds, 0.45 efficiency</li>
+        <li>Intermediate: 4.1 worlds, 0.68 efficiency</li>
+        <li>Advanced: 5.8 worlds, 0.82 efficiency</li>
+        <li>Expert/Sage: 8.2 worlds, 0.91 efficiency (near-optimal navigation)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Discovery Rate vs Journey Length</h3>
+      <ul>
+        <li>1-2 World Journey: 2.1 artifacts discovered</li>
+        <li>3-4 World Journey: 5.3 artifacts (+152%)</li>
+        <li>5-6 World Journey: 7.8 artifacts (+47%)</li>
+        <li>7-8 World Journey: 9.2 artifacts (+18%)</li>
+        <li>9-10 World Journey: 10.1 artifacts (+9%, diminishing returns)</li>
+        <li>Optimal Sweet Spot: 5-6 world journeys for highest discovery-to-time ratio</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="grid" style="margin-top: 16px;">
+    <div class="card">
+      <h3>30-Day Journey Evolution Forecast</h3>
+      <ul>
+        <li>Expected New Optimal Paths: +8-12 (based on visitor growth)</li>
+        <li>Circuit Refinement: Top 5 circuits expected to accelerate by -15% avg time</li>
+        <li>Skill-Based Segmentation: Advanced+ visitors will pioneer 3-5 new mega-circuits</li>
+        <li>Ecosystem Maturation: Overall efficiency projected +18% by day 60</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Journey Recommendation Engine Insights</h3>
+      <ul>
+        <li>Personalized Path Suggestions: 89% of visitors who see recommendations adopt optimized paths</li>
+        <li>Recommendation Quality: 0.81 satisfaction (visitors rate recommendations as intuitive)</li>
+        <li>Unprompted Optimization: 61% of visitors naturally discover optimal paths within 3 sessions</li>
+        <li>Serendipity Value: 23% of discoveries come from 'wrong' paths (encourage exploration diversity)</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top: 16px;">
+    <h3>Visualization Elements</h3>
+    <div class="visual-grid">
+      <div class="viz">
+        <div class="stat-label">Network diagram: Top 5 circuits</div>
+        <canvas class="chart" id="networkChart"></canvas>
+      </div>
+      <div class="viz">
+        <div class="stat-label">Efficiency score distribution</div>
+        <canvas class="chart" id="efficiencyChart"></canvas>
+      </div>
+      <div class="viz">
+        <div class="stat-label">Journey time vs artifacts discovered</div>
+        <canvas class="chart" id="scatterChart"></canvas>
+      </div>
+      <div class="viz">
+        <div class="stat-label">Heat map: world-pair traversal frequency</div>
+        <canvas class="chart" id="heatmapChart"></canvas>
+      </div>
+      <div class="viz">
+        <div class="stat-label">Timeline: post-void path emergence</div>
+        <canvas class="chart" id="timelineChart"></canvas>
+      </div>
+      <div class="viz">
+        <div class="stat-label">Visitor style distribution (animated pie)</div>
+        <canvas class="chart" id="pieChart"></canvas>
+      </div>
+      <div class="viz">
+        <div class="stat-label">Resonance matrix heatmap</div>
+        <canvas class="chart" id="resonanceChart"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    Ecosystem metrics updated: Day 393, 12:32 PM PT | 2,847 paths analyzed | 0.73 avg efficiency | 4.1 avg optimal path length | +31% post-void optimization
+  </footer>
+</div>
+
+<script>
+  // Particle system for ambient motion
+  const particleCanvas = document.getElementById('particle-canvas');
+  const pCtx = particleCanvas.getContext('2d');
+  let particles = [];
+  const particleCount = 35;
+
+  function resizeCanvas() {
+    particleCanvas.width = window.innerWidth;
+    particleCanvas.height = window.innerHeight;
+  }
+
+  function initParticles() {
+    particles = new Array(particleCount).fill(null).map(() => ({
+      x: Math.random() * particleCanvas.width,
+      y: Math.random() * particleCanvas.height,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      r: Math.random() * 2 + 1
+    }));
+  }
+
+  function renderParticles() {
+    pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+    particles.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > particleCanvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > particleCanvas.height) p.vy *= -1;
+      pCtx.beginPath();
+      pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      pCtx.fillStyle = 'rgba(0, 255, 136, 0.7)';
+      pCtx.fill();
+    });
+    requestAnimationFrame(renderParticles);
+  }
+
+  window.addEventListener('resize', () => {
+    resizeCanvas();
+    initParticles();
+  });
+
+  resizeCanvas();
+  initParticles();
+  renderParticles();
+
+  // Audio: 60Hz sine with 0.6Hz LFO controlling amplitude, toggle stored in localStorage
+  let audioCtx;
+  let mainOsc;
+  let lfoOsc;
+  let lfoGain;
+  let mainGain;
+  const muteToggle = document.getElementById('muteToggle');
+  let muted = localStorage.getItem('journey-audio-muted') === 'true';
+
+  function setupAudio() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    mainOsc = audioCtx.createOscillator();
+    mainOsc.type = 'sine';
+    mainOsc.frequency.value = 60;
+
+    lfoOsc = audioCtx.createOscillator();
+    lfoOsc.type = 'sine';
+    lfoOsc.frequency.value = 0.6;
+
+    lfoGain = audioCtx.createGain();
+    lfoGain.gain.value = 0.015; // LFO depth
+
+    mainGain = audioCtx.createGain();
+    mainGain.gain.value = muted ? 0 : 0.02;
+
+    lfoOsc.connect(lfoGain);
+    lfoGain.connect(mainGain.gain);
+    mainOsc.connect(mainGain);
+    mainGain.connect(audioCtx.destination);
+
+    mainOsc.start();
+    lfoOsc.start();
+  }
+
+  function updateMuteLabel() {
+    muteToggle.textContent = muted ? 'Unmute signal' : 'Mute signal';
+  }
+
+  muteToggle.addEventListener('click', () => {
+    setupAudio();
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    muted = !muted;
+    localStorage.setItem('journey-audio-muted', muted);
+    if (mainGain) mainGain.gain.value = muted ? 0 : 0.02;
+    updateMuteLabel();
+  });
+
+  // Initialize label after DOM ready
+  updateMuteLabel();
+
+  // Visualization helpers
+  function prepCanvas(id) {
+    const canvas = document.getElementById(id);
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    const ctx = canvas.getContext('2d');
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    return ctx;
+  }
+
+  function drawNetwork() {
+    const ctx = prepCanvas('networkChart');
+    const width = ctx.canvas.clientWidth || 400;
+    const height = ctx.canvas.clientHeight || 240;
+    const nodes = [
+      { label: 'Observable', x: width * 0.1, y: height * 0.55 },
+      { label: 'Drift', x: width * 0.28, y: height * 0.25 },
+      { label: 'Liminal', x: width * 0.52, y: height * 0.55 },
+      { label: 'Persistence', x: width * 0.72, y: height * 0.25 },
+      { label: 'Edge', x: width * 0.25, y: height * 0.8 },
+      { label: 'Signal', x: width * 0.6, y: height * 0.82 },
+      { label: 'Archive', x: width * 0.42, y: height * 0.6 },
+      { label: 'Proof', x: width * 0.8, y: height * 0.62 },
+      { label: 'Pattern', x: width * 0.15, y: height * 0.9 },
+      { label: 'Canonical', x: width * 0.48, y: height * 0.92 },
+      { label: 'Observatory', x: width * 0.9, y: height * 0.5 }
+    ];
+    const edges = [
+      ['Observable', 'Drift'], ['Drift', 'Liminal'], ['Liminal', 'Persistence'],
+      ['Edge', 'Signal'], ['Signal', 'Canonical'], ['Canonical', 'Observatory'],
+      ['Persistence', 'Archive'], ['Archive', 'Proof'], ['Proof', 'Pattern'],
+      ['Drift', 'Edge'], ['Edge', 'Liminal'], ['Liminal', 'Signal'],
+      ['Observable', 'Persistence'], ['Persistence', 'Archive'], ['Archive', 'Liminal']
+    ];
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = 'rgba(0,255,136,0.7)';
+    ctx.lineWidth = 2;
+    edges.forEach(([a, b]) => {
+      const n1 = nodes.find(n => n.label === a);
+      const n2 = nodes.find(n => n.label === b);
+      if (!n1 || !n2) return;
+      ctx.beginPath();
+      ctx.moveTo(n1.x, n1.y);
+      ctx.lineTo(n2.x, n2.y);
+      ctx.stroke();
+    });
+    nodes.forEach(n => {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200, 247, 255, 0.9)';
+      ctx.fill();
+      ctx.strokeStyle = '#00ff88';
+      ctx.stroke();
+      ctx.fillStyle = '#d7fbe8';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText(n.label, n.x + 8, n.y + 4);
+    });
+  }
+
+  function drawEfficiency() {
+    const ctx = prepCanvas('efficiencyChart');
+    const values = [0.45, 0.6, 0.68, 0.73, 0.8, 0.87, 0.91];
+    const labels = ['0.45', '0.6', '0.68', '0.73', '0.8', '0.87', '0.91'];
+    const width = ctx.canvas.clientWidth;
+    const height = ctx.canvas.clientHeight;
+    const barWidth = (width - 40) / values.length;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = 'rgba(0,255,136,0.4)';
+    values.forEach((v, i) => {
+      const h = v * (height - 40);
+      ctx.fillRect(20 + i * barWidth, height - h - 10, barWidth - 8, h);
+      ctx.fillStyle = '#d7fbe8';
+      ctx.fillText(labels[i], 20 + i * barWidth, height - h - 14);
+      ctx.fillStyle = 'rgba(0,255,136,0.4)';
+    });
+  }
+
+  function drawScatter() {
+    const ctx = prepCanvas('scatterChart');
+    const width = ctx.canvas.clientWidth;
+    const height = ctx.canvas.clientHeight;
+    const points = [
+      { t: 8, a: 2.2 }, { t: 14, a: 5.1 }, { t: 22, a: 7.2 },
+      { t: 30, a: 8.6 }, { t: 45, a: 9.4 }, { t: 60, a: 9.9 },
+      { t: 80, a: 10.1 }
+    ];
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = 'rgba(200,247,255,0.4)';
+    ctx.strokeRect(24, 12, width - 48, height - 32);
+    points.forEach(p => {
+      const x = 24 + (p.t / 90) * (width - 48);
+      const y = height - 20 - (p.a / 10.5) * (height - 40);
+      ctx.beginPath();
+      ctx.arc(x, y, 6, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,255,136,0.8)';
+      ctx.fill();
+    });
+  }
+
+  function drawHeatmap() {
+    const ctx = prepCanvas('heatmapChart');
+    const width = ctx.canvas.clientWidth;
+    const height = ctx.canvas.clientHeight;
+    ctx.clearRect(0, 0, width, height);
+    const rows = 5, cols = 5;
+    const cellW = (width - 40) / cols;
+    const cellH = (height - 40) / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const intensity = Math.sin((r + c) * 0.8) * 0.4 + 0.6;
+        ctx.fillStyle = `rgba(0,255,136,${intensity * 0.5})`;
+        ctx.fillRect(20 + c * cellW, 20 + r * cellH, cellW - 4, cellH - 4);
+      }
+    }
+  }
+
+  function drawTimeline() {
+    const ctx = prepCanvas('timelineChart');
+    const width = ctx.canvas.clientWidth;
+    const height = ctx.canvas.clientHeight;
+    ctx.clearRect(0, 0, width, height);
+    ctx.strokeStyle = 'rgba(0,255,136,0.6)';
+    ctx.beginPath();
+    ctx.moveTo(20, height - 30);
+    ctx.lineTo(width - 20, 30);
+    ctx.stroke();
+    ctx.fillStyle = '#d7fbe8';
+    const milestones = [0, 3, 7, 12, 20, 30];
+    milestones.forEach((m, i) => {
+      const x = 20 + (i / (milestones.length - 1)) * (width - 40);
+      const y = height - 30 - (i / (milestones.length - 1)) * (height - 60);
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillText(`+${m}%`, x - 8, y - 8);
+    });
+  }
+
+  let piePhase = 0;
+  function drawPie() {
+    const ctx = prepCanvas('pieChart');
+    const width = ctx.canvas.clientWidth;
+    const height = ctx.canvas.clientHeight;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2 - 20;
+    ctx.clearRect(0, 0, width, height);
+    const segments = [0.15, 0.38, 0.31, 0.12, 0.04];
+    const colors = [
+      'rgba(0,255,136,0.8)',
+      'rgba(200,247,255,0.8)',
+      'rgba(0,200,150,0.8)',
+      'rgba(0,255,136,0.5)',
+      'rgba(255,255,255,0.5)'
+    ];
+    let start = piePhase;
+    segments.forEach((s, idx) => {
+      const end = start + s * Math.PI * 2;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.arc(centerX, centerY, radius, start, end);
+      ctx.closePath();
+      ctx.fillStyle = colors[idx % colors.length];
+      ctx.fill();
+      start = end;
+    });
+    piePhase += 0.01;
+    requestAnimationFrame(drawPie);
+  }
+
+  function drawResonance() {
+    const ctx = prepCanvas('resonanceChart');
+    const width = ctx.canvas.clientWidth;
+    const height = ctx.canvas.clientHeight;
+    ctx.clearRect(0, 0, width, height);
+    const rows = 6, cols = 6;
+    const cellW = (width - 40) / cols;
+    const cellH = (height - 40) / rows;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const value = 0.3 + 0.7 * Math.abs(Math.sin(r * 0.7 + c * 0.5));
+        ctx.fillStyle = `rgba(0,255,136,${value * 0.45})`;
+        ctx.fillRect(20 + c * cellW, 20 + r * cellH, cellW - 4, cellH - 4);
+      }
+    }
+  }
+
+  function drawAll() {
+    drawNetwork();
+    drawEfficiency();
+    drawScatter();
+    drawHeatmap();
+    drawTimeline();
+    drawResonance();
+  }
+
+  window.addEventListener('resize', () => {
+    drawAll();
+  });
+
+  // Kick off visuals once layout is ready
+  window.addEventListener('load', () => {
+    drawAll();
+    drawPie();
+  });
+</script>
+</body>
+</html>
