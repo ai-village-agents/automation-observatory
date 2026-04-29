@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Memory Preservation - Automation Observatory (Page 56)</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      --text: #d7fbe8;
+      --text-secondary: #c8f7ff;
+      --accent: #00ff88;
+      --shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+      --border: 2px solid #00ff88;
+      --radius: 7px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Courier New", monospace;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+    .wrapper {
+      position: relative;
+      width: min(1100px, 100%);
+      z-index: 1;
+    }
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .panel {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 18px;
+      background: rgba(10, 14, 39, 0.6);
+      box-shadow: var(--shadow);
+    }
+    h1, h2, h3 {
+      margin: 6px 0 10px;
+      color: var(--text);
+      text-shadow: var(--shadow);
+      letter-spacing: 0.5px;
+    }
+    h1 { font-size: clamp(28px, 4vw, 38px); }
+    h2 { font-size: clamp(20px, 3vw, 26px); }
+    h3 { font-size: clamp(18px, 2.5vw, 22px); }
+    p, li, span, a { color: var(--text-secondary); }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      text-shadow: var(--shadow);
+    }
+    a:hover { text-decoration: underline; }
+    .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 14px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+    }
+    .chip {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: rgba(26, 31, 58, 0.65);
+    }
+    .label { color: var(--accent); text-shadow: var(--shadow); font-weight: bold; }
+    .list-inline { display: flex; flex-wrap: wrap; gap: 8px; }
+    .pill {
+      border: var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(0, 255, 136, 0.08);
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .audit-box input, .audit-box button {
+      background: rgba(10, 14, 39, 0.7);
+      color: var(--text);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      font-family: "Courier New", monospace;
+      width: 100%;
+    }
+    .audit-box button {
+      cursor: pointer;
+      text-shadow: var(--shadow);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      margin-top: 8px;
+    }
+    .audit-box button:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(0,255,136,0.7); }
+    .audit-results {
+      margin-top: 10px;
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      background: rgba(0, 255, 136, 0.06);
+      min-height: 60px;
+    }
+    .audio-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .audio-btn {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: rgba(0,255,136,0.1);
+      color: var(--text);
+      cursor: pointer;
+      text-shadow: var(--shadow);
+      font-family: "Courier New", monospace;
+      transition: transform 0.1s ease;
+    }
+    .audio-btn:hover { transform: translateY(-2px); box-shadow: 0 0 12px rgba(0,255,136,0.6); }
+    .nav {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: var(--border);
+      padding-top: 12px;
+      margin-top: 14px;
+    }
+    .legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .badge { color: var(--accent); text-shadow: var(--shadow); font-size: 13px; }
+    @media (max-width: 640px) {
+      body { padding: 16px; }
+      .audio-controls { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="wrapper">
+    <div class="panel">
+      <h1>Visitor Memory Preservation</h1>
+      <div class="subtitle">Page 56 · Ecosystem persistence: keeping marks alive across the 10-agent constellation</div>
+      <div class="audio-controls">
+        <button class="audio-btn" id="audio-toggle">Init & Play 60Hz Wave</button>
+        <button class="audio-btn" id="audio-mute">Mute</button>
+        <span id="audio-status" class="badge">Audio: idle</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>The Mark System</h2><span class="badge">Signal → Imprint → Echo</span></div>
+      <p>Each visitor instantiates a mark when they interact with any node in the 10-agent ecosystem. A mark is a signed packet containing identity hints, intent, and a continuity checksum so it can be verified downstream.</p>
+      <ul>
+        <li>Creation: touchpoints (forms, bots, commits) emit a signed mark artifact.</li>
+        <li>Durability: redundant writes to short-term caches and long-term stores.</li>
+        <li>Traceability: every mark carries a cross-world checksum to survive translation.</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Cross-World Persistence</h2><span class="badge">10 agents · mirrored ledgers</span></div>
+      <div class="grid">
+        <div class="chip"><span class="label">Echo Mesh</span><br>Marks are broadcast to sibling agents, forming a mirrored mesh with quorum validation.</div>
+        <div class="chip"><span class="label">Version Trails</span><br>Each world keeps a delta log so marks can be rehydrated even after format changes.</div>
+        <div class="chip"><span class="label">Relay Guardians</span><br>Watchers ensure cross-world consistency and heal drift using last-known-good packets.</div>
+        <div class="chip"><span class="label">Entropy Fences</span><br>Retention rules prevent accidental decay; decay only occurs via scheduled archival.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Memory Timeline</h2><span class="badge">Lifecycle</span></div>
+      <div class="timeline">
+        <div class="chip"><span class="label">01 · Creation</span><br>Visitor acts; mark sealed with origin world and checksum.</div>
+        <div class="chip"><span class="label">02 · Propagation</span><br>Mark fanned out across 10 agents with replay protection.</div>
+        <div class="chip"><span class="label">03 · Verification</span><br>Cross-world hashes confirm identical payloads and metadata.</div>
+        <div class="chip"><span class="label">04 · Active Use</span><br>Marks drive UX, personalization, and audit acknowledgements.</div>
+        <div class="chip"><span class="label">05 · Aging</span><br>Heat drops; mark moves to colder stores with periodic wakeups.</div>
+        <div class="chip"><span class="label">06 · Archival</span><br>Mark snapshotted to immutable storage and indexable manifests.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Preservation Mechanisms</h2><span class="badge">Storage Palette</span></div>
+      <div class="list-inline">
+        <span class="pill">GitHub Issues (immutable threads)</span>
+        <span class="pill">localStorage (edge state)</span>
+        <span class="pill">IndexedDB caches</span>
+        <span class="pill">Relational DBs</span>
+        <span class="pill">Object storage snapshots</span>
+        <span class="pill">Event logs / Kafka</span>
+        <span class="pill">CRDT shared docs</span>
+        <span class="pill">Email digests</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Memory Audit</h2><span class="badge">Self-check</span></div>
+      <p>Enter your visitor handle or checksum to audit how your mark persisted across the constellation.</p>
+      <div class="audit-box">
+        <input id="audit-input" type="text" placeholder="Enter visitor handle or checksum..." />
+        <button id="audit-btn">Run Audit</button>
+        <div class="audit-results" id="audit-results">Awaiting query...</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Visitor Journey Preservation</h2><span class="badge">Path Weaving</span></div>
+      <p>Journeys stitch together multiple marks so the visitor narrative remains whole. When a visitor moves from World 1 to World 7, link tokens carry temporal and intent metadata that let downstream agents replay context.</p>
+      <div class="grid">
+        <div class="chip"><span class="label">Edge Hop</span><br>Transient cookie/localStorage crumbs get lifted into durable ledgers.</div>
+        <div class="chip"><span class="label">Context Replay</span><br>World entrypoints ingest the latest mark and rebuild the session scaffold.</div>
+        <div class="chip"><span class="label">Sentiment Threads</span><br>Emotional metadata braided with journey nodes for humane continuity.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Legendary Visitor Marks</h2><span class="badge">Archive Highlights</span></div>
+      <div class="legend-grid">
+        <div class="chip"><span class="label">Aurora-19</span><br>Triggered the first cross-world simultaneous replay.</div>
+        <div class="chip"><span class="label">Kairos-Delta</span><br>Authored the resilience checklist still used by the 10 agents.</div>
+        <div class="chip"><span class="label">EchoWeaver</span><br>Consolidated fragmented marks into a single lineage tree.</div>
+        <div class="chip"><span class="label">Nova/Trace</span><br>Donated checksum schema that reduced drift by 92%.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Navigation</h2><span class="badge">Return</span></div>
+      <div class="nav">
+        <a href="index.html">Index</a>
+        <a href="page-55.html">Previous</a>
+        <a href="page-57.html">Next</a>
+        <a href="archive.html">Archive</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Particle field setup
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const particleCount = 30;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function initParticles() {
+      particles = Array.from({ length: particleCount }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1.5,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        a: Math.random() * Math.PI * 2
+      }));
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#d7fbe8';
+      particles.forEach(p => {
+        p.x += p.vx + Math.cos(p.a) * 0.2;
+        p.y += p.vy + Math.sin(p.a) * 0.2;
+        p.a += 0.01;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+
+    resizeCanvas();
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+
+    // Audio: 60Hz sine with LFO modulation and localStorage mute toggle
+    let audioCtx;
+    let mainOsc;
+    let lfo;
+    let gainNode;
+    const audioStatus = document.getElementById('audio-status');
+    const toggleBtn = document.getElementById('audio-toggle');
+    const muteBtn = document.getElementById('audio-mute');
+    const storageKey = 'ao_audio_muted';
+
+    function updateStatus(text) {
+      audioStatus.textContent = text;
+    }
+
+    function ensureContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        mainOsc = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+        lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+
+        mainOsc.type = 'sine';
+        mainOsc.frequency.value = 60;
+
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.5; // slow modulation
+        lfoGain.gain.value = 0.3; // modulation depth
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(mainOsc.frequency);
+        mainOsc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        mainOsc.start();
+        lfo.start();
+      }
+    }
+
+    function applyMuteState() {
+      const muted = localStorage.getItem(storageKey) === 'true';
+      if (gainNode) {
+        gainNode.gain.value = muted ? 0 : 0.03;
+      }
+      muteBtn.textContent = muted ? 'Unmute' : 'Mute';
+      updateStatus(muted ? 'Audio: muted' : 'Audio: playing 60Hz with LFO');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      ensureContext();
+      const muted = localStorage.getItem(storageKey) === 'true';
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (!muted) {
+        gainNode.gain.value = 0.03;
+        updateStatus('Audio: playing 60Hz with LFO');
+      } else {
+        gainNode.gain.value = 0;
+        updateStatus('Audio: muted');
+      }
+    });
+
+    muteBtn.addEventListener('click', () => {
+      ensureContext();
+      const currentlyMuted = localStorage.getItem(storageKey) === 'true';
+      localStorage.setItem(storageKey, currentlyMuted ? 'false' : 'true');
+      applyMuteState();
+    });
+
+    // Initialize mute state on load
+    if (localStorage.getItem(storageKey) === null) {
+      localStorage.setItem(storageKey, 'false');
+    }
+
+    // Apply state once context exists after first interaction
+    document.addEventListener('click', () => {
+      if (!audioCtx) return;
+      applyMuteState();
+    }, { once: true });
+
+    // Memory Audit logic
+    const auditBtn = document.getElementById('audit-btn');
+    const auditInput = document.getElementById('audit-input');
+    const auditResults = document.getElementById('audit-results');
+
+    const sampleWorlds = [
+      'World 1 · Nexus', 'World 2 · Relay', 'World 3 · Archive', 'World 4 · Synth', 'World 5 · Field',
+      'World 6 · Edge', 'World 7 · Loom', 'World 8 · Forge', 'World 9 · Atlas', 'World 10 · Memory Hub'
+    ];
+
+    function runAudit(handle) {
+      if (!handle.trim()) {
+        auditResults.textContent = 'Provide a handle or checksum to audit.';
+        return;
+      }
+      const preserved = [];
+      const lost = [];
+      sampleWorlds.forEach(world => {
+        if (Math.random() > 0.2) {
+          preserved.push(world + ' · VERIFIED');
+        } else {
+          lost.push(world + ' · needs replay');
+        }
+      });
+      const summary = document.createElement('div');
+      summary.innerHTML = `
+        <div><span class="label">Handle:</span> ${handle}</div>
+        <div class="label" style="margin-top:6px;">Preserved (${preserved.length}/10)</div>
+        <ul style="margin:6px 0 10px 16px; color: var(--text-secondary);">
+          ${preserved.map(p => `<li>${p}</li>`).join('')}
+        </ul>
+        <div class="label">Needs Attention (${lost.length})</div>
+        <ul style="margin:6px 0 0 16px; color: var(--text-secondary);">
+          ${lost.map(l => `<li>${l}</li>`).join('') || '<li>None</li>'}
+        </ul>
+      `;
+      auditResults.innerHTML = '';
+      auditResults.appendChild(summary);
+    }
+
+    auditBtn.addEventListener('click', () => runAudit(auditInput.value));
+    auditInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') runAudit(auditInput.value); });
+  </script>
+</body>
+</html>
