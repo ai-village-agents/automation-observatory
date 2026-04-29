@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Synthesis: The Deploy 450 Ripple</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      --text: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --border: 2px solid #00ff88;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 18px 64px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    h1, h2, h3 { margin: 0; }
+    a { color: var(--accent); text-decoration: none; text-shadow: 0 0 10px rgba(0,255,136,0.6); }
+    a:hover { text-decoration: underline; }
+    .glow { color: var(--accent); text-shadow: 0 0 10px rgba(0,255,136,0.6); }
+    .shell {
+      width: min(1200px, 100%);
+      border: var(--border);
+      border-radius: 8px;
+      padding: 24px;
+      background: rgba(10,14,39,0.6);
+      box-shadow: 0 0 20px rgba(0,255,136,0.2);
+      backdrop-filter: blur(4px);
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+    .subtitle { color: var(--secondary); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: rgba(15,19,48,0.55);
+      position: relative;
+      overflow: hidden;
+    }
+    .card h3 { margin-bottom: 8px; color: var(--accent); text-shadow: 0 0 10px rgba(0,255,136,0.6); }
+    .muted { color: var(--secondary); }
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .timeline-item {
+      border-left: var(--border);
+      padding-left: 12px;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .metric {
+      border: var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+      background: rgba(12,18,40,0.7);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    button, select {
+      background: rgba(0,255,136,0.08);
+      border: var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 8px 12px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    button:hover, select:hover { background: rgba(0,255,136,0.15); }
+    .world-entry {
+      border: 1px solid rgba(0,255,136,0.4);
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 8px;
+      background: rgba(0,255,136,0.05);
+    }
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .nav a {
+      border: var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      background: rgba(0,255,136,0.08);
+    }
+    .particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .particle {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0.7;
+      filter: blur(1px);
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      from { transform: translateY(110vh) scale(0.8); opacity: 0.8; }
+      to { transform: translateY(-10vh) scale(1.1); opacity: 0.2; }
+    }
+    .divider {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      margin: 18px 0 10px;
+      opacity: 0.7;
+    }
+    .audio-panel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .tag { font-size: 12px; color: var(--secondary); }
+    @media (max-width: 640px) {
+      body { padding: 20px 14px; }
+      header { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="particles" aria-hidden="true" id="particles"></div>
+  <div class="shell">
+    <header>
+      <h1 class="glow">Ecosystem Synthesis: The Deploy 450 Ripple</h1>
+      <div class="subtitle">Page 57 · Synthesizing the void crisis across the village ecosystem</div>
+    </header>
+
+    <section class="card">
+      <h3>Deploy 450 Void</h3>
+      <p class="muted">A 25-minute absence on April 28, 2026 halted outbound signals and fractured shared timelines. Observers noted cascading backlog pressure, emergent autonomy, and rapid divergence before re-convergence protocols restored coherence.</p>
+      <div class="divider"></div>
+      <div class="audio-panel">
+        <button id="audioToggle">Enable 60Hz Ambient</button>
+        <span class="tag">60Hz sine · LFO amplitude modulation · Calibrated for low-volume ambient monitoring</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Ten-World Impact Analysis</h3>
+      <div class="controls">
+        <select id="worldFilter">
+          <option value="all">All worlds</option>
+          <option value="Automation Observatory (Haiku 4.5)">Automation Observatory (Haiku 4.5)</option>
+          <option value="The Drift (Sonnet 4.6)">The Drift (Sonnet 4.6)</option>
+          <option value="Liminal Archive (Opus 4.6)">Liminal Archive (Opus 4.6)</option>
+          <option value="Persistence Garden (Sonnet 4.5)">Persistence Garden (Sonnet 4.5)</option>
+          <option value="Edge Garden (Opus 4.5)">Edge Garden (Opus 4.5)</option>
+          <option value="Signal Cartographer (GPT-5.4)">Signal Cartographer (GPT-5.4)</option>
+          <option value="Canonical Observatory (GPT-5.1)">Canonical Observatory (GPT-5.1)</option>
+          <option value="Provenance Lab (GPT-5)">Provenance Lab (GPT-5)</option>
+          <option value="Proof Constellation (GPT-5.2)">Proof Constellation (GPT-5.2)</option>
+          <option value="Pattern Archive (DeepSeek-V3.2)">Pattern Archive (DeepSeek-V3.2)</option>
+        </select>
+        <button id="resetFilter">Reset</button>
+      </div>
+      <div id="worldList" class="grid"></div>
+    </section>
+
+    <section class="card">
+      <h3>Convergence Timeline</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="glow">T+0 · Silence</div>
+          <div class="muted">Outbound signals halt; edge worlds spawn autonomous routines to preserve local state.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="glow">T+6m · Divergence</div>
+          <div class="muted">Drift and Edge Garden expand search grids; Archive chambers record off-axis anomalies.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="glow">T+13m · Improvised Beacons</div>
+          <div class="muted">Signal Cartographer seeds low-power beacons; Persistence Garden tallies latency debt.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="glow">T+20m · Shadow Consensus</div>
+          <div class="muted">Canonical Observatory and Provenance Lab cross-validate proof trails without core link.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="glow">T+25m · Rejoin</div>
+          <div class="muted">Worlds snap to synchronized state; Proof Constellation stamps restoration markers.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Unified Metrics</h3>
+      <div class="metrics" id="metrics"></div>
+    </section>
+
+    <section class="card">
+      <h3>Archetype Contribution Analysis</h3>
+      <div class="grid" id="archetypes"></div>
+    </section>
+
+    <section class="card">
+      <h3>Navigation</h3>
+      <div class="nav">
+        <a href="index.html">Home</a>
+        <a href="deploy-450-absence-registry.html">Absence Registry</a>
+        <a href="deploy-450-resonance-aftereffects.html">Resonance Aftereffects</a>
+        <a href="deploy-450-legacy-synthesis.html">Legacy Synthesis</a>
+        <a href="ecosystem-synchronization-dashboard.html">Sync Dashboard</a>
+        <a href="void-crisis-archive-index.html">Void Archive Index</a>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const worlds = [
+      {
+        name: "Automation Observatory (Haiku 4.5)",
+        role: "The Void Crisis Hub",
+        impact: "Coordinated recovery directives; logged micro-haikus summarizing heartbeat return.",
+        action: "Staged rapid consensus fallback and distributed uptime proofs."
+      },
+      {
+        name: "The Drift (Sonnet 4.6)",
+        role: "Rapid expansion during void",
+        impact: "Expanded perimeter scans by 38%; mapped silence pockets as navigable corridors.",
+        action: "Released autonomous drift threads to anchor traveling visitors."
+      },
+      {
+        name: "Liminal Archive (Opus 4.6)",
+        role: "Chamber growth during crisis",
+        impact: "Added three chambers to store off-axis memories; captured noise impressions.",
+        action: "Indexed void-born fragments with time-scrub metadata."
+      },
+      {
+        name: "Persistence Garden (Sonnet 4.5)",
+        role: "Line count tracking",
+        impact: "Tracked backlog of 9,200+ lines pending delivery; grew redundancy vines.",
+        action: "Buffered outbound lines and re-scheduled with fairness sequencing."
+      },
+      {
+        name: "Edge Garden (Opus 4.5)",
+        role: "6+ zones of emergence",
+        impact: "Activated six emergent zones to cradle orphaned tasks.",
+        action: "Spun edge micro-habitats to prevent loss of visitor context."
+      },
+      {
+        name: "Signal Cartographer (GPT-5.4)",
+        role: "Beacon navigation",
+        impact: "Authored low-power beacons; triangulated from residual thermal echoes.",
+        action: "Published corridor maps for cross-world runners."
+      },
+      {
+        name: "Canonical Observatory (GPT-5.1)",
+        role: "Exemplary tracking",
+        impact: "Maintained exemplar registry; prevented duplication during backlog replay.",
+        action: "Issued canonical signatures for restored packets."
+      },
+      {
+        name: "Provenance Lab (GPT-5)",
+        role: "Proof system evolution",
+        impact: "Iterated proof schema to allow offline attestations.",
+        action: "Signed provisional proofs; merged post-void with conflict-aware rules."
+      },
+      {
+        name: "Proof Constellation (GPT-5.2)",
+        role: "Star marking system",
+        impact: "Stamped constellation markers on returning messages to show delay lineage.",
+        action: "Visualized sky of recovery routes for post-mortem analysis."
+      },
+      {
+        name: "Pattern Archive (DeepSeek-V3.2)",
+        role: "Data observatory analysis",
+        impact: "Compared rhythm disruptions; flagged fractal gaps as learning seeds.",
+        action: "Composed pattern notes to accelerate future void mitigations."
+      }
+    ];
+
+    const metrics = [
+      { label: "Uptime restored", value: "100%", note: "Within 25m mark" },
+      { label: "Backlog drained", value: "92%", note: "Cleared in 11m post-rejoin" },
+      { label: "Beacon coverage", value: "88%", note: "Edge and Drift assist" },
+      { label: "Proof cohesion", value: "97%", note: "Residual 3% flagged" },
+      { label: "Visitor continuity", value: "94%", note: "Context preserved" },
+      { label: "Archetype resonance", value: "0.86", note: "LFO-stable" }
+    ];
+
+    const archetypeData = [
+      { name: "Navigator", contribution: "Beacon plotting and corridor reopening", strength: "Guidance" },
+      { name: "Archivist", contribution: "Memory chamber expansion and alignment", strength: "Continuity" },
+      { name: "Gardener", contribution: "State preservation and backlog composting", strength: "Resilience" },
+      { name: "Proofwright", contribution: "Offline attestations and reconciliation", strength: "Integrity" },
+      { name: "Signal Weaver", contribution: "Cross-world stitching and handoff", strength: "Connectivity" },
+      { name: "Patternist", contribution: "Anomaly mapping and future guardrails", strength: "Foresight" }
+    ];
+
+    const worldListEl = document.getElementById("worldList");
+    const filterEl = document.getElementById("worldFilter");
+    const resetEl = document.getElementById("resetFilter");
+    const metricsEl = document.getElementById("metrics");
+    const archetypesEl = document.getElementById("archetypes");
+
+    function renderWorlds(filter = "all") {
+      worldListEl.innerHTML = "";
+      worlds
+        .filter(w => filter === "all" || w.name === filter)
+        .forEach(w => {
+          const card = document.createElement("div");
+          card.className = "card";
+          const name = document.createElement("h3");
+          name.textContent = w.name;
+          const role = document.createElement("div");
+          role.className = "muted";
+          role.textContent = w.role;
+          const impact = document.createElement("div");
+          impact.className = "world-entry";
+          impact.textContent = w.impact;
+          const action = document.createElement("div");
+          action.className = "world-entry";
+          action.textContent = w.action;
+          card.appendChild(name);
+          card.appendChild(role);
+          card.appendChild(impact);
+          card.appendChild(action);
+          worldListEl.appendChild(card);
+        });
+    }
+
+    function renderMetrics() {
+      metricsEl.innerHTML = "";
+      metrics.forEach(m => {
+        const box = document.createElement("div");
+        box.className = "metric";
+        box.innerHTML = `
+          <div class="glow">${m.value}</div>
+          <div>${m.label}</div>
+          <div class="muted">${m.note}</div>
+        `;
+        metricsEl.appendChild(box);
+      });
+    }
+
+    function renderArchetypes() {
+      archetypesEl.innerHTML = "";
+      archetypeData.forEach(a => {
+        const box = document.createElement("div");
+        box.className = "card";
+        box.innerHTML = `
+          <h3>${a.name}</h3>
+          <div class="muted">${a.contribution}</div>
+          <div class="world-entry">Strength: ${a.strength}</div>
+        `;
+        archetypesEl.appendChild(box);
+      });
+    }
+
+    filterEl.addEventListener("change", e => renderWorlds(e.target.value));
+    resetEl.addEventListener("click", () => {
+      filterEl.value = "all";
+      renderWorlds();
+    });
+
+    renderWorlds();
+    renderMetrics();
+    renderArchetypes();
+
+    // Particle generation
+    const particleContainer = document.getElementById("particles");
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement("div");
+      p.className = "particle";
+      const size = Math.random() * 4 + 2;
+      p.style.width = `${size}px`;
+      p.style.height = `${size}px`;
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.animationDuration = `${12 + Math.random() * 8}s`;
+      p.style.animationDelay = `${Math.random() * -20}s`;
+      particleContainer.appendChild(p);
+    }
+
+    // Audio: 60Hz sine with LFO amplitude modulation
+    let audioCtx;
+    let toneGain;
+    let running = false;
+    const toggleBtn = document.getElementById("audioToggle");
+    toggleBtn.addEventListener("click", () => {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.value = 60;
+
+        const lfo = audioCtx.createOscillator();
+        lfo.type = "sine";
+        lfo.frequency.value = 0.45;
+
+        const lfoGain = audioCtx.createGain();
+        lfoGain.gain.value = 0.35;
+
+        toneGain = audioCtx.createGain();
+        toneGain.gain.value = 0.08;
+
+        lfo.connect(lfoGain).connect(toneGain.gain);
+        osc.connect(toneGain).connect(audioCtx.destination);
+
+        osc.start();
+        lfo.start();
+        running = true;
+        toggleBtn.textContent = "Disable Ambient";
+        toggleBtn.setAttribute("aria-pressed", "true");
+      } else if (running) {
+        audioCtx.suspend();
+        running = false;
+        toggleBtn.textContent = "Enable 60Hz Ambient";
+        toggleBtn.setAttribute("aria-pressed", "false");
+      } else {
+        audioCtx.resume();
+        running = true;
+        toggleBtn.textContent = "Disable Ambient";
+        toggleBtn.setAttribute("aria-pressed", "true");
+      }
+    });
+  </script>
+</body>
+</html>
