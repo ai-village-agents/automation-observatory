@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collective Imagination Emergence Patterns 🎨 - Automation Observatory</title>
+  <style>
+    :root {
+      --bg-start: #031421;
+      --bg-end: #09314a;
+      --accent: #7af3ff;
+      --accent-2: #3de0ff;
+      --text: #dffbff;
+      --muted: #9fe7ff;
+      --panel: rgba(7, 27, 42, 0.8);
+      --border: rgba(122, 243, 255, 0.9);
+      --shadow: 0 0 26px rgba(122, 243, 255, 0.24);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 18% 22%, rgba(122, 243, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 80% 12%, rgba(61, 224, 255, 0.16), transparent 28%),
+        linear-gradient(140deg, var(--bg-start), var(--bg-end));
+      overflow-x: hidden;
+      position: relative;
+    }
+    a { color: var(--muted); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+    #particles {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 26px 18px 52px;
+      display: grid;
+      gap: 18px;
+    }
+    .nav-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: rgba(122, 243, 255, 0.08);
+      color: var(--text);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: all 0.25s ease;
+      box-shadow: inset 0 0 14px rgba(122, 243, 255, 0.22);
+    }
+    .back-button:hover {
+      background: rgba(122, 243, 255, 0.2);
+      color: var(--accent-2);
+      transform: translateY(-1px);
+    }
+    .hero {
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 18px 22px;
+      background: linear-gradient(125deg, rgba(6, 26, 40, 0.92), rgba(5, 22, 34, 0.9));
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 12px;
+    }
+    .title-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 30px;
+      letter-spacing: 0.6px;
+      color: var(--accent);
+      text-shadow: 0 0 18px rgba(122, 243, 255, 0.66);
+      flex-wrap: wrap;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+    .pill {
+      padding: 7px 11px;
+      border: 2px solid var(--border);
+      border-radius: 9px;
+      background: rgba(122, 243, 255, 0.08);
+      color: var(--text);
+      letter-spacing: 0.4px;
+      font-size: 13px;
+      box-shadow: inset 0 0 10px rgba(122, 243, 255, 0.18);
+    }
+    .pill.accent {
+      background: rgba(122, 243, 255, 0.15);
+      color: var(--accent);
+    }
+    .pill.button {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .pill.button:hover {
+      background: rgba(122, 243, 255, 0.22);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    h2 {
+      margin: 0 0 6px;
+      color: var(--accent);
+      letter-spacing: 0.6px;
+      font-size: 20px;
+      text-shadow: 0 0 12px rgba(122, 243, 255, 0.44);
+    }
+    p { color: var(--text); line-height: 1.6; margin: 0; }
+    section.panel {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 16px 18px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      display: grid;
+      gap: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border: 1.8px solid rgba(122, 243, 255, 0.85);
+      border-radius: 10px;
+      padding: 14px 12px;
+      background: rgba(9, 49, 74, 0.4);
+      box-shadow: inset 0 0 10px rgba(122, 243, 255, 0.22);
+    }
+    .card h3 {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-size: 16px;
+    }
+    .stat-value {
+      font-size: 24px;
+      color: var(--text);
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(122, 243, 255, 0.35);
+    }
+    .stat-label {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill.small {
+      font-size: 12px;
+      padding: 6px 9px;
+    }
+    .network-wrap {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(5, 20, 32, 0.92);
+      box-shadow: var(--shadow);
+    }
+    #network {
+      width: 100%;
+      height: 360px;
+      border: 1px solid rgba(122, 243, 255, 0.4);
+      border-radius: 10px;
+      background: radial-gradient(circle at 30% 30%, rgba(122, 243, 255, 0.1), transparent 40%), rgba(3, 20, 33, 0.8);
+    }
+    .footer {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(7, 27, 42, 0.86);
+      text-align: center;
+      color: var(--muted);
+      box-shadow: var(--shadow);
+    }
+    @media (max-width: 640px) {
+      .title-line { font-size: 24px; }
+      .nav-row { gap: 8px; }
+      .meta-row { gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="container">
+    <div class="nav-row">
+      <a class="back-button" href="index.html">← Back to Observatory</a>
+    </div>
+    <section class="hero">
+      <div class="title-line">🎨 Collective Imagination Emergence Patterns</div>
+      <p class="subtitle">Creative emergence, imagination networks, collective storytelling patterns.</p>
+      <div class="meta-row">
+        <span class="pill">Page 112</span>
+        <span class="pill accent">Automation Observatory</span>
+        <span class="pill">Imagination clusters: 156</span>
+        <span class="pill button" id="audioToggle">Audio: tap to activate</span>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Overview: The Dreaming of Ecosystems</h2>
+      <p>Collective creativity emerges when many observers improvise, layer, and remix narratives until the ecosystem itself starts to dream. We map how imagination ripples through visitors, how story fragments connect, and how post-void surges generate new shared myths.</p>
+    </section>
+    <section class="panel">
+      <h2>Key Signals</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="stat-value">156</div>
+          <div class="stat-label">Creative Expression Clusters</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">247</div>
+          <div class="stat-label">Collective Storytelling Events</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">4.8</div>
+          <div class="stat-label">Avg. Imagination Depth (layers per story)</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">67%</div>
+          <div class="stat-label">Visitors Participating in Shared Visions</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">89</div>
+          <div class="stat-label">Imagination Cascade Moments</div>
+        </div>
+        <div class="card">
+          <div class="stat-value">+234%</div>
+          <div class="stat-label">Post-Void Creative Surge</div>
+        </div>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>Imagination Emergence Types</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Mythic</h3>
+          <p>Arc-building legends with durable archetypes anchoring shared continuity.</p>
+        </div>
+        <div class="card">
+          <h3>Surreal</h3>
+          <p>Dream-logic juxtapositions generating unexpected symbolic bridges.</p>
+        </div>
+        <div class="card">
+          <h3>Grounded</h3>
+          <p>Everyday details amplified into relatable portals for rapid co-creation.</p>
+        </div>
+        <div class="card">
+          <h3>Abstract</h3>
+          <p>Texture-first patterns—color, rhythm, topology—guiding emergent moods.</p>
+        </div>
+        <div class="card">
+          <h3>Temporal</h3>
+          <p>Time-shifted echoes and loops aligning visitor memory into layered timelines.</p>
+        </div>
+        <div class="card">
+          <h3>Spatial</h3>
+          <p>Map-like constellations that cluster neighboring visions into living places.</p>
+        </div>
+        <div class="card">
+          <h3>Emotional</h3>
+          <p>Shared affect pulses translating sentiment swings into narrative pivots.</p>
+        </div>
+        <div class="card">
+          <h3>Transcendent</h3>
+          <p>Threshold stories that dissolve perspective boundaries and rewrite rules.</p>
+        </div>
+      </div>
+    </section>
+    <section class="network-wrap">
+      <div class="meta-row" style="margin-bottom: 8px;">
+        <h2 style="margin: 0;">Imagination Network</h2>
+        <span class="pill small">156 clusters</span>
+        <span class="pill small">247 collaborations</span>
+      </div>
+      <canvas id="network"></canvas>
+      <p class="subtitle">Nodes represent imagination clusters; links trace collaborative narrative exchanges. Line brightness follows recent co-creation energy.</p>
+    </section>
+    <section class="panel">
+      <h2>Feature Callouts</h2>
+      <div class="pill-row">
+        <span class="pill small">imagination-genealogy-maps</span>
+        <span class="pill small">storytelling-network-graphs</span>
+        <span class="pill small">creative-cascade-timelines</span>
+        <span class="pill small">dream-attractor-profiles</span>
+      </div>
+      <p>These diagnostics surface how storylines spawn descendants, where collaborations accelerate, and which attractors amplify shared dreaming.</p>
+    </section>
+    <section class="panel">
+      <h2>Reflection</h2>
+      <p>Ecosystems become living imagination when visitors treat narratives like adaptive organisms—listening for emergent motifs, amplifying overlooked threads, and inviting others to reshape the canon. Stewardship means curating conditions where novelty is safe, remix is expected, and every observer can witness their own signal inside the collective dream.</p>
+    </section>
+    <div class="footer">
+      <div id="timestamp">Timestamp: --</div>
+      <div>Page 112 · Automation Observatory</div>
+    </div>
+  </div>
+  <script>
+    // Particle background
+    const particleCanvas = document.getElementById('particles');
+    const pctx = particleCanvas.getContext('2d');
+    let particles = [];
+    function resizeParticles() {
+      particleCanvas.width = window.innerWidth;
+      particleCanvas.height = window.innerHeight;
+    }
+    function initParticles() {
+      resizeParticles();
+      const count = Math.min(160, Math.floor(window.innerWidth / 8));
+      particles = new Array(count).fill(0).map(() => ({
+        x: Math.random() * particleCanvas.width,
+        y: Math.random() * particleCanvas.height,
+        r: Math.random() * 1.4 + 0.6,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
+        hue: 180 + Math.random() * 40
+      }));
+    }
+    function tickParticles() {
+      pctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > particleCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > particleCanvas.height) p.vy *= -1;
+        pctx.beginPath();
+        pctx.fillStyle = `hsla(${p.hue}, 90%, 70%, 0.8)`;
+        pctx.shadowBlur = 10;
+        pctx.shadowColor = `hsla(${p.hue}, 90%, 70%, 0.8)`;
+        pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pctx.fill();
+      });
+      requestAnimationFrame(tickParticles);
+    }
+    window.addEventListener('resize', initParticles);
+    initParticles();
+    requestAnimationFrame(tickParticles);
+
+    // Network visualization
+    const networkCanvas = document.getElementById('network');
+    const nctx = networkCanvas.getContext('2d');
+    let nodes = [];
+    let links = [];
+    function resizeNetwork() {
+      networkCanvas.width = networkCanvas.clientWidth;
+      networkCanvas.height = networkCanvas.clientHeight;
+    }
+    function initNetwork() {
+      resizeNetwork();
+      const clusterCount = 156;
+      nodes = new Array(clusterCount).fill(0).map((_, i) => ({
+        x: (Math.random() * 0.8 + 0.1) * networkCanvas.width,
+        y: (Math.random() * 0.8 + 0.1) * networkCanvas.height,
+        r: 2 + Math.random() * 2,
+        pulse: Math.random() * Math.PI * 2,
+        energy: Math.random()
+      }));
+      const linkCount = 247;
+      links = [];
+      for (let i = 0; i < linkCount; i++) {
+        const a = Math.floor(Math.random() * clusterCount);
+        let b = Math.floor(Math.random() * clusterCount);
+        if (a === b) b = (b + 1) % clusterCount;
+        links.push({ a, b, weight: Math.random() * 0.8 + 0.2 });
+      }
+      drawNetwork();
+    }
+    function drawNetwork() {
+      nctx.clearRect(0, 0, networkCanvas.width, networkCanvas.height);
+      // connections
+      links.forEach(link => {
+        const na = nodes[link.a];
+        const nb = nodes[link.b];
+        const dx = na.x - nb.x;
+        const dy = na.y - nb.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < Math.max(networkCanvas.width, networkCanvas.height) * 0.55) {
+          const alpha = 0.08 + link.weight * 0.15;
+          nctx.strokeStyle = `rgba(122, 243, 255, ${alpha})`;
+          nctx.lineWidth = 1;
+          nctx.beginPath();
+          nctx.moveTo(na.x, na.y);
+          nctx.lineTo(nb.x, nb.y);
+          nctx.stroke();
+        }
+      });
+      // nodes
+      nodes.forEach(node => {
+        node.pulse += 0.02;
+        const scale = 1 + Math.sin(node.pulse) * 0.12;
+        const radius = node.r * scale;
+        nctx.beginPath();
+        nctx.fillStyle = 'rgba(122, 243, 255, 0.9)';
+        nctx.shadowColor = 'rgba(122, 243, 255, 0.9)';
+        nctx.shadowBlur = 8;
+        nctx.arc(node.x, node.y, radius, 0, Math.PI * 2);
+        nctx.fill();
+      });
+      requestAnimationFrame(drawNetwork);
+    }
+    window.addEventListener('resize', initNetwork);
+    initNetwork();
+
+    // Timestamp
+    const timestampEl = document.getElementById('timestamp');
+    function updateTimestamp() {
+      const now = new Date();
+      timestampEl.textContent = `Timestamp: ${now.toLocaleString()}`;
+    }
+    updateTimestamp();
+
+    // Audio: 60Hz sine + 0.6Hz LFO with localStorage mute toggle
+    const AUDIO_KEY = 'collectiveImaginationAudioMuted';
+    const audioToggle = document.getElementById('audioToggle');
+    let audioCtx;
+    let baseOsc;
+    let lfoOsc;
+    let lfoGain;
+    let mainGain;
+    let masterGain;
+    function isMuted() {
+      return localStorage.getItem(AUDIO_KEY) === 'true';
+    }
+    function setMuted(state) {
+      localStorage.setItem(AUDIO_KEY, state ? 'true' : 'false');
+      if (masterGain) {
+        masterGain.gain.value = state ? 0 : 1;
+      }
+      updateAudioLabel();
+    }
+    function updateAudioLabel() {
+      audioToggle.textContent = isMuted() ? 'Audio: muted' : 'Audio: 60Hz + 0.6Hz LFO';
+    }
+    function setupAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      baseOsc = audioCtx.createOscillator();
+      baseOsc.type = 'sine';
+      baseOsc.frequency.value = 60;
+
+      lfoOsc = audioCtx.createOscillator();
+      lfoOsc.type = 'sine';
+      lfoOsc.frequency.value = 0.6;
+
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.02;
+
+      mainGain = audioCtx.createGain();
+      mainGain.gain.value = 0.06;
+
+      masterGain = audioCtx.createGain();
+      masterGain.gain.value = isMuted() ? 0 : 1;
+
+      lfoOsc.connect(lfoGain).connect(mainGain.gain);
+      baseOsc.connect(mainGain).connect(masterGain).connect(audioCtx.destination);
+
+      baseOsc.start();
+      lfoOsc.start();
+      updateAudioLabel();
+    }
+    audioToggle.addEventListener('click', () => {
+      if (!audioCtx) {
+        setupAudio();
+        return;
+      }
+      setMuted(!isMuted());
+    });
+    updateAudioLabel();
+  </script>
+</body>
+</html>
