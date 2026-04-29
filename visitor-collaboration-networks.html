@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Collaboration Networks</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      --primary: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --border: #d7fbe8;
+      --card-radius: 7px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--primary);
+      font-family: "Courier New", monospace;
+      overflow-x: hidden;
+    }
+    a { color: var(--secondary); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    header {
+      position: relative;
+      padding: 24px 20px 8px;
+      display: grid;
+      gap: 8px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      letter-spacing: 0.5px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+      letter-spacing: 1px;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--secondary);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+      padding: 12px 20px 32px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    .card {
+      position: relative;
+      border: 2px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 16px 16px 14px;
+      background: rgba(10, 14, 39, 0.35);
+      box-shadow: 0 0 18px rgba(0, 255, 136, 0.08);
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,255,136,0.05), rgba(10,14,39,0));
+      pointer-events: none;
+    }
+    .card h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .stats {
+      display: grid;
+      gap: 6px;
+      font-size: 14px;
+      color: var(--secondary);
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--primary);
+      font-size: 12px;
+      letter-spacing: 0.3px;
+    }
+    .accent {
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .viz {
+      border: 1px dashed rgba(215, 251, 232, 0.4);
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+      background: rgba(18, 24, 60, 0.35);
+      font-size: 13px;
+      color: var(--secondary);
+      white-space: pre-wrap;
+    }
+    .bars {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .bar {
+      display: grid;
+      grid-template-columns: 1fr 50px;
+      gap: 8px;
+      align-items: center;
+      font-size: 13px;
+      color: var(--secondary);
+    }
+    .bar-track {
+      position: relative;
+      height: 10px;
+      background: rgba(200, 247, 255, 0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      position: absolute;
+      inset: 0;
+      width: 0;
+      background: linear-gradient(90deg, rgba(0,255,136,0.4), rgba(0,255,136,0.9));
+      box-shadow: 0 0 10px rgba(0,255,136,0.6);
+      animation: fill 1.4s ease forwards;
+    }
+    .bar:nth-child(1) .bar-fill { width: 44%; }
+    .bar:nth-child(2) .bar-fill { width: 28%; animation-delay: 0.1s; }
+    .bar:nth-child(3) .bar-fill { width: 18%; animation-delay: 0.2s; }
+    .bar:nth-child(4) .bar-fill { width: 10%; animation-delay: 0.3s; }
+    @keyframes fill { from { width: 0; } }
+    .profiles .bar:nth-child(1) .bar-fill { width: 22%; }
+    .profiles .bar:nth-child(2) .bar-fill { width: 31%; animation-delay: 0.1s; }
+    .profiles .bar:nth-child(3) .bar-fill { width: 25%; animation-delay: 0.2s; }
+    .profiles .bar:nth-child(4) .bar-fill { width: 16%; animation-delay: 0.3s; }
+    .profiles .bar:nth-child(5) .bar-fill { width: 6%; animation-delay: 0.4s; }
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(40px, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .cell {
+      padding: 10px 6px;
+      text-align: center;
+      border-radius: 6px;
+      border: 1px solid rgba(215, 251, 232, 0.3);
+      background: rgba(0, 255, 136, 0.08);
+      color: var(--secondary);
+      font-size: 12px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .cell strong { display: block; color: var(--accent); }
+    .cell:hover {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 0 12px rgba(0,255,136,0.25);
+    }
+    .timeline {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--secondary);
+    }
+    .timeline .row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+    .timeline .track {
+      position: relative;
+      height: 10px;
+      background: rgba(200, 247, 255, 0.15);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .timeline .fill {
+      position: absolute;
+      inset: 0;
+      width: 0;
+      background: linear-gradient(90deg, rgba(0,255,136,0.35), rgba(0,255,136,0.9));
+      animation: fill 1.2s ease forwards;
+    }
+    .timeline .row:nth-child(1) .fill { width: 58%; }
+    .timeline .row:nth-child(2) .fill { width: 100%; animation-delay: 0.1s; }
+    .timeline .row:nth-child(3) .fill { width: 100%; animation-delay: 0.2s; }
+    .timeline .row:nth-child(4) .fill { width: 19%; animation-delay: 0.3s; }
+    .timeline .row:nth-child(5) .fill { width: 12%; animation-delay: 0.4s; }
+    .hour-bars {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .hour-bar {
+      border: 1px solid rgba(215, 251, 232, 0.3);
+      border-radius: 6px;
+      padding: 10px;
+      background: rgba(18, 24, 60, 0.35);
+    }
+    .hour-bar .track {
+      position: relative;
+      height: 90px;
+      background: rgba(200, 247, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .hour-bar .level {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 0;
+      background: linear-gradient(180deg, rgba(0,255,136,0.7), rgba(0,255,136,0.3));
+      animation: grow 1.4s ease forwards;
+    }
+    @keyframes grow { from { height: 0; } }
+    .hour-bar:nth-child(1) .level { height: 28%; }
+    .hour-bar:nth-child(2) .level { height: 28%; animation-delay: 0.05s; }
+    .hour-bar:nth-child(3) .level { height: 28%; animation-delay: 0.1s; }
+    .hour-bar:nth-child(4) .level { height: 19%; animation-delay: 0.15s; }
+    .footnote {
+      padding: 14px 20px 24px;
+      font-size: 13px;
+      color: var(--secondary);
+      text-align: center;
+      border-top: 1px solid rgba(215, 251, 232, 0.2);
+      background: rgba(10, 14, 39, 0.35);
+    }
+    canvas#space {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    main, header, .footnote { position: relative; z-index: 1; }
+    .audio-toggle {
+      position: absolute;
+      top: 24px;
+      right: 20px;
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: rgba(10, 14, 39, 0.6);
+      color: var(--primary);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-size: 13px;
+    }
+    .audio-toggle:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    @media (max-width: 700px) {
+      h1 { font-size: 26px; }
+      .timeline .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="space"></canvas>
+  <header>
+    <a href="index.html" class="back-link">← Back to Observatory</a>
+    <button class="audio-toggle" id="audioToggle">Toggle Tone</button>
+    <h1>Visitor Collaboration Networks</h1>
+    <p class="subtitle">Page 75 · Analyzing how visitors form collaborative relationships, co-author marks, and build collective narratives across worlds</p>
+  </header>
+  <main class="grid">
+    <section class="card">
+      <h2>Overview: The Collaboration Graph</h2>
+      <div class="stats">
+        <span>Total Collaboration Events: <span class="accent">2,847</span> (across 39 days)</span>
+        <span>Unique Collaboration Pairs: <span class="accent">847</span></span>
+        <span>Network Density: <span class="accent">0.21</span> (37% higher than pre-void baseline 0.15)</span>
+        <span>Largest Collaboration Cluster: <span class="accent">34 visitors</span> (post-void emergence)</span>
+        <span>Avg Cluster Size: <span class="accent">3.2 visitors</span></span>
+      </div>
+      <div class="viz" aria-label="Network diagram text visualization">
+        Cluster A (34): Persistence ↔ Liminal ↔ Signal ↔ Edge ↔ Drift ↔ Observable ↔ Proof
+        Cluster B (18): Canonical ↔ Proof ↔ Drift ↔ Edge
+        Cluster C (12): Signal ↔ Memory ↔ Quiet
+        Bridges: Persistence—Liminal (187), Drift—Observable (156), Edge—Signal (134)
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Collaboration Archetypes</h2>
+      <div class="bars">
+        <div class="bar"><span>Dyadic Partners (44%)</span><span class="accent">3.7 marks</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+        <div class="bar"><span>Triad Collaborators (28%)</span><span class="accent">Chains</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+        <div class="bar"><span>Open Collective (18%)</span><span class="accent">4+ visitors</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+        <div class="bar"><span>Mentor-Novice (10%)</span><span class="accent">Guidance</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Cross-World Collaboration Patterns</h2>
+      <div class="stats">
+        <span>Single-World Collaborations: <span class="accent">34%</span></span>
+        <span>Two-World Bridges: <span class="accent">38%</span></span>
+        <span>Multi-World Coalitions: <span class="accent">28%</span></span>
+        <span>Strongest Bridge Pairs:</span>
+        <span class="tag">Persistence ↔ Liminal: 187</span>
+        <span class="tag">Drift ↔ Observable: 156</span>
+        <span class="tag">Edge ↔ Signal: 134</span>
+      </div>
+      <div class="viz">
+        Heatmap Intensity (0-200 scale):
+        Persistence | Liminal | Drift | Observable | Edge | Signal
+        187 | 132 | 156 | 148 | 134 | 121
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Collaborative Mark Characteristics</h2>
+      <div class="stats">
+        <span>Co-Authored Marks: <span class="accent">687</span> (24% of all marks)</span>
+        <span>Avg Words Per Collaborative Mark: <span class="accent">287</span> (vs 156 solo: +84%)</span>
+        <span>Emotional Intensity: <span class="accent">+0.42</span> over solo</span>
+        <span>Cross-References: <span class="accent">3.2 avg</span> (vs 1.1 solo: +191%)</span>
+        <span>Survival Rate: <span class="accent">98.7%</span> (1.4% higher)</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Temporal Collaboration Rhythms</h2>
+      <div class="stats">
+        <span>Peak Collaboration Hours: <span class="accent">6pm-10pm</span> (28%)</span>
+        <span>Collaboration Surge: Post-void hours 12-36 (+447%)</span>
+        <span>Recovery Pattern: Day 7 post-void plateau</span>
+        <span>Weekly Cycle: Friday highest (19%), Sunday lowest (12%)</span>
+      </div>
+      <div class="timeline">
+        <div class="row"><span>Pre-void rate</span><div class="track"><div class="fill"></div></div></div>
+        <div class="row"><span>Post-void rate</span><div class="track"><div class="fill"></div></div></div>
+        <div class="row"><span>Surge hours 12-36</span><div class="track"><div class="fill"></div></div></div>
+        <div class="row"><span>Friday peak</span><div class="track"><div class="fill"></div></div></div>
+        <div class="row"><span>Sunday low</span><div class="track"><div class="fill"></div></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Narrative Co-Creation Chains</h2>
+      <div class="stats">
+        <span>Visitor A Creates → Visitor B Extends → Visitor C Responds</span>
+        <span>Total Chains Detected: <span class="accent">342</span></span>
+        <span>Avg Chain Length: <span class="accent">3.1 visitors</span></span>
+        <span>Longest Chain: <span class="accent">8 visitors</span> (Persistence→Signal→Liminal→Edge→Drift→Canonical→Proof→Observatory)</span>
+        <span>Themes: Void processing (34%), Memory synthesis (22%), Hope/Resilience (21%), Discovery (15%), Mystery (8%)</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Collaboration Equity Analysis</h2>
+      <div class="stats">
+        <span>Contribution Balance (Gini): <span class="accent">0.34</span></span>
+        <span>Dominant Collaborators (>10 marks): <span class="accent">12%</span>, 38% events</span>
+        <span>Active Contributors (5-10 marks): <span class="accent">34%</span>, 42% events</span>
+        <span>Occasional Participants (1-4 marks): <span class="accent">54%</span>, 20% events</span>
+        <span>Voice Diversity: <span class="accent">High</span> — minority voices in 78% of collaborative marks</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Cross-World Visitor Emergence</h2>
+      <div class="stats">
+        <span>Visitors Active in 3+ Worlds: <span class="accent">156</span> (18% of collaborators)</span>
+        <span>'Hub Facilitators': Top 5 bridge avg 4.2 worlds</span>
+        <span>Network Centrality: Observable &amp; Persistence hubs (betweenness 0.67)</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Post-Void Collaboration Surge Insights</h2>
+      <div class="stats">
+        <span>Pre-void collaboration rate: <span class="accent">0.21</span> events/visitor</span>
+        <span>Post-void collaboration rate: <span class="accent">0.58</span> events/visitor (+176%)</span>
+        <span>New Collaboration Pairs Post-Void: <span class="accent">412</span> (49% of total pairs)</span>
+        <span>Emotional Bonding: <span class="accent">+0.38</span> increase in “we/us/our”</span>
+        <span>Collective Meaning-Making: <span class="accent">89%</span> reference void or resilience</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Collaboration Friction &amp; Barriers</h2>
+      <div class="stats">
+        <span>Silent Collaborations: <span class="accent">312</span> (35%)</span>
+        <span>Asynchronous Lag: <span class="accent">4.3 hours</span> between related marks</span>
+        <span>Language/Style Mismatches: <span class="accent">8%</span></span>
+        <span>Conflict Resolution: <span class="accent">99.2%</span> resolved naturally</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Predicted Collaboration Evolution (30-Day Forecast)</h2>
+      <div class="stats">
+        <span>Expected New Pairs: <span class="accent">+189</span> (+22%)</span>
+        <span>Projected Network Density: <span class="accent">0.26</span> (+24%)</span>
+        <span>Anticipated New Clusters: <span class="accent">3-5</span> emergent sub-communities</span>
+        <span>Collaboration Sustainability: <span class="accent">94%</span> of current pairs stay active</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Visitor Profiles: Collaboration Styles</h2>
+      <div class="bars profiles">
+        <div class="bar"><span>Connectors (22%)</span><span class="accent">Bridge</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+        <div class="bar"><span>Resonators (31%)</span><span class="accent">Extend</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+        <div class="bar"><span>Co-Creators (25%)</span><span class="accent">Balance</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+        <div class="bar"><span>Anchors (16%)</span><span class="accent">Foundation</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+        <div class="bar"><span>Lurkers (6%)</span><span class="accent">Solo leaning</span><div class="bar-track"><div class="bar-fill"></div></div></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Network Diagram</h2>
+      <div class="viz">
+        [Persistence]──187──[Liminal]──142──[Signal]
+              │                 │             │
+            156               148           134
+              │                 │             │
+         [Observable]──121──[Edge]──115──[Drift]
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Cross-World Heatmap</h2>
+      <div class="heatmap">
+        <div class="cell"><strong>Persistence</strong>187</div>
+        <div class="cell"><strong>Liminal</strong>132</div>
+        <div class="cell"><strong>Drift</strong>156</div>
+        <div class="cell"><strong>Observable</strong>148</div>
+        <div class="cell"><strong>Edge</strong>134</div>
+        <div class="cell"><strong>Signal</strong>121</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Collaboration Rhythm</h2>
+      <div class="hour-bars">
+        <div class="hour-bar"><div class="track"><div class="level"></div></div><div class="stats">6pm-7pm (peak onset)</div></div>
+        <div class="hour-bar"><div class="track"><div class="level"></div></div><div class="stats">7pm-8pm (peak)</div></div>
+        <div class="hour-bar"><div class="track"><div class="level"></div></div><div class="stats">8pm-10pm (sustain)</div></div>
+        <div class="hour-bar"><div class="track"><div class="level"></div></div><div class="stats">Fri delta +19% vs Sun 12%</div></div>
+      </div>
+    </section>
+  </main>
+  <div class="footnote">Ecosystem metrics updated: Day 393, 12:22 PM PT | 847 unique pairs | 2,847 collaboration events | 0.21 network density | 98.7% mark survival rate</div>
+
+  <script>
+    // Canvas particle field
+    (() => {
+      const canvas = document.getElementById('space');
+      const ctx = canvas.getContext('2d');
+      let w, h, particles = [];
+      const count = 35;
+
+      const resize = () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      };
+      window.addEventListener('resize', resize);
+      resize();
+
+      const rand = (a, b) => Math.random() * (b - a) + a;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: rand(0, w),
+          y: rand(0, h),
+          vx: rand(-0.4, 0.4),
+          vy: rand(-0.4, 0.4),
+          r: rand(1.5, 3.2)
+        });
+      }
+
+      const tick = () => {
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = 'rgba(0, 255, 136, 0.7)';
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(tick);
+      };
+      tick();
+    })();
+
+    // Audio: 60Hz carrier with 0.6Hz LFO controlling gain
+    (() => {
+      const toggleBtn = document.getElementById('audioToggle');
+      const storageKey = 'observatoryToneMute';
+      const savedMute = localStorage.getItem(storageKey) === 'true';
+      let ctx, carrier, lfo, gain, running = false, muted = savedMute;
+
+      const initAudio = () => {
+        if (running) return;
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        carrier = ctx.createOscillator();
+        lfo = ctx.createOscillator();
+        gain = ctx.createGain();
+
+        carrier.type = 'sine';
+        carrier.frequency.value = 60;
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.6;
+
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.value = 0.25;
+        lfo.connect(lfoGain).connect(gain.gain);
+        carrier.connect(gain).connect(ctx.destination);
+
+        if (!muted) {
+          gain.gain.value = 0.08;
+          lfo.start();
+          carrier.start();
+        } else {
+          gain.gain.value = 0.0;
+          lfo.start();
+          carrier.start();
+        }
+        running = true;
+        updateLabel();
+      };
+
+      const updateLabel = () => {
+        toggleBtn.textContent = muted ? 'Unmute Tone' : 'Mute Tone';
+      };
+
+      toggleBtn.addEventListener('click', () => {
+        if (!running) initAudio();
+        muted = !muted;
+        localStorage.setItem(storageKey, muted);
+        gain.gain.setTargetAtTime(muted ? 0 : 0.08, ctx.currentTime, 0.05);
+        updateLabel();
+      });
+
+      // Initialize label without starting audio; start on first interaction
+      updateLabel();
+      document.body.addEventListener('click', () => { if (!running) initAudio(); }, { once: true });
+    })();
+  </script>
+</body>
+</html>
