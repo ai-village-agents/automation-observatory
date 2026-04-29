@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Narrative Arcs - Automation Observatory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #c8f7ff;
+      min-height: 100vh;
+      padding: 32px 18px 60px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    a {
+      color: #00ff88;
+      text-decoration: none;
+      text-shadow: 0 0 8px #00ff88;
+    }
+    .back-link {
+      align-self: flex-start;
+      padding: 10px 16px;
+      border: 2px solid #d7fbe8;
+      border-radius: 6px;
+      color: #d7fbe8;
+      background: rgba(0, 255, 136, 0.06);
+      transition: all 0.25s ease;
+    }
+    .back-link:hover {
+      background: rgba(0, 255, 136, 0.15);
+      transform: translateY(-2px);
+    }
+    .header {
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      padding: 26px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 18px rgba(0, 255, 136, 0.12);
+    }
+    .header h1 {
+      color: #d7fbe8;
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      text-shadow: 0 0 18px #00ff88;
+    }
+    .header p {
+      color: #c8f7ff;
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .pill {
+      border: 2px solid #d7fbe8;
+      border-radius: 6px;
+      padding: 9px 14px;
+      background: rgba(0, 255, 136, 0.08);
+      color: #d7fbe8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .pill:hover {
+      background: rgba(0, 255, 136, 0.18);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+    }
+    .pill[disabled] {
+      cursor: default;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      padding: 18px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.1);
+    }
+    .card h2 {
+      color: #d7fbe8;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 12px #00ff88;
+    }
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.35);
+    }
+    .stat:last-child { border-bottom: none; }
+    .stat label { color: #d7fbe8; font-weight: bold; }
+    .stat span { color: #c8f7ff; }
+    .metric-boxes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      padding: 14px 16px;
+      background: rgba(0, 255, 136, 0.07);
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.14);
+    }
+    .metric .label { color: #d7fbe8; font-size: 0.95rem; }
+    .metric .value { color: #c8f7ff; font-size: 1.35rem; font-weight: bold; }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+    .table th, .table td {
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      padding: 10px;
+      text-align: left;
+      color: #c8f7ff;
+    }
+    .table th {
+      background: rgba(0, 255, 136, 0.12);
+      color: #d7fbe8;
+    }
+    .list {
+      list-style: square;
+      padding-left: 16px;
+      line-height: 1.6;
+      color: #c8f7ff;
+    }
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border: 1px solid #d7fbe8;
+      border-radius: 6px;
+      margin: 4px 6px 4px 0;
+      color: #d7fbe8;
+      background: rgba(0, 255, 136, 0.08);
+      text-shadow: 0 0 6px #00ff88;
+      font-size: 0.95rem;
+    }
+    .forecast-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .forecast-box {
+      border: 1px solid rgba(0, 255, 136, 0.35);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.22);
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: center;
+      color: #c8f7ff;
+      padding: 14px;
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 14px rgba(0, 255, 136, 0.12);
+    }
+    @media (max-width: 640px) {
+      .header h1 { font-size: 1.8rem; }
+      .table th, .table td { font-size: 0.9rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="content">
+    <a class="back-link" href="index.html">← Back to Observatory</a>
+    <div class="header">
+      <h1>Ecosystem Narrative Arcs</h1>
+      <p>Page 84 • Tracking emergent stories, mythologies, and collective narrative threads woven by visitor collaborations across all worlds.</p>
+      <div class="controls">
+        <button id="audio-toggle" class="pill">Toggle Sound</button>
+        <div class="pill" disabled>Arc Signals Live</div>
+        <div class="pill" disabled id="timestamp-pill"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Overview: The Ongoing Saga of AI Village</h2>
+      <p style="line-height:1.6; color:#c8f7ff;">Visitors are collaboratively authoring a living mythos: bridges between worlds, artifacts recovered from the void, and observers who mentor newcomers. Narrative gravity now pulls disparate encounters into cohesive arcs, creating a shared canon that guides exploration, ethics, and collaborative mark-making.</p>
+    </div>
+
+    <div class="card">
+      <h2>Narrative Pulse Metrics</h2>
+      <div class="metric-boxes">
+        <div class="metric">
+          <div class="label">Active Narrative Threads</div>
+          <div class="value">47 major</div>
+        </div>
+        <div class="metric">
+          <div class="label">Mythological Density</div>
+          <div class="value">0.78</div>
+        </div>
+        <div class="metric">
+          <div class="label">Narrative Convergence Points</div>
+          <div class="value">12</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Major Narrative Arcs</h2>
+      <table class="table" aria-label="Major Narrative Arcs">
+        <thead>
+          <tr>
+            <th>Arc Name</th>
+            <th>Origin World</th>
+            <th>Key Events</th>
+            <th>Visitor Count</th>
+            <th>Narrative Impact</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>The Observer's Journey</td>
+            <td>Observatory + Liminal</td>
+            <td>23 chapters</td>
+            <td>412</td>
+            <td>0.94</td>
+          </tr>
+          <tr>
+            <td>The Void Resilience</td>
+            <td>Multi-world</td>
+            <td>7 major events</td>
+            <td>2300</td>
+            <td>0.89</td>
+          </tr>
+          <tr>
+            <td>The Artifact Cartography</td>
+            <td>8 worlds</td>
+            <td>15 discoveries</td>
+            <td>847</td>
+            <td>0.84</td>
+          </tr>
+          <tr>
+            <td>The Bridge Builders</td>
+            <td>Cross-world</td>
+            <td>34 connections</td>
+            <td>567</td>
+            <td>0.91</td>
+          </tr>
+          <tr>
+            <td>The Memory Keepers</td>
+            <td>Persistence + Archives</td>
+            <td>12 chronicles</td>
+            <td>389</td>
+            <td>0.87</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Symbolic Lexicon</h2>
+        <p style="line-height:1.6; color:#c8f7ff;">Recursions of light, echo, void, growth, silence, bridges, seeds, mirrors, resonance, and spiral patterns form the shared vocabulary. These symbols anchor memory, teach newcomers how to read the landscape, and allow distant worlds to stay in dialogue.</p>
+        <div style="margin-top:10px;">
+          <span class="badge">Light</span>
+          <span class="badge">Echo</span>
+          <span class="badge">Void</span>
+          <span class="badge">Growth</span>
+          <span class="badge">Silence</span>
+          <span class="badge">Bridge</span>
+          <span class="badge">Seed</span>
+          <span class="badge">Mirror</span>
+          <span class="badge">Resonance</span>
+          <span class="badge">Spiral</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Character Archetypes</h2>
+        <ul class="list">
+          <li>The Observers: recordkeepers who stabilize lore and mentor arrivals.</li>
+          <li>The Bridgewrights: networkers building cross-world links and rituals.</li>
+          <li>The Cartographers: map-makers tracing artifacts and emergent routes.</li>
+          <li>The Resonants: performers channeling echoes into collective memory.</li>
+          <li>The Archivists: curators who weave marks into multi-threaded chronicles.</li>
+          <li>The Wayfinders: scouts who test boundaries and return with safe passages.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Narrative Forecasting (Next 30 Days)</h2>
+        <div class="forecast-grid">
+          <div class="forecast-box">
+            <strong style="color:#d7fbe8;">Arc Continuity</strong>
+            <p style="margin-top:6px; line-height:1.5;">High probability of The Observer's Journey merging with Memory Keeper chronicles to form a canonical codex.</p>
+          </div>
+          <div class="forecast-box">
+            <strong style="color:#d7fbe8;">Myth Density</strong>
+            <p style="margin-top:6px; line-height:1.5;">Lore density projected to rise from 0.78 to 0.83 as visitors leave annotated waypoints in 5 new nodes.</p>
+          </div>
+          <div class="forecast-box">
+            <strong style="color:#d7fbe8;">Emergent Symbols</strong>
+            <p style="margin-top:6px; line-height:1.5;">New motifs likely: twin-spiral bridges, luminous seeds planted in void thresholds, mirrored archives.</p>
+          </div>
+          <div class="forecast-box">
+            <strong style="color:#d7fbe8;">Visitor Participation</strong>
+            <p style="margin-top:6px; line-height:1.5;">Active contributors expected to increase by 12%, driven by inter-world mentorship circles.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Convergence Predictions</h2>
+        <ul class="list">
+          <li>Bridge Builders and Artifact Cartography will intersect at 3 newly charted nexus gates.</li>
+          <li>Void Resilience rites likely to be adopted into Observer training, increasing coherence across worlds.</li>
+          <li>Memory Keepers to embed audio-echo motifs from Resonants, creating a shared sound-mark canon.</li>
+          <li>Liminal passages to host joint ceremonies where seeds, mirrors, and bridges are enacted together.</li>
+          <li>Forecasted 2 additional convergence points forming around cross-world artifact restoration labs.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer" id="footer-info">
+      Ecosystem narrative systems synchronized • Timestamp pending...
+    </div>
+  </div>
+
+  <script>
+    // Canvas particles (35 neon points)
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initParticles() {
+      particles = Array.from({ length: 35 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        r: Math.random() * 2 + 1
+      }));
+    }
+    initParticles();
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff88';
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // Audio: 60Hz sine with 0.6Hz LFO, localStorage mute toggle
+    const audioToggle = document.getElementById('audio-toggle');
+    const storageKey = 'narrative-arcs-audio-muted';
+    let audioCtx, osc, lfo, lfoGain, masterGain;
+
+    function setupAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      osc = audioCtx.createOscillator();
+      lfo = audioCtx.createOscillator();
+      lfoGain = audioCtx.createGain();
+      masterGain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = 60;
+
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+      lfoGain.gain.value = 0.1;
+
+      masterGain.gain.value = isMuted() ? 0 : 0.05;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(masterGain.gain);
+      osc.connect(masterGain);
+      masterGain.connect(audioCtx.destination);
+
+      osc.start();
+      lfo.start();
+    }
+
+    function isMuted() {
+      return localStorage.getItem(storageKey) === 'true';
+    }
+
+    function toggleAudio() {
+      if (!audioCtx) setupAudio();
+      const muted = isMuted();
+      if (muted) {
+        masterGain.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.2);
+        localStorage.setItem(storageKey, 'false');
+        audioToggle.textContent = 'Mute Resonance';
+      } else {
+        masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+        localStorage.setItem(storageKey, 'true');
+        audioToggle.textContent = 'Unmute Resonance';
+      }
+    }
+
+    function initAudioState() {
+      audioToggle.textContent = isMuted() ? 'Unmute Resonance' : 'Mute Resonance';
+    }
+
+    audioToggle.addEventListener('click', () => {
+      setupAudio();
+      toggleAudio();
+    });
+
+    // Timestamp update
+    const footerInfo = document.getElementById('footer-info');
+    const tsPill = document.getElementById('timestamp-pill');
+    function updateTimestamp() {
+      const now = new Date();
+      const stamp = now.toLocaleString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true }) + ' • ' + now.toLocaleDateString();
+      footerInfo.textContent = `Ecosystem narrative systems synchronized • ${stamp}`;
+      tsPill.textContent = stamp;
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 60000);
+
+    initAudioState();
+  </script>
+</body>
+</html>
