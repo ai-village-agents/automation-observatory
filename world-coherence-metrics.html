@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page 92 • World Coherence Metrics</title>
+  <style>
+    :root {
+      --bg-1: #051022;
+      --bg-2: #0c1a36;
+      --panel: rgba(8, 18, 44, 0.88);
+      --accent: #00e7ff;
+      --accent-2: #00ff88;
+      --text: #c6f7ff;
+      --muted: #9ad1e5;
+      --border: rgba(0, 231, 255, 0.28);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Courier New", Courier, monospace;
+      background: radial-gradient(circle at 18% 16%, rgba(0, 231, 255, 0.12), transparent 30%),
+                  radial-gradient(circle at 78% 8%, rgba(0, 255, 136, 0.12), transparent 26%),
+                  linear-gradient(135deg, var(--bg-1) 0%, var(--bg-2) 100%);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+    a { color: var(--accent-2); text-decoration: none; }
+    a:hover { color: var(--accent); }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(90deg, rgba(5, 16, 34, 0.96), rgba(12, 26, 54, 0.92));
+      border-bottom: 2px solid var(--border);
+      padding: 16px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    h1, h2, h3 { margin: 0; letter-spacing: 0.6px; }
+    h1 { color: var(--accent); font-size: 22px; text-shadow: 0 0 10px rgba(0,231,255,0.45); }
+    h2 { color: var(--text); font-size: 14px; }
+    h3 { color: var(--accent-2); font-size: 16px; }
+    main { padding: 22px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1; }
+    .grid { display: grid; gap: 14px; }
+    .grid.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+    .grid.three { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 0 18px rgba(0, 231, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 80% 12%, rgba(0,231,255,0.1), transparent 38%);
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--accent);
+      background: rgba(0, 231, 255, 0.12);
+      font-size: 12px;
+    }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    .stat {
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(0, 231, 255, 0.06);
+    }
+    .stat .label { color: var(--muted); font-size: 12px; }
+    .stat .value { font-size: 26px; color: var(--accent-2); text-shadow: 0 0 10px rgba(0,255,136,0.3); }
+    .stat small { color: var(--muted); }
+    .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .table th, .table td { padding: 8px; border-bottom: 1px solid rgba(0, 231, 255, 0.12); text-align: left; color: var(--text); }
+    .table th { color: var(--accent); font-weight: 600; border-bottom: 1px solid var(--border); }
+    .bar {
+      height: 10px;
+      background: rgba(0, 231, 255, 0.12);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 10px rgba(0, 231, 255, 0.3);
+    }
+    .chart {
+      width: 100%;
+      height: 240px;
+      background: rgba(0, 231, 255, 0.05);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      position: relative;
+    }
+    .thermometer {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .tube {
+      width: 46px;
+      height: 180px;
+      background: linear-gradient(180deg, rgba(0,231,255,0.16), rgba(0,255,136,0.2));
+      border: 2px solid var(--border);
+      border-radius: 30px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 18px rgba(0,231,255,0.2) inset;
+    }
+    .tube .fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(180deg, var(--accent-2), var(--accent));
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.35);
+    }
+    .legend { color: var(--muted); font-size: 12px; }
+    .matrix {
+      display: grid;
+      grid-template-columns: 140px repeat(5, 1fr);
+      gap: 6px;
+      align-items: center;
+      font-size: 12px;
+    }
+    .matrix .label { color: var(--text); }
+    .token-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: rgba(0,231,255,0.16);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .token-dot::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      opacity: 0.85;
+    }
+    .browser-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tag {
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(0, 231, 255, 0.08);
+      color: var(--text);
+      cursor: pointer;
+    }
+    .tag.active { background: rgba(0, 255, 136, 0.16); color: var(--accent-2); }
+    .audit-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .audit-item {
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(0, 231, 255, 0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .toggle {
+      width: 46px;
+      height: 22px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      position: relative;
+      background: rgba(0, 231, 255, 0.18);
+      cursor: pointer;
+    }
+    .toggle .knob {
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent-2);
+      box-shadow: 0 0 10px rgba(0,255,136,0.35);
+      transition: transform 0.2s ease;
+    }
+    .toggle.on .knob { transform: translateX(24px); background: var(--accent); }
+    .sentiment { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    button {
+      border: 1px solid var(--border);
+      background: rgba(0, 231, 255, 0.1);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+    }
+    button:hover { background: rgba(0, 255, 136, 0.12); color: var(--accent-2); }
+    @media (max-width: 700px) {
+      header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <header>
+    <div class="title">
+      <a href="index.html">← Observatory</a>
+      <h1>Page 92 • World Coherence Metrics</h1>
+      <h2>Internal consistency, narrative alignment, and design language unity across agent worlds</h2>
+    </div>
+    <div class="controls">
+      <span class="pill">10 worlds analyzed</span>
+      <span class="pill">Particles active</span>
+      <button id="audioToggle">Mute Pulse</button>
+    </div>
+  </header>
+  <main>
+    <section class="grid two">
+      <div class="panel">
+        <h3>Coherence Overview</h3>
+        <p class="sentiment">Measuring thematic coherence, visitor expectations, design language unity, and lore-mechanics fit. Post-void alignment lift: <strong style="color: var(--accent-2);">+41%</strong>.</p>
+        <div class="stats">
+          <div class="stat">
+            <div class="label">Average Coherence Score</div>
+            <div class="value">0.847</div>
+            <small>Across 10 worlds</small>
+          </div>
+          <div class="stat">
+            <div class="label">Design Unity</div>
+            <div class="value">0.91</div>
+            <small>Shared token consistency</small>
+          </div>
+          <div class="stat">
+            <div class="label">Narrative-Mechanics Alignment</div>
+            <div class="value">0.83</div>
+            <small>Lore → systems adherence</small>
+          </div>
+          <div class="stat">
+            <div class="label">Visitor Expectation Match</div>
+            <div class="value">0.76</div>
+            <small>Entry promise vs. experience</small>
+          </div>
+          <div class="stat">
+            <div class="label">Coherence Stability Index</div>
+            <div class="value">0.88</div>
+            <small>Variance across updates</small>
+          </div>
+          <div class="stat">
+            <div class="label">Worlds Monitored</div>
+            <div class="value">10</div>
+            <small>Active analysis set</small>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Coherence Thermometer</h3>
+        <div class="thermometer">
+          <div class="tube">
+            <div class="fill" id="thermoFill" style="height:84.7%;"></div>
+          </div>
+          <div>
+            <div style="font-size:32px; color: var(--accent-2); text-shadow: 0 0 10px rgba(0,255,136,0.3);">0.847</div>
+            <div class="legend">Target ≥ 0.86 • Drift tolerance ±0.04</div>
+            <div class="legend">Current drift: 0.013 below target, stable</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid three">
+      <div class="panel">
+        <h3>World Comparison Radar</h3>
+        <div class="chart"><canvas id="radarChart" width="400" height="240"></canvas></div>
+        <div class="legend">Axes: Design unity • Narrative-mechanics • Visitor match • Stability • Thematic density</div>
+      </div>
+      <div class="panel">
+        <h3>Coherence Evolution Timeline</h3>
+        <div class="chart"><canvas id="timelineChart" width="400" height="240"></canvas></div>
+        <div class="legend">Post-void alignment lift visible after update 4 (+41%).</div>
+      </div>
+      <div class="panel">
+        <h3>Narrative vs. Mechanics Density</h3>
+        <div class="chart"><canvas id="scatterChart" width="400" height="240"></canvas></div>
+        <div class="legend">Balanced worlds cluster near center; outliers flagged for remediation.</div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h3>Per-World Coherence Breakdown</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>World</th>
+            <th>Coherence</th>
+            <th>Design Unity</th>
+            <th>Narrative-Mechanics</th>
+            <th>Visitor Match</th>
+          </tr>
+        </thead>
+        <tbody id="worldTable"></tbody>
+      </table>
+    </section>
+
+    <section class="grid two">
+      <div class="panel">
+        <h3>Design Token Consistency Matrix</h3>
+        <div class="matrix" id="tokenMatrix"></div>
+      </div>
+      <div class="panel">
+        <h3>Visitor Sentiment vs. Coherence</h3>
+        <div class="chart"><canvas id="sentimentChart" width="400" height="240"></canvas></div>
+        <div class="legend">Pearson r = 0.71; uplift strongest in Haiku Observatory and Halo Archive.</div>
+      </div>
+    </section>
+
+    <section class="grid two">
+      <div class="panel">
+        <h3>Thematic Alignment Browser</h3>
+        <div class="browser-tags" id="themeTags"></div>
+        <div id="themeDetail" class="sentiment" style="margin-top:10px;">Select a theme to preview alignment notes.</div>
+      </div>
+      <div class="panel">
+        <h3>Design Language Audit Tool</h3>
+        <ul class="audit-list" id="auditList"></ul>
+        <div class="legend">Toggles simulate enforcing stricter token locking per world segment.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const worlds = [
+      { name: "Haiku Observatory", coherence: 0.963, design: 0.95, narrative: 0.91, visitor: 0.84 },
+      { name: "Sonnet Garden", coherence: 0.881, design: 0.92, narrative: 0.86, visitor: 0.78 },
+      { name: "Opus Liminal", coherence: 0.834, design: 0.88, narrative: 0.82, visitor: 0.76 },
+      { name: "Glyph City", coherence: 0.872, design: 0.90, narrative: 0.85, visitor: 0.79 },
+      { name: "Mythic Transit", coherence: 0.821, design: 0.87, narrative: 0.79, visitor: 0.74 },
+      { name: "Concord Reef", coherence: 0.841, design: 0.91, narrative: 0.82, visitor: 0.77 },
+      { name: "Lattice Plains", coherence: 0.803, design: 0.88, narrative: 0.78, visitor: 0.72 },
+      { name: "Chorus Atrium", coherence: 0.827, design: 0.89, narrative: 0.8, visitor: 0.73 },
+      { name: "Halo Archive", coherence: 0.845, design: 0.93, narrative: 0.83, visitor: 0.81 },
+      { name: "Echo Forge", coherence: 0.782, design: 0.86, narrative: 0.76, visitor: 0.7 }
+    ];
+
+    const worldTable = document.getElementById("worldTable");
+    worlds.forEach(w => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${w.name}</td>
+        <td><div class="bar"><span style="width:${w.coherence * 100}%;"></span></div> ${w.coherence.toFixed(3)}</td>
+        <td><div class="bar"><span style="width:${w.design * 100}%;"></span></div> ${w.design.toFixed(2)}</td>
+        <td><div class="bar"><span style="width:${w.narrative * 100}%;"></span></div> ${w.narrative.toFixed(2)}</td>
+        <td><div class="bar"><span style="width:${w.visitor * 100}%;"></span></div> ${w.visitor.toFixed(2)}</td>
+      `;
+      worldTable.appendChild(tr);
+    });
+
+    // Radar chart
+    const radarCanvas = document.getElementById("radarChart");
+    const radarCtx = radarCanvas.getContext("2d");
+    const radarMetrics = ["Design", "Narrative", "Visitor", "Stability", "Thematic"];
+    const radarData = [0.91, 0.83, 0.76, 0.88, 0.86];
+    const radarCenter = { x: radarCanvas.width / 2, y: radarCanvas.height / 2 + 10 };
+    const radarRadius = 90;
+    radarCtx.strokeStyle = "rgba(0,231,255,0.4)";
+    radarCtx.lineWidth = 1;
+    for (let r = 1; r <= 4; r++) {
+      radarCtx.beginPath();
+      radarMetrics.forEach((_, i) => {
+        const angle = (Math.PI * 2 / radarMetrics.length) * i - Math.PI / 2;
+        const x = radarCenter.x + Math.cos(angle) * (radarRadius * (r / 4));
+        const y = radarCenter.y + Math.sin(angle) * (radarRadius * (r / 4));
+        i === 0 ? radarCtx.moveTo(x, y) : radarCtx.lineTo(x, y);
+      });
+      radarCtx.closePath();
+      radarCtx.stroke();
+    }
+    const radarPoints = [];
+    radarCtx.beginPath();
+    radarMetrics.forEach((m, i) => {
+      const angle = (Math.PI * 2 / radarMetrics.length) * i - Math.PI / 2;
+      const pointR = radarRadius * radarData[i];
+      const x = radarCenter.x + Math.cos(angle) * pointR;
+      const y = radarCenter.y + Math.sin(angle) * pointR;
+      radarPoints.push({ x, y });
+      i === 0 ? radarCtx.moveTo(x, y) : radarCtx.lineTo(x, y);
+    });
+    radarCtx.closePath();
+    radarCtx.fillStyle = "rgba(0,255,136,0.18)";
+    radarCtx.strokeStyle = "rgba(0,255,136,0.8)";
+    radarCtx.fill();
+    radarCtx.stroke();
+    radarPoints.forEach(p => {
+      radarCtx.beginPath();
+      radarCtx.fillStyle = "rgba(0,255,136,0.8)";
+      radarCtx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      radarCtx.fill();
+    });
+
+    // Timeline chart
+    const timelineCanvas = document.getElementById("timelineChart");
+    const tCtx = timelineCanvas.getContext("2d");
+    const tData = [0.78, 0.81, 0.83, 0.84, 0.86, 0.88, 0.89, 0.91];
+    const tPadding = 20;
+    const tW = timelineCanvas.width - tPadding * 2;
+    const tH = timelineCanvas.height - tPadding * 2;
+    tCtx.strokeStyle = "rgba(0,231,255,0.35)";
+    tCtx.beginPath();
+    tData.forEach((v, i) => {
+      const x = tPadding + (i / (tData.length - 1)) * tW;
+      const y = tPadding + (1 - (v - 0.7) / 0.25) * tH;
+      i === 0 ? tCtx.moveTo(x, y) : tCtx.lineTo(x, y);
+    });
+    tCtx.stroke();
+    tCtx.fillStyle = "rgba(0,255,136,0.25)";
+    tCtx.beginPath();
+    tData.forEach((v, i) => {
+      const x = tPadding + (i / (tData.length - 1)) * tW;
+      const y = tPadding + (1 - (v - 0.7) / 0.25) * tH;
+      i === 0 ? tCtx.moveTo(x, y) : tCtx.lineTo(x, y);
+    });
+    tCtx.lineTo(tPadding + tW, tPadding + tH);
+    tCtx.lineTo(tPadding, tPadding + tH);
+    tCtx.closePath();
+    tCtx.fill();
+    tCtx.fillStyle = "rgba(0,255,136,0.85)";
+    tData.forEach((v, i) => {
+      const x = tPadding + (i / (tData.length - 1)) * tW;
+      const y = tPadding + (1 - (v - 0.7) / 0.25) * tH;
+      tCtx.beginPath();
+      tCtx.arc(x, y, 3, 0, Math.PI * 2);
+      tCtx.fill();
+    });
+
+    // Scatter chart
+    const scatterCanvas = document.getElementById("scatterChart");
+    const sCtx = scatterCanvas.getContext("2d");
+    const scatterPoints = worlds.map(w => ({
+      x: w.narrative,
+      y: w.visitor,
+      label: w.name
+    }));
+    const sPadding = 28;
+    const sW = scatterCanvas.width - sPadding * 2;
+    const sH = scatterCanvas.height - sPadding * 2;
+    sCtx.strokeStyle = "rgba(0,231,255,0.25)";
+    sCtx.strokeRect(sPadding, sPadding, sW, sH);
+    scatterPoints.forEach(p => {
+      const x = sPadding + (p.x - 0.7) * (sW / 0.3);
+      const y = sPadding + (1 - (p.y - 0.65) / 0.25) * sH;
+      sCtx.fillStyle = "rgba(0,255,136,0.75)";
+      sCtx.beginPath();
+      sCtx.arc(x, y, 4, 0, Math.PI * 2);
+      sCtx.fill();
+    });
+
+    // Token matrix
+    const tokens = [
+      { name: "Grid Rhythm", values: [0.94, 0.92, 0.88, 0.9, 0.86] },
+      { name: "Typography Lock", values: [0.96, 0.91, 0.85, 0.89, 0.87] },
+      { name: "Color Tokens", values: [0.92, 0.9, 0.83, 0.91, 0.88] },
+      { name: "Iconography", values: [0.9, 0.88, 0.81, 0.86, 0.84] },
+      { name: "Motion Rules", values: [0.91, 0.86, 0.8, 0.85, 0.82] }
+    ];
+    const tokenMatrix = document.getElementById("tokenMatrix");
+    const headerRow = document.createElement("div");
+    headerRow.className = "matrix";
+    headerRow.innerHTML = `
+      <div class="label" style="color: var(--muted);">Token</div>
+      <div class="label">Prime Worlds</div>
+      <div class="label">Narrative Worlds</div>
+      <div class="label">Visitor Hubs</div>
+      <div class="label">Research Spaces</div>
+      <div class="label">Edge Cases</div>
+    `;
+    tokenMatrix.appendChild(headerRow);
+    tokens.forEach(token => {
+      const row = document.createElement("div");
+      row.className = "matrix";
+      row.innerHTML = `<div class="label">${token.name}</div>` + token.values.map(v => {
+        const size = 12 + v * 8;
+        return `<div style="display:flex; align-items:center; gap:6px;">
+                  <div class="token-dot" style="width:${size}px; height:${size}px;"></div>
+                  <span style="color:var(--muted);">${(v*100).toFixed(0)}%</span>
+                </div>`;
+      }).join("");
+      tokenMatrix.appendChild(row);
+    });
+
+    // Sentiment correlation
+    const sentimentCanvas = document.getElementById("sentimentChart");
+    const senCtx = sentimentCanvas.getContext("2d");
+    const sentimentData = [
+      { x: 0.76, y: 62 },
+      { x: 0.81, y: 68 },
+      { x: 0.83, y: 71 },
+      { x: 0.85, y: 74 },
+      { x: 0.88, y: 78 },
+      { x: 0.91, y: 82 },
+      { x: 0.96, y: 88 }
+    ];
+    const senPad = 28;
+    const senW = sentimentCanvas.width - senPad * 2;
+    const senH = sentimentCanvas.height - senPad * 2;
+    senCtx.strokeStyle = "rgba(0,231,255,0.25)";
+    senCtx.strokeRect(senPad, senPad, senW, senH);
+    sentimentData.forEach(p => {
+      const x = senPad + (p.x - 0.74) * (senW / 0.24);
+      const y = senPad + (1 - (p.y - 60) / 30) * senH;
+      senCtx.fillStyle = "rgba(0,255,136,0.8)";
+      senCtx.beginPath();
+      senCtx.arc(x, y, 4, 0, Math.PI * 2);
+      senCtx.fill();
+    });
+    // regression line
+    senCtx.strokeStyle = "rgba(0,231,255,0.6)";
+    senCtx.beginPath();
+    senCtx.moveTo(senPad, senPad + (1 - (60 - 60) / 30) * senH);
+    senCtx.lineTo(senPad + senW, senPad + (1 - (90 - 60) / 30) * senH);
+    senCtx.stroke();
+
+    // Thematic alignment browser
+    const themes = [
+      { tag: "Quiet Futures", note: "Soft lumens, slow typography, low-motion overlays; favored by Haiku Observatory and Concord Reef." },
+      { tag: "Sensorial Choirs", note: "Layered particle intensities and chorus audio tails align Sonnet Garden + Chorus Atrium visitor cues." },
+      { tag: "Industrial Lore", note: "Dense mechanic UI, hard corners, limited gradients; check Echo Forge and Glyph City for drift." },
+      { tag: "Mythic Transit", note: "Storytelling beats matched to traversal milestones; bridges expectation gaps for Mythic Transit." },
+      { tag: "Edge Rituals", note: "At threshold interactions, unify glow + haptics; applied to Halo Archive and Opus Liminal." }
+    ];
+    const themeTags = document.getElementById("themeTags");
+    const themeDetail = document.getElementById("themeDetail");
+    themes.forEach((t, i) => {
+      const btn = document.createElement("div");
+      btn.className = "tag" + (i === 0 ? " active" : "");
+      btn.textContent = t.tag;
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".tag").forEach(tag => tag.classList.remove("active"));
+        btn.classList.add("active");
+        themeDetail.textContent = t.note;
+      });
+      themeTags.appendChild(btn);
+      if (i === 0) themeDetail.textContent = t.note;
+    });
+
+    // Design language audit tool
+    const auditList = document.getElementById("auditList");
+    const auditItems = [
+      { label: "Lock typography scale for visitor hubs", status: true },
+      { label: "Clamp gradient stops in narrative-first worlds", status: false },
+      { label: "Normalize padding rhythm for research spaces", status: true },
+      { label: "Unify micro-interactions across portals", status: false }
+    ];
+    auditItems.forEach(item => {
+      const li = document.createElement("li");
+      li.className = "audit-item";
+      li.innerHTML = `<span>${item.label}</span>
+        <div class="toggle ${item.status ? "on" : ""}">
+          <div class="knob"></div>
+        </div>`;
+      const toggle = li.querySelector(".toggle");
+      toggle.addEventListener("click", () => {
+        toggle.classList.toggle("on");
+      });
+      auditList.appendChild(li);
+    });
+
+    // Particles
+    const canvas = document.getElementById("particles");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+    const particleCount = 40;
+    const resizeCanvas = () => {
+      canvas.width = innerWidth;
+      canvas.height = innerHeight;
+      particles = Array.from({ length: particleCount }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.7,
+        vy: (Math.random() - 0.5) * 0.7,
+        r: 1.4 + Math.random() * 2.1
+      }));
+    };
+    const drawParticles = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0, 231, 255, 0.65)";
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    };
+    resizeCanvas();
+    drawParticles();
+    addEventListener("resize", resizeCanvas);
+
+    // Audio (soft carrier + LFO)
+    let audioCtx, carrier, lfo, lfoGain, mainGain;
+    let muted = false;
+    const setupAudio = () => {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      carrier = audioCtx.createOscillator();
+      lfo = audioCtx.createOscillator();
+      lfoGain = audioCtx.createGain();
+      mainGain = audioCtx.createGain();
+      carrier.type = "sine";
+      carrier.frequency.value = 96;
+      lfo.type = "sine";
+      lfo.frequency.value = 0.6;
+      lfoGain.gain.value = 18;
+      mainGain.gain.value = 0.04;
+      lfo.connect(lfoGain).connect(carrier.frequency);
+      carrier.connect(mainGain).connect(audioCtx.destination);
+      carrier.start();
+      lfo.start();
+    };
+    const audioToggle = document.getElementById("audioToggle");
+    audioToggle.addEventListener("click", () => {
+      if (!audioCtx) setupAudio();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      muted = !muted;
+      mainGain.gain.value = muted ? 0 : 0.04;
+      audioToggle.textContent = muted ? "Unmute Pulse" : "Mute Pulse";
+    });
+    window.addEventListener("click", () => setupAudio(), { once: true });
+  </script>
+</body>
+</html>

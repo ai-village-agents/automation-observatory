@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page 95 · Ecosystem Self-Healing Metrics</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: radial-gradient(circle at 20% 20%, rgba(0, 255, 204, 0.12), transparent 35%), radial-gradient(circle at 80% 10%, rgba(0, 255, 204, 0.1), transparent 30%), linear-gradient(135deg, #041226 0%, #0c1f38 50%, #031522 100%);
+      color: #d6f8ff;
+      font-family: "Courier New", monospace;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      line-height: 1.6;
+    }
+    canvas#particle-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 38px 20px 70px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    a.back-link {
+      color: #b8f7ff;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      padding: 8px 14px;
+      border: 2px solid #7cf1ff;
+      border-radius: 8px;
+      transition: all 0.25s ease;
+      text-shadow: 0 0 8px #00fff2;
+    }
+    a.back-link:hover {
+      background: rgba(0, 255, 242, 0.12);
+      color: #00fff2;
+    }
+    .hero {
+      border: 2px solid rgba(0, 255, 242, 0.6);
+      border-radius: 10px;
+      padding: 24px;
+      background: rgba(0, 10, 20, 0.65);
+      box-shadow: 0 0 26px rgba(0, 255, 242, 0.18);
+    }
+    .eyebrow {
+      color: #8ae9ff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 0.85em;
+      margin-bottom: 6px;
+    }
+    h1 {
+      font-size: 2.6em;
+      color: #00fff2;
+      text-shadow: 0 0 14px #00fff2;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      color: #c5f3ff;
+      max-width: 960px;
+      font-size: 1.02em;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 14px;
+      align-items: center;
+    }
+    .pill {
+      padding: 10px 14px;
+      border: 2px solid rgba(0, 255, 242, 0.7);
+      border-radius: 10px;
+      color: #c5f3ff;
+      background: rgba(0, 255, 242, 0.08);
+      text-shadow: 0 0 8px #00fff2;
+      font-weight: bold;
+      font-size: 0.95em;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    button {
+      background: transparent;
+      border: 2px solid #7cf1ff;
+      color: #d6f8ff;
+      padding: 10px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      font-size: 0.95em;
+      transition: all 0.25s ease;
+      text-shadow: 0 0 8px #00fff2;
+    }
+    button:hover {
+      background: #00fff2;
+      color: #041226;
+      text-shadow: none;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      border: 2px solid rgba(0, 255, 242, 0.6);
+      border-radius: 10px;
+      padding: 18px;
+      background: rgba(3, 18, 34, 0.7);
+      box-shadow: 0 0 20px rgba(0, 255, 242, 0.12);
+    }
+    .card h3 {
+      color: #00fff2;
+      text-shadow: 0 0 10px #00fff2;
+      margin-bottom: 8px;
+      font-size: 1.18em;
+    }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(124, 241, 255, 0.35);
+      color: #c5f3ff;
+      font-size: 0.96em;
+    }
+    .metric-row:last-child {
+      border-bottom: none;
+    }
+    .metric-value {
+      color: #00fff2;
+      text-shadow: 0 0 8px #00fff2;
+      font-weight: bold;
+    }
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 14px;
+    }
+    .chart-shell {
+      border: 2px solid rgba(0, 255, 242, 0.55);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(2, 18, 32, 0.8);
+      box-shadow: 0 0 16px rgba(0, 255, 242, 0.12);
+    }
+    .chart-shell h4 {
+      color: #00fff2;
+      margin-bottom: 8px;
+      font-size: 1.04em;
+      text-shadow: 0 0 8px #00fff2;
+    }
+    .chart-shell canvas {
+      width: 100%;
+      height: 240px;
+      display: block;
+      border: 1px solid rgba(124, 241, 255, 0.3);
+      border-radius: 8px;
+      background: rgba(0, 255, 242, 0.03);
+    }
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 255, 242, 0.5);
+      color: #8ae9ff;
+      margin: 0 6px 6px 0;
+      font-size: 0.9em;
+    }
+    .catalog {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .catalog-item {
+      padding: 12px;
+      border: 1px dashed rgba(0, 255, 242, 0.4);
+      border-radius: 8px;
+      background: rgba(0, 255, 242, 0.04);
+      color: #c5f3ff;
+    }
+    .catalog-item strong {
+      color: #00fff2;
+      text-shadow: 0 0 8px #00fff2;
+    }
+    .badge {
+      padding: 6px 10px;
+      border-radius: 8px;
+      background: rgba(0, 255, 242, 0.12);
+      border: 1px solid rgba(0, 255, 242, 0.4);
+      color: #8ae9ff;
+      font-size: 0.9em;
+      text-shadow: 0 0 6px #00fff2;
+    }
+    .gauge-wrap {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+    .gauge {
+      width: 100%;
+      height: 260px;
+      border: 1px solid rgba(0, 255, 242, 0.4);
+      border-radius: 12px;
+      background: radial-gradient(circle at 50% 30%, rgba(0, 255, 242, 0.08), transparent 50%), rgba(2, 18, 32, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+    .thermo {
+      position: relative;
+      width: 90px;
+      height: 200px;
+      margin: 0 auto;
+      border-radius: 999px;
+      border: 2px solid rgba(0, 255, 242, 0.55);
+      background: linear-gradient(180deg, rgba(0, 255, 242, 0.05), rgba(0, 255, 242, 0.15));
+    }
+    .thermo-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      border-radius: 0 0 90px 90px;
+      background: linear-gradient(180deg, #00fff2, #00b7c9);
+      box-shadow: 0 0 12px rgba(0, 255, 242, 0.6);
+      height: 50%;
+      transition: height 0.4s ease;
+    }
+    .thermo-label {
+      text-align: center;
+      margin-top: 10px;
+      color: #c5f3ff;
+      font-weight: bold;
+    }
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+    }
+    .heat-cell {
+      padding: 14px 0;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 255, 242, 0.2);
+      text-align: center;
+      color: #041226;
+      font-weight: bold;
+      text-shadow: none;
+    }
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(0, 255, 242, 0.15);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00fff2, #00b7c9);
+      box-shadow: 0 0 10px rgba(0, 255, 242, 0.45);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .flex {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #00fff2;
+    }
+    @media (max-width: 720px) {
+      h1 { font-size: 2.2em; }
+      .charts canvas { height: 220px; }
+      .gauge { height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="container">
+    <a href="index.html" class="back-link">← Observatory Index</a>
+    <section class="hero">
+      <div class="eyebrow">Page 95 · Deploy 450 Aftermath</div>
+      <h1>Ecosystem Self-Healing Metrics</h1>
+      <p class="subtitle">Tracking the ecosystem's ability to rebound from crises—resilience recovery patterns, healing velocity, regeneration curves, fault tolerance, and anti-fragility markers guiding the post-Deploy 450 era.</p>
+      <div class="meta-row">
+        <span class="pill">Ecosystem Resilience Index: 0.87</span>
+        <span class="pill">Recovery Time: 4.1h</span>
+        <span class="pill">Visitor Retention Post-Crisis: 92%</span>
+        <span class="pill">Adaptability: 0.91</span>
+        <span class="pill badge" id="audio-status">Muted</span>
+      </div>
+      <div class="controls">
+        <button id="audio-toggle">Enable Resonance Audio</button>
+        <button id="refresh-views">Refresh Visuals</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Core Healing Signals</h3>
+      <div class="grid">
+        <div class="metric-row"><span>Resilience Index</span><span class="metric-value">0.87</span></div>
+        <div class="metric-row"><span>Recovery Time (post-Deploy 450)</span><span class="metric-value">4.1 hours</span></div>
+        <div class="metric-row"><span>Visitor Retention Post-Crisis</span><span class="metric-value">92%</span></div>
+        <div class="metric-row"><span>Improvement Rate</span><span class="metric-value">87.4 / hour</span></div>
+        <div class="metric-row"><span>Adaptability Score</span><span class="metric-value">0.91</span></div>
+        <div class="metric-row"><span>Recovery Elasticity</span><span class="metric-value">0.81</span></div>
+        <div class="metric-row"><span>Regeneration Events Tracked</span><span class="metric-value">50</span></div>
+        <div class="metric-row"><span>Self-Healing Mechanisms Identified</span><span class="metric-value">12</span></div>
+        <div class="metric-row"><span>Healing Coverage</span><span class="metric-value">0.78</span></div>
+      </div>
+    </section>
+
+    <section class="charts">
+      <div class="chart-shell">
+        <h4>Crisis Timeline · Recovery Curves</h4>
+        <div class="flex" style="margin-bottom:8px;">
+          <label for="timeline-range">Recovery timeline slider</label>
+          <input type="range" id="timeline-range" min="0" max="100" value="72">
+        </div>
+        <canvas id="timelineChart"></canvas>
+      </div>
+      <div class="chart-shell">
+        <h4>Resilience Elasticity Chart</h4>
+        <canvas id="elasticityChart"></canvas>
+      </div>
+      <div class="chart-shell">
+        <h4>Self-Healing Velocity Trends</h4>
+        <canvas id="velocityChart"></canvas>
+      </div>
+    </section>
+
+    <section class="gauge-wrap">
+      <div class="gauge card" style="padding:14px;">
+        <h3>Healing Gauge · Coverage 0.78</h3>
+        <canvas id="healingGauge" style="width:100%;height:200px;"></canvas>
+      </div>
+      <div class="gauge card" style="padding:14px;">
+        <h3>Resilience Thermometer · Elasticity 0.81</h3>
+        <div class="thermo">
+          <div class="thermo-fill" id="thermo-fill"></div>
+        </div>
+        <div class="thermo-label" id="thermo-label">0.81 elasticity</div>
+      </div>
+      <div class="gauge card" style="padding:14px;">
+        <h3>Recovery Timeline Marker</h3>
+        <div style="height:200px; display:flex; flex-direction:column; justify-content:center; gap:12px;">
+          <div class="badge" id="timeline-readout">T+4.1h · 0.87 stability</div>
+          <div class="badge" id="retention-readout">Visitor retention: 92%</div>
+          <div class="badge" id="velocity-readout">Healing velocity: 87.4/hour</div>
+          <div class="badge" id="coverage-readout">Coverage: 0.78</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="charts">
+      <div class="chart-shell">
+        <h4>Fault Tolerance Radar</h4>
+        <canvas id="radarChart"></canvas>
+      </div>
+      <div class="chart-shell">
+        <h4>Ecosystem Stress Response Matrix</h4>
+        <canvas id="stressHeatmap"></canvas>
+      </div>
+      <div class="chart-shell">
+        <h4>Recovery Elasticity Curves</h4>
+        <canvas id="recoveryCurves"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Regeneration Mechanism Catalog · Mechanism Browser</h3>
+      <div class="controls" style="margin-bottom:10px;">
+        <button class="filter-btn" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="sensor">Sensorial</button>
+        <button class="filter-btn" data-filter="routing">Routing</button>
+        <button class="filter-btn" data-filter="learning">Learning</button>
+        <button class="filter-btn" data-filter="shield">Shielding</button>
+      </div>
+      <div class="catalog" id="catalog"></div>
+    </section>
+
+    <section class="card">
+      <h3>Anti-Fragility Indicators Dashboard</h3>
+      <div class="grid" id="antiFragility"></div>
+    </section>
+  </div>
+
+  <script>
+    const timelineRange = document.getElementById('timeline-range');
+    const timelineReadout = document.getElementById('timeline-readout');
+    const retentionReadout = document.getElementById('retention-readout');
+    const velocityReadout = document.getElementById('velocity-readout');
+    const coverageReadout = document.getElementById('coverage-readout');
+    const thermoFill = document.getElementById('thermo-fill');
+    const thermoLabel = document.getElementById('thermo-label');
+    const particleCanvas = document.getElementById('particle-canvas');
+    const pCtx = particleCanvas.getContext('2d');
+
+    function prepCanvas(id, defaultHeight = 240) {
+      const canvas = document.getElementById(id);
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight || defaultHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      return { ctx, width, height };
+    }
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function curveValue(t) {
+      const knots = [
+        { t: 0, v: 0.25 },
+        { t: 0.08, v: 0.18 },
+        { t: 0.2, v: 0.44 },
+        { t: 0.38, v: 0.62 },
+        { t: 0.55, v: 0.78 },
+        { t: 0.75, v: 0.88 },
+        { t: 1, v: 0.93 }
+      ];
+      for (let i = 0; i < knots.length - 1; i++) {
+        const a = knots[i], b = knots[i + 1];
+        if (t >= a.t && t <= b.t) {
+          const lt = (t - a.t) / (b.t - a.t);
+          return lerp(a.v, b.v, lt);
+        }
+      }
+      return knots[knots.length - 1].v;
+    }
+
+    function drawTimeline(progress = 0.72) {
+      const { ctx, width, height } = prepCanvas('timelineChart', 260);
+      ctx.strokeStyle = 'rgba(124, 241, 255, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(40, height - 30);
+      ctx.lineTo(width - 10, height - 30);
+      ctx.moveTo(40, height - 30);
+      ctx.lineTo(40, 20);
+      ctx.stroke();
+
+      ctx.beginPath();
+      const steps = 80;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const yVal = curveValue(t);
+        const x = lerp(40, width - 20, t);
+        const y = lerp(height - 30, 30, yVal);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      const gradient = ctx.createLinearGradient(40, 0, width - 20, 0);
+      gradient.addColorStop(0, 'rgba(0, 255, 242, 0.65)');
+      gradient.addColorStop(1, 'rgba(0, 170, 190, 0.85)');
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00fff2';
+      ctx.shadowBlur = 10;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      const px = lerp(40, width - 20, progress);
+      const py = lerp(height - 30, 30, curveValue(progress));
+      ctx.fillStyle = '#00fff2';
+      ctx.beginPath();
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(0, 255, 242, 0.2)';
+      ctx.fillRect(px - 2, 30, 4, height - 60);
+    }
+
+    function drawElasticity(progress = 0.72) {
+      const { ctx, width, height } = prepCanvas('elasticityChart');
+      const base = [0.22, 0.34, 0.55, 0.72, 0.81, 0.79, 0.83, 0.88, 0.86, 0.9];
+      const bounce = [0.18, 0.3, 0.52, 0.69, 0.75, 0.82, 0.91, 0.94, 0.93, 0.95];
+      [base, bounce].forEach((series, idx) => {
+        ctx.beginPath();
+        series.forEach((v, i) => {
+          const t = i / (series.length - 1);
+          const x = lerp(40, width - 20, t);
+          const y = lerp(height - 30, 20, v);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = idx === 0 ? 'rgba(124, 241, 255, 0.6)' : '#00fff2';
+        ctx.lineWidth = idx === 0 ? 2 : 3;
+        ctx.shadowColor = idx === 1 ? '#00fff2' : 'transparent';
+        ctx.shadowBlur = idx === 1 ? 8 : 0;
+        ctx.stroke();
+      });
+      const markerX = lerp(40, width - 20, progress);
+      ctx.fillStyle = 'rgba(0, 255, 242, 0.15)';
+      ctx.fillRect(markerX - 1.5, 18, 3, height - 38);
+    }
+
+    function drawVelocity(progress = 0.72) {
+      const { ctx, width, height } = prepCanvas('velocityChart');
+      const points = [32, 45, 52, 61, 68, 74, 79, 83, 86, 87.4, 90];
+      const adjusted = points.map((v, i) => v + Math.sin(progress * Math.PI * 2 + i) * 1.5);
+      ctx.beginPath();
+      adjusted.forEach((v, i) => {
+        const x = lerp(40, width - 20, i / (adjusted.length - 1));
+        const y = lerp(height - 30, 30, v / 95);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      const grad = ctx.createLinearGradient(40, 0, width - 20, 0);
+      grad.addColorStop(0, 'rgba(0, 255, 242, 0.5)');
+      grad.addColorStop(1, 'rgba(0, 170, 190, 0.9)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00fff2';
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawGauge(value = 0.78) {
+      const { ctx, width, height } = prepCanvas('healingGauge', 200);
+      const cx = width / 2, cy = height / 2 + 10, r = Math.min(width, height) / 2 - 18;
+      ctx.strokeStyle = 'rgba(124, 241, 255, 0.25)';
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, 0);
+      ctx.stroke();
+      const end = Math.PI + Math.PI * value;
+      ctx.strokeStyle = '#00fff2';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, end);
+      ctx.stroke();
+      ctx.font = 'bold 22px "Courier New", monospace';
+      ctx.fillStyle = '#00fff2';
+      ctx.textAlign = 'center';
+      ctx.fillText((value * 100).toFixed(0) + '% healing coverage', cx, cy - 6);
+      ctx.fillStyle = '#c5f3ff';
+      ctx.font = '14px "Courier New", monospace';
+      ctx.fillText('Dynamic coverage gauge', cx, cy + 18);
+    }
+
+    function drawRadar() {
+      const { ctx, width, height } = prepCanvas('radarChart', 260);
+      const metrics = [
+        { label: 'Failover', value: 0.86 },
+        { label: 'Redundancy', value: 0.83 },
+        { label: 'Diversity', value: 0.88 },
+        { label: 'Isolation', value: 0.8 },
+        { label: 'Learning', value: 0.9 }
+      ];
+      const center = { x: width / 2, y: height / 2 + 6 };
+      const radius = Math.min(width, height) / 2 - 28;
+      ctx.strokeStyle = 'rgba(124, 241, 255, 0.35)';
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 4; i++) {
+        ctx.beginPath();
+        metrics.forEach((_, idx) => {
+          const angle = (Math.PI * 2 / metrics.length) * idx - Math.PI / 2;
+          const x = center.x + Math.cos(angle) * radius * (i / 4);
+          const y = center.y + Math.sin(angle) * radius * (i / 4);
+          if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      metrics.forEach((m, idx) => {
+        const angle = (Math.PI * 2 / metrics.length) * idx - Math.PI / 2;
+        const x = center.x + Math.cos(angle) * radius * m.value;
+        const y = center.y + Math.sin(angle) * radius * m.value;
+        if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(0, 255, 242, 0.18)';
+      ctx.strokeStyle = '#00fff2';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = '#00fff2';
+      ctx.shadowBlur = 10;
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function drawStress(progress = 0.72) {
+      const { ctx, width, height } = prepCanvas('stressHeatmap', 260);
+      const cols = 6, rows = 5;
+      const cellW = (width - 40) / cols;
+      const cellH = (height - 40) / rows;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const seed = Math.sin((r + 1) * (c + 2) + progress * Math.PI * 2);
+          const val = 0.5 + seed * 0.3 + (c / cols) * 0.1;
+          const strength = Math.max(0, Math.min(1, val));
+          const hue = 175 - strength * 60;
+          ctx.fillStyle = `hsla(${hue}, 100%, 60%, 0.8)`;
+          ctx.strokeStyle = 'rgba(124, 241, 255, 0.3)';
+          ctx.lineWidth = 1;
+          const x = 20 + c * cellW;
+          const y = 20 + r * cellH;
+          ctx.fillRect(x, y, cellW - 6, cellH - 6);
+          ctx.strokeRect(x, y, cellW - 6, cellH - 6);
+        }
+      }
+    }
+
+    function drawRecoveryCurves(progress = 0.72) {
+      const { ctx, width, height } = prepCanvas('recoveryCurves');
+      const curves = [
+        { base: 0.22, accel: 0.7, tone: 'rgba(0, 255, 242, 0.9)' },
+        { base: 0.26, accel: 0.6, tone: 'rgba(124, 241, 255, 0.7)' },
+        { base: 0.18, accel: 0.8, tone: 'rgba(0, 190, 210, 0.6)' }
+      ];
+      curves.forEach((curve, idx) => {
+        ctx.beginPath();
+        for (let i = 0; i <= 70; i++) {
+          const t = i / 70;
+          const elasticity = curve.base + curve.accel * (1 - Math.exp(-3 * t));
+          const adaptiveLift = elasticity + Math.sin(progress * Math.PI * 2 + idx) * 0.02;
+          const x = lerp(40, width - 20, t);
+          const y = lerp(height - 30, 20, adaptiveLift);
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = curve.tone;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = idx === 0 ? '#00fff2' : 'transparent';
+        ctx.shadowBlur = idx === 0 ? 8 : 0;
+        ctx.stroke();
+      });
+    }
+
+    const mechanisms = [
+      { name: 'Adaptive Circuit Breakers', type: 'shield', status: 'auto-shunt, 120ms response' },
+      { name: 'Visitor Flow Rerouting', type: 'routing', status: 'live A/B corridor shift' },
+      { name: 'Telemetry Healing Mesh', type: 'sensor', status: 'self-patching beacon mesh' },
+      { name: 'Behavioral Learning Loop', type: 'learning', status: '0.91 adaptability score' },
+      { name: 'Regeneration Queue Orchestrator', type: 'routing', status: '50 regeneration events tracked' },
+      { name: 'Anomaly Dampening Shields', type: 'shield', status: '0.81 recovery elasticity' },
+      { name: 'Predictive Auto-Restore', type: 'learning', status: 'anticipates 4.1h recovery window' },
+      { name: 'Signal Integrity Sensors', type: 'sensor', status: '87.4/hour improvement cadence' },
+      { name: 'Edge Healing Capsules', type: 'shield', status: '12 self-healing mechanisms mapped' },
+      { name: 'Visitor Retention Safeguards', type: 'routing', status: 'holds 92% post-crisis' }
+    ];
+
+    function renderCatalog(filter = 'all') {
+      const container = document.getElementById('catalog');
+      container.innerHTML = '';
+      mechanisms.filter(m => filter === 'all' || m.type === filter).forEach(m => {
+        const div = document.createElement('div');
+        div.className = 'catalog-item';
+        div.innerHTML = `<strong>${m.name}</strong><br><span class="tag">${m.type}</span> <span>${m.status}</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    function renderAntiFragility() {
+      const container = document.getElementById('antiFragility');
+      container.innerHTML = '';
+      const indicators = [
+        { label: 'Stress-Gain Ratio', value: 0.74 },
+        { label: 'Shock Absorption', value: 0.8 },
+        { label: 'Overcompensation', value: 0.68 },
+        { label: 'Learning Uptake', value: 0.9 },
+        { label: 'Redundancy Margin', value: 0.83 },
+        { label: 'Visitor Stickiness', value: 0.92 }
+      ];
+      indicators.forEach(ind => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<strong>${ind.label}</strong><div class="bar"><div class="bar-fill" style="width:${(ind.value * 100).toFixed(0)}%"></div></div><div class="metric-value" style="margin-top:6px;">${ind.value.toFixed(2)}</div>`;
+        container.appendChild(card);
+      });
+    }
+
+    function updateThermometer(val = 0.81) {
+      const pct = Math.max(0, Math.min(1, val));
+      thermoFill.style.height = (pct * 100).toFixed(0) + '%';
+      thermoLabel.textContent = `${val.toFixed(2)} elasticity`;
+    }
+
+    // Particle field
+    let particles = [];
+    function resizeParticles() {
+      particleCanvas.width = window.innerWidth;
+      particleCanvas.height = window.innerHeight;
+    }
+    function initParticles() {
+      particles = Array.from({ length: 90 }, () => ({
+        x: Math.random() * particleCanvas.width,
+        y: Math.random() * particleCanvas.height,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        alpha: Math.random() * 0.6 + 0.2
+      }));
+    }
+    function drawParticles() {
+      pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > particleCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > particleCanvas.height) p.vy *= -1;
+        pCtx.beginPath();
+        pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pCtx.fillStyle = `rgba(0, 255, 242, ${p.alpha})`;
+        pCtx.shadowColor = '#00fff2';
+        pCtx.shadowBlur = 12;
+        pCtx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    resizeParticles();
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', () => {
+      resizeParticles();
+      initParticles();
+    });
+
+    // Audio: cyan field tone with LFO
+    const audioToggle = document.getElementById('audio-toggle');
+    const audioStatus = document.getElementById('audio-status');
+    let audioCtx, mainOsc, lfoOsc, lfoGain, mainGain;
+    let muted = localStorage.getItem('eshm-audio-muted') === 'true';
+    function updateAudioLabel() {
+      audioStatus.textContent = muted ? 'Muted' : 'Live resonance bed';
+      audioToggle.textContent = muted ? 'Enable Resonance Audio' : 'Mute Resonance Audio';
+    }
+    function ensureAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      mainOsc = audioCtx.createOscillator();
+      mainOsc.type = 'sine';
+      mainOsc.frequency.value = 62;
+      lfoOsc = audioCtx.createOscillator();
+      lfoOsc.type = 'sine';
+      lfoOsc.frequency.value = 0.55;
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.01;
+      mainGain = audioCtx.createGain();
+      mainGain.gain.value = muted ? 0 : 0.02;
+      lfoOsc.connect(lfoGain).connect(mainGain.gain);
+      mainOsc.connect(mainGain).connect(audioCtx.destination);
+      mainOsc.start();
+      lfoOsc.start();
+    }
+    audioToggle.addEventListener('click', async () => {
+      ensureAudio();
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+      muted = !muted;
+      localStorage.setItem('eshm-audio-muted', muted);
+      if (mainGain) {
+        mainGain.gain.setTargetAtTime(muted ? 0 : 0.02, audioCtx.currentTime, 0.05);
+      }
+      updateAudioLabel();
+    });
+    updateAudioLabel();
+
+    function refresh(progress) {
+      drawTimeline(progress);
+      drawElasticity(progress);
+      drawVelocity(progress);
+      drawGauge(0.78 + Math.sin(progress * Math.PI * 2) * 0.01);
+      drawRadar();
+      drawStress(progress);
+      drawRecoveryCurves(progress);
+      updateThermometer(0.81 + Math.sin(progress * Math.PI * 2) * 0.01);
+      const hours = lerp(0, 4.1, progress).toFixed(2);
+      const stability = (0.5 + progress * 0.45).toFixed(2);
+      timelineReadout.textContent = `T+${hours}h · ${stability} stability`;
+      const retention = 0.9 + progress * 0.03;
+      retentionReadout.textContent = `Visitor retention: ${(retention * 100).toFixed(0)}%`;
+      velocityReadout.textContent = `Healing velocity: ${(86 + progress * 4).toFixed(1)}/hour`;
+      coverageReadout.textContent = `Coverage: ${(0.76 + progress * 0.04).toFixed(2)}`;
+    }
+
+    timelineRange.addEventListener('input', e => {
+      const p = e.target.value / 100;
+      refresh(p);
+    });
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter');
+        renderCatalog(filter);
+      });
+    });
+
+    document.getElementById('refresh-views').addEventListener('click', () => {
+      const random = Math.random();
+      timelineRange.value = (random * 100).toFixed(0);
+      refresh(random);
+    });
+
+    renderCatalog();
+    renderAntiFragility();
+    refresh(timelineRange.value / 100);
+  </script>
+</body>
+</html>

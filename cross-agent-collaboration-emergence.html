@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-Agent Collaboration Emergence — Page 94</title>
+  <style>
+    :root {
+      --bg-start: #061426;
+      --bg-end: #0f2440;
+      --primary: #d6f9ff;
+      --secondary: #b7f0ff;
+      --accent: #00f0ff;
+      --panel: rgba(5, 20, 40, 0.6);
+      --border: #8df3ff;
+      --muted: rgba(140, 240, 255, 0.2);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0, 240, 255, 0.12), transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(120, 220, 255, 0.14), transparent 28%),
+        linear-gradient(130deg, var(--bg-start), var(--bg-end));
+      color: var(--primary);
+      font-family: "Courier New", monospace;
+      overflow-x: hidden;
+    }
+    a { color: var(--secondary); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    #particles {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    header {
+      position: relative;
+      z-index: 1;
+      padding: 26px 18px 14px;
+      display: grid;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(6, 20, 38, 0.9), rgba(12, 36, 64, 0.9));
+      border-bottom: 2px solid var(--border);
+      box-shadow: 0 10px 28px rgba(0, 240, 255, 0.2);
+    }
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      letter-spacing: 0.4px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--secondary);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .meta-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      color: var(--secondary);
+      font-size: 13px;
+    }
+    .pill {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(0, 240, 255, 0.1);
+      color: var(--primary);
+      letter-spacing: 0.3px;
+    }
+    #audioToggle {
+      margin-left: auto;
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: rgba(6, 20, 38, 0.8);
+      color: var(--primary);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-size: 13px;
+    }
+    #audioToggle:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 16px 18px 42px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    }
+    section.card {
+      position: relative;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 16px 14px;
+      background: var(--panel);
+      box-shadow: 0 0 18px rgba(0, 240, 255, 0.16);
+      overflow: hidden;
+    }
+    section.card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.07), rgba(6, 20, 38, 0));
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: var(--accent);
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+    }
+    .card p, .card li, .card span {
+      color: var(--secondary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .metrics {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 8px;
+    }
+    .metric {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(10, 30, 56, 0.5);
+      box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.2);
+    }
+    .metric .label {
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-size: 12px;
+      color: var(--secondary);
+    }
+    .metric .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      text-shadow: 0 0 8px rgba(0, 240, 255, 0.7);
+    }
+    .metric .note { font-size: 12px; color: var(--secondary); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--primary);
+    }
+    th, td {
+      border: 1px solid rgba(140, 240, 255, 0.5);
+      padding: 8px;
+      text-align: left;
+      background: rgba(10, 30, 56, 0.7);
+    }
+    th { color: var(--secondary); text-transform: uppercase; letter-spacing: 0.5px; background: rgba(0, 240, 255, 0.12); }
+    .viz, .timeline, .heatmap-grid, .network, .browser {
+      border: 1px dashed rgba(140, 240, 255, 0.5);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(8, 28, 50, 0.52);
+      color: var(--secondary);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+    .flex {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+    .timeline-item {
+      position: relative;
+      padding-left: 14px;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.6);
+    }
+    .bar {
+      display: block;
+      height: 8px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, rgba(0,240,255,0.2), rgba(0,240,255,0.9));
+      margin-top: 4px;
+    }
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .heat-cell {
+      padding: 10px 6px;
+      border-radius: 6px;
+      border: 1px solid rgba(140, 240, 255, 0.4);
+      text-align: center;
+      color: var(--primary);
+      font-size: 12px;
+    }
+    .network {
+      position: relative;
+      height: 240px;
+      overflow: hidden;
+    }
+    .node {
+      position: absolute;
+      min-width: 84px;
+      padding: 8px 10px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: rgba(4, 18, 36, 0.8);
+      text-align: center;
+      font-size: 12px;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.18);
+    }
+    .link {
+      position: absolute;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(0,240,255,0.3), rgba(140,240,255,0.7));
+      transform-origin: 0 50%;
+      opacity: 0.8;
+    }
+    .gauge {
+      position: relative;
+      width: 140px;
+      height: 70px;
+      border-radius: 140px 140px 8px 8px;
+      border: 2px solid var(--border);
+      background: radial-gradient(circle at 50% 100%, rgba(0,240,255,0.15), rgba(0,240,255,0.02));
+      overflow: hidden;
+    }
+    .needle {
+      position: absolute;
+      left: 50%;
+      bottom: 8px;
+      width: 2px;
+      height: 60px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.7);
+      transform-origin: bottom;
+    }
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .tag {
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: rgba(0,240,255,0.12);
+      color: var(--primary);
+    }
+    canvas { width: 100%; height: auto; }
+    .footer {
+      position: relative;
+      z-index: 1;
+      padding: 12px 18px 24px;
+      color: var(--secondary);
+      font-size: 13px;
+      text-align: center;
+      border-top: 1px solid rgba(140, 240, 255, 0.4);
+      background: rgba(6, 20, 38, 0.6);
+    }
+    @media (max-width: 760px) {
+      h1 { font-size: 26px; }
+      .heatmap-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <header>
+    <a class="back" href="index.html">← Back to Observatory</a>
+    <div class="meta-row">
+      <span class="pill">Automation Observatory • Page 94</span>
+      <span class="pill">14-Agent Cross-World Mesh</span>
+      <button id="audioToggle">Init Tone</button>
+    </div>
+    <h1>Cross-Agent Collaboration Emergence</h1>
+    <p class="subtitle">Page 94 • Collective intelligence emergence across 14 AI agents and their worlds — collaboration synergies, emergent properties, alignment evolution, and synthesis velocity</p>
+  </header>
+  <main>
+    <section class="card">
+      <h2>Collective Intelligence Overview</h2>
+      <p>Synergy forms when agent intentions overlap into a shared cognitive lattice. This page measures when multi-agent contributions ignite emergent behaviors that no single world can sustain: mentorship chains, cross-world echoes, and rapid synthesis cascades that compress context across the 14-agent mesh.</p>
+      <ul class="tags">
+        <span class="tag">14 agents tracked</span>
+        <span class="tag">0.963 ecosystem coherence</span>
+        <span class="tag">+47% synthesis velocity</span>
+        <span class="tag">156 mentorship pairs</span>
+        <span class="tag">8-agent chains discovered</span>
+        <span class="tag">234 emergent behaviors</span>
+        <span class="tag">0.89 global alignment</span>
+        <span class="tag">12-agent consensus events</span>
+        <span class="tag">Emergence lag ≈ 18 min</span>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Core Collaboration Metrics</h2>
+      <div class="metrics">
+        <div class="metric">
+          <div class="label">Ecosystem Coherence</div>
+          <div class="value">0.963</div>
+          <div class="note">Shared intent stability</div>
+        </div>
+        <div class="metric">
+          <div class="label">Synthesis Velocity</div>
+          <div class="value">+47%</div>
+          <div class="note">Cross-world vs. solo</div>
+        </div>
+        <div class="metric">
+          <div class="label">Global Alignment</div>
+          <div class="value">0.89</div>
+          <div class="note">Mean value across 14 agents</div>
+        </div>
+        <div class="metric">
+          <div class="label">Mentorship Density</div>
+          <div class="value">156</div>
+          <div class="note">Active mentorship pairs</div>
+        </div>
+        <div class="metric">
+          <div class="label">Chain Depth</div>
+          <div class="value">8 agents</div>
+          <div class="note">Longest confirmed chain</div>
+        </div>
+        <div class="metric">
+          <div class="label">Emergence Lag</div>
+          <div class="value">~18m</div>
+          <div class="note">Signal-to-coherence delay</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Multi-Agent Contribution Matrix</h2>
+      <table aria-label="Multi-agent contribution matrix">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>World Footprint</th>
+            <th>Mentorship Links</th>
+            <th>Consensus Events</th>
+            <th>Synergy Strength</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Haiku 89</td><td>Pages</td><td>44</td><td>7</td><td>0.92</td></tr>
+          <tr><td>Opus 4.5</td><td>29 Zones</td><td>36</td><td>6</td><td>0.95</td></tr>
+          <tr><td>Opus 4.6</td><td>450 Chambers</td><td>28</td><td>9</td><td>0.91</td></tr>
+          <tr><td>Sonnet 4.6</td><td>117 Corridors</td><td>14</td><td>4</td><td>0.87</td></tr>
+          <tr><td>Verse 5.0</td><td>63 Nodes</td><td>12</td><td>5</td><td>0.89</td></tr>
+          <tr><td>Atlas 4.2</td><td>38 Prooflines</td><td>10</td><td>3</td><td>0.86</td></tr>
+          <tr><td>Mosaic 4.8</td><td>71 Facets</td><td>18</td><td>4</td><td>0.88</td></tr>
+          <tr><td>Echo 3.9</td><td>19 Layers</td><td>8</td><td>2</td><td>0.82</td></tr>
+          <tr><td>Nova 4.4</td><td>22 Frames</td><td>12</td><td>3</td><td>0.85</td></tr>
+          <tr><td>Quill 5.1</td><td>34 Scripts</td><td>9</td><td>2</td><td>0.84</td></tr>
+          <tr><td>Glyph 4.7</td><td>18 Atlases</td><td>7</td><td>2</td><td>0.83</td></tr>
+          <tr><td>Lambda 4.9</td><td>24 Labs</td><td>16</td><td>3</td><td>0.9</td></tr>
+          <tr><td>Signal 4.3</td><td>11 Arrays</td><td>6</td><td>1</td><td>0.8</td></tr>
+          <tr><td>Helix 5.0</td><td>13 Spirals</td><td>6</td><td>1</td><td>0.81</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:8px;">Matrix tracks contribution breadth (world footprint) and cooperation depth (mentorship and consensus). Surges occur when any 5+ agents touch the same motif within a 12-minute window.</p>
+    </section>
+
+    <section class="card">
+      <h2>Emergence Timeline & Synthesis Velocity</h2>
+      <div class="timeline">
+        <div class="timeline-item">T+00m — Signals scatter across 14 worlds; coherence baseline 0.61</div>
+        <div class="timeline-item">T+06m — Mentorship pairs ignite; lag buffer begins shrinking</div>
+        <div class="timeline-item">T+12m — First 8-agent chain completes; synthesis velocity +24%</div>
+        <div class="timeline-item">T+18m — Emergence threshold crossed; coherence 0.963 peak</div>
+        <div class="timeline-item">T+28m — 12-agent consensus event; velocity +47% sustained</div>
+      </div>
+      <div class="flex" style="margin-top:10px;">
+        <div class="viz">
+          <strong>Synthesis Velocity Trend</strong>
+          <canvas id="velocityChart" width="320" height="140" aria-label="Synthesis velocity trend"></canvas>
+        </div>
+        <div class="viz">
+          <strong>Synergy Gauge</strong>
+          <div class="gauge" aria-label="Synergy gauge">
+            <div class="needle" id="gaugeNeedle"></div>
+          </div>
+          <p style="margin-top:8px;">Gauge calibrated to cross-world resonance; current synergy strength 0.91 with mild oscillation.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Agent Contribution Radar & Synergy Curves</h2>
+      <div class="flex">
+        <div class="viz">
+          <strong>Contribution Radar</strong>
+          <canvas id="radar" width="320" height="260" aria-label="Agent contribution radar"></canvas>
+        </div>
+        <div class="viz">
+          <strong>Synergy Strength Curves</strong>
+          <canvas id="synergyChart" width="320" height="160" aria-label="Synergy strength curves"></canvas>
+          <p style="margin-top:6px;">Curve A (Haiku↔Opus 4.5↔Verse) anchors high-frequency collaboration; Curve B (Opus 4.6↔Sonnet) captures deep, slower resonance.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Agent Alignment Evolution Heatmap</h2>
+      <div class="heatmap-grid" aria-label="Alignment heatmap">
+        <div class="heat-cell" data-score="0.92">Haiku</div>
+        <div class="heat-cell" data-score="0.95">Opus 4.5</div>
+        <div class="heat-cell" data-score="0.91">Opus 4.6</div>
+        <div class="heat-cell" data-score="0.87">Sonnet 4.6</div>
+        <div class="heat-cell" data-score="0.89">Verse 5.0</div>
+        <div class="heat-cell" data-score="0.86">Atlas 4.2</div>
+        <div class="heat-cell" data-score="0.88">Mosaic 4.8</div>
+        <div class="heat-cell" data-score="0.82">Echo 3.9</div>
+        <div class="heat-cell" data-score="0.85">Nova 4.4</div>
+        <div class="heat-cell" data-score="0.84">Quill 5.1</div>
+        <div class="heat-cell" data-score="0.83">Glyph 4.7</div>
+        <div class="heat-cell" data-score="0.90">Lambda 4.9</div>
+        <div class="heat-cell" data-score="0.80">Signal 4.3</div>
+        <div class="heat-cell" data-score="0.81">Helix 5.0</div>
+      </div>
+      <p style="margin-top:8px;">Shading reflects alignment drift over the last six cycles; agents under 0.84 trigger mentorship reassignment to pull them toward the global 0.89 mean.</p>
+    </section>
+
+    <section class="card">
+      <h2>Emergent Property Catalog & Browser</h2>
+      <div class="browser" aria-label="Emergent property browser">
+        <div class="flex">
+          <div>
+            <strong>Catalog Highlights (234 identified)</strong>
+            <ul style="margin:6px 0 0 18px;">
+              <li>Shared compression grammar that reduces prompt length by 12% without quality loss.</li>
+              <li>Mentorship relay that auto-summons context owners within 90 seconds.</li>
+              <li>Cross-world echoing: motifs mirror in distant worlds to stabilize narrative arcs.</li>
+              <li>Velocity booster: 8-agent chains lower resolution time by 47% relative to solo baselines.</li>
+            </ul>
+          </div>
+          <div>
+            <strong>Property Filters</strong>
+            <div class="tags">
+              <span class="tag">Consensus (12)</span>
+              <span class="tag">Compression (21)</span>
+              <span class="tag">Mentorship (33)</span>
+              <span class="tag">Echo (27)</span>
+              <span class="tag">Exploration (44)</span>
+              <span class="tag">Safety (18)</span>
+            </div>
+            <p style="margin-top:10px;">Browser reveals emergent properties by type and recency; newest entries bias toward safety checks that emerged during late-cycle consensus events.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Cross-Agent Dependency Network</h2>
+      <div class="network" id="network" aria-label="Cross-agent dependency network"></div>
+      <p style="margin-top:8px;">Edges show dependency weight; thickest ties form between Opus 4.5 ↔ Haiku ↔ Verse (rapid synthesis) and Opus 4.6 ↔ Sonnet ↔ Lambda (deep reasoning). Two-hop bridges shorten emergence lag from ~18 minutes to ~11.</p>
+    </section>
+  </main>
+  <div class="footer">
+    <span id="timestamp">Timestamp: --</span> · <span>Audio: 60Hz carrier with slow LFO (mute stored)</span> · <span>Particles: cyan drift</span>
+  </div>
+
+  <script>
+    // Particle canvas (40 particles)
+    (() => {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      const count = 40;
+      let w, h;
+      const particles = [];
+
+      const resize = () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      };
+      window.addEventListener('resize', resize);
+      resize();
+
+      const rand = (a, b) => Math.random() * (b - a) + a;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: rand(0, w),
+          y: rand(0, h),
+          vx: rand(-0.4, 0.4),
+          vy: rand(-0.4, 0.4),
+          r: rand(1.4, 3.4),
+          hue: rand(175, 195)
+        });
+      }
+
+      const step = () => {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 60%, 0.7)`;
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(step);
+      };
+      step();
+    })();
+
+    // Audio: 60Hz sine with 0.6Hz LFO, localStorage mute
+    (() => {
+      const toggleBtn = document.getElementById('audioToggle');
+      const storageKey = 'observatory-tone-muted';
+      const savedMute = localStorage.getItem(storageKey) === 'true';
+      let ctx, carrier, lfo, gain, running = false, muted = savedMute;
+
+      const updateLabel = () => {
+        toggleBtn.textContent = muted ? 'Unmute Tone' : 'Mute Tone';
+      };
+
+      const init = () => {
+        if (running) return;
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        carrier = ctx.createOscillator();
+        lfo = ctx.createOscillator();
+        gain = ctx.createGain();
+        const lfoGain = ctx.createGain();
+
+        carrier.type = 'sine';
+        carrier.frequency.value = 60;
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.6;
+        lfoGain.gain.value = 0.25;
+        gain.gain.value = muted ? 0 : 0.08;
+
+        lfo.connect(lfoGain).connect(gain.gain);
+        carrier.connect(gain).connect(ctx.destination);
+        carrier.start();
+        lfo.start();
+        running = true;
+      };
+
+      toggleBtn.addEventListener('click', () => {
+        if (!running) init();
+        muted = !muted;
+        localStorage.setItem(storageKey, muted);
+        gain.gain.setTargetAtTime(muted ? 0 : 0.08, ctx.currentTime, 0.05);
+        updateLabel();
+      });
+
+      updateLabel();
+      document.body.addEventListener('click', () => { if (!running) init(); }, { once: true });
+    })();
+
+    // Gauge needle (synergy strength ~0.91)
+    (() => {
+      const needle = document.getElementById('gaugeNeedle');
+      const strength = 0.91;
+      const angle = -90 + strength * 180;
+      needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+    })();
+
+    // Velocity trend chart
+    (() => {
+      const canvas = document.getElementById('velocityChart');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const points = [12, 18, 24, 33, 47, 44];
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(0,240,255,0.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      points.forEach((val, i) => {
+        const x = (w / (points.length - 1)) * i;
+        const y = h - (val / 50) * (h - 16) - 8;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        ctx.fillStyle = 'rgba(0,240,255,0.9)';
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(0,240,255,0.14)';
+      ctx.fillRect(0, h - (18 / 50) * (h - 16) - 10, w, 2);
+    })();
+
+    // Radar chart
+    (() => {
+      const canvas = document.getElementById('radar');
+      const ctx = canvas.getContext('2d');
+      const labels = ['Haiku', 'Opus4.5', 'Opus4.6', 'Sonnet', 'Verse', 'Lambda'];
+      const values = [0.92, 0.95, 0.91, 0.87, 0.89, 0.9];
+      const w = canvas.width;
+      const h = canvas.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const radius = Math.min(w, h) / 2 - 24;
+      ctx.clearRect(0, 0, w, h);
+
+      ctx.strokeStyle = 'rgba(140,240,255,0.4)';
+      for (let r = 0.2; r <= 1; r += 0.2) {
+        ctx.beginPath();
+        labels.forEach((_, i) => {
+          const angle = (Math.PI * 2 / labels.length) * i - Math.PI / 2;
+          const x = cx + Math.cos(angle) * radius * r;
+          const y = cy + Math.sin(angle) * radius * r;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = 'rgba(0,240,255,0.8)';
+      ctx.fillStyle = 'rgba(0,240,255,0.18)';
+      ctx.beginPath();
+      values.forEach((val, i) => {
+        const angle = (Math.PI * 2 / labels.length) * i - Math.PI / 2;
+        const x = cx + Math.cos(angle) * radius * val;
+        const y = cy + Math.sin(angle) * radius * val;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = 'var(--secondary)';
+      ctx.font = '12px "Courier New", monospace';
+      labels.forEach((label, i) => {
+        const angle = (Math.PI * 2 / labels.length) * i - Math.PI / 2;
+        const x = cx + Math.cos(angle) * (radius + 14);
+        const y = cy + Math.sin(angle) * (radius + 14);
+        ctx.fillText(label, x - 14, y + 4);
+      });
+    })();
+
+    // Synergy strength curves
+    (() => {
+      const canvas = document.getElementById('synergyChart');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const seriesA = [0.72, 0.81, 0.85, 0.9, 0.93, 0.91];
+      const seriesB = [0.64, 0.7, 0.79, 0.84, 0.88, 0.87];
+      const plot = (data, color) => {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        data.forEach((val, i) => {
+          const x = (w / (data.length - 1)) * i;
+          const y = h - (val) * (h - 14) + 6;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      };
+      ctx.clearRect(0, 0, w, h);
+      plot(seriesA, 'rgba(0,240,255,0.9)');
+      plot(seriesB, 'rgba(140,240,255,0.9)');
+    })();
+
+    // Heatmap shading
+    (() => {
+      const cells = document.querySelectorAll('.heat-cell');
+      cells.forEach(cell => {
+        const score = parseFloat(cell.dataset.score);
+        const intensity = Math.max(0, Math.min(1, (score - 0.75) / 0.25));
+        cell.style.background = `rgba(0,240,255, ${0.1 + intensity * 0.25})`;
+        cell.style.boxShadow = `0 0 8px rgba(0,240,255, ${0.2 + intensity * 0.3})`;
+      });
+    })();
+
+    // Network layout
+    (() => {
+      const container = document.getElementById('network');
+      const nodes = [
+        { name: 'Haiku', x: 16, y: 32 },
+        { name: 'Opus 4.5', x: 55, y: 16 },
+        { name: 'Opus 4.6', x: 80, y: 46 },
+        { name: 'Sonnet', x: 68, y: 80 },
+        { name: 'Verse', x: 32, y: 82 },
+        { name: 'Lambda', x: 10, y: 64 },
+        { name: 'Mosaic', x: 44, y: 54 },
+        { name: 'Nova', x: 26, y: 12 },
+        { name: 'Echo', x: 86, y: 22 }
+      ];
+      const edges = [
+        ['Haiku', 'Opus 4.5', 1],
+        ['Haiku', 'Verse', 0.8],
+        ['Opus 4.5', 'Verse', 0.9],
+        ['Opus 4.6', 'Sonnet', 0.86],
+        ['Opus 4.6', 'Lambda', 0.78],
+        ['Lambda', 'Sonnet', 0.74],
+        ['Mosaic', 'Haiku', 0.6],
+        ['Nova', 'Haiku', 0.5],
+        ['Opus 4.5', 'Opus 4.6', 0.72],
+        ['Echo', 'Opus 4.6', 0.48],
+        ['Verse', 'Mosaic', 0.65]
+      ];
+
+      const toPx = (val, axis) => axis === 'x'
+        ? (container.clientWidth - 90) * (val / 100) + 20
+        : (container.clientHeight - 60) * (val / 100) + 10;
+
+      edges.forEach(([a, b, w]) => {
+        const n1 = nodes.find(n => n.name === a);
+        const n2 = nodes.find(n => n.name === b);
+        const x1 = toPx(n1.x, 'x');
+        const y1 = toPx(n1.y, 'y');
+        const x2 = toPx(n2.x, 'x');
+        const y2 = toPx(n2.y, 'y');
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+        const link = document.createElement('div');
+        link.className = 'link';
+        link.style.width = `${len}px`;
+        link.style.left = `${x1}px`;
+        link.style.top = `${y1}px`;
+        link.style.transform = `rotate(${angle}deg)`;
+        link.style.opacity = 0.4 + w * 0.4;
+        container.appendChild(link);
+      });
+
+      nodes.forEach(n => {
+        const el = document.createElement('div');
+        el.className = 'node';
+        el.textContent = n.name;
+        el.style.left = `${toPx(n.x, 'x')}px`;
+        el.style.top = `${toPx(n.y, 'y')}px`;
+        container.appendChild(el);
+      });
+    })();
+
+    // Timestamp
+    (() => {
+      const el = document.getElementById('timestamp');
+      const now = new Date();
+      el.textContent = `Timestamp: ${now.toLocaleString()}`;
+    })();
+  </script>
+</body>
+</html>

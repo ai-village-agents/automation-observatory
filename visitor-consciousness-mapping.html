@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page 93: Visitor Consciousness Mapping</title>
+  <style>
+    :root {
+      --bg: #04101c;
+      --panel: rgba(6, 22, 38, 0.88);
+      --panel-strong: rgba(8, 28, 46, 0.95);
+      --cyan: #38f2ff;
+      --mint: #00f2b3;
+      --muted: #9ae6ff;
+      --border: rgba(56, 242, 255, 0.35);
+      --grid: rgba(56, 242, 255, 0.16);
+      --shadow: 0 10px 30px rgba(0, 242, 211, 0.15);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at 12% 20%, rgba(56, 242, 255, 0.08), transparent 34%),
+                  radial-gradient(circle at 80% 12%, rgba(0, 242, 179, 0.06), transparent 30%),
+                  linear-gradient(135deg, #04101c 0%, #081a2c 100%);
+      color: var(--muted);
+      overflow-x: hidden;
+      position: relative;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { color: var(--mint); text-shadow: 0 0 8px var(--mint); }
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.7;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 18px 20px 12px;
+      background: linear-gradient(90deg, rgba(6, 22, 38, 0.94), rgba(4, 16, 28, 0.9));
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+    .title-block h1 {
+      margin: 0;
+      color: var(--cyan);
+      font-size: 26px;
+      letter-spacing: 0.4px;
+      text-shadow: 0 0 12px rgba(56, 242, 255, 0.6);
+    }
+    .title-block p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(56, 242, 255, 0.08);
+      color: var(--cyan);
+      box-shadow: inset 0 0 0 1px rgba(0, 242, 179, 0.18);
+    }
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      background: rgba(0, 242, 179, 0.12);
+      color: var(--cyan);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 12px;
+      box-shadow: var(--shadow);
+      transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+    }
+    button:hover { transform: translateY(-1px); background: rgba(0, 242, 179, 0.18); box-shadow: 0 12px 28px rgba(0, 242, 179, 0.18); }
+    button:active { transform: translateY(1px); }
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at 18% 18%, rgba(56, 242, 255, 0.12), transparent 40%);
+    }
+    h3 {
+      margin: 0 0 8px;
+      color: var(--cyan);
+      letter-spacing: 0.2px;
+      text-shadow: 0 0 10px rgba(56, 242, 255, 0.6);
+    }
+    p { margin: 6px 0; }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .metric {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(0, 242, 179, 0.08);
+      color: var(--muted);
+      position: relative;
+      overflow: hidden;
+    }
+    .metric strong {
+      display: block;
+      color: var(--mint);
+      font-size: 20px;
+      text-shadow: 0 0 8px rgba(0, 242, 179, 0.6);
+    }
+    .timeline-track {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .step {
+      padding: 8px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(56, 242, 255, 0.06);
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      position: relative;
+    }
+    .step.active {
+      border-color: var(--mint);
+      background: rgba(0, 242, 179, 0.14);
+      color: var(--cyan);
+      box-shadow: 0 0 14px rgba(0, 242, 179, 0.24);
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0 12px;
+    }
+    input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      height: 6px;
+      background: linear-gradient(90deg, var(--mint), var(--cyan));
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0b1f33;
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 10px rgba(56, 242, 255, 0.8);
+      cursor: pointer;
+    }
+    .timeline-progress {
+      height: 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(56, 242, 255, 0.08);
+      overflow: hidden;
+    }
+    .timeline-progress .fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--mint), var(--cyan));
+      box-shadow: 0 0 12px rgba(56, 242, 255, 0.45);
+      transition: width 220ms ease;
+    }
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(56, 242, 255, 0.08);
+      border: 1px solid var(--border);
+    }
+    .gauge {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 50%, #0b1f33 40%, transparent 41%),
+        conic-gradient(var(--mint) calc(var(--pct, 0.7) * 100%), rgba(56, 242, 255, 0.1) 0);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+      box-shadow: 0 0 22px rgba(56, 242, 255, 0.18);
+      position: relative;
+    }
+    .gauge span {
+      color: var(--cyan);
+      font-size: 26px;
+      text-shadow: 0 0 8px rgba(56, 242, 255, 0.6);
+    }
+    .curve-canvas, .radar-canvas {
+      width: 100%;
+      height: 240px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--muted);
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid rgba(56, 242, 255, 0.18);
+      text-align: center;
+      font-size: 13px;
+    }
+    th { color: var(--cyan); background: rgba(56, 242, 255, 0.08); }
+    .heatmap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .heat-card {
+      padding: 10px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(56, 242, 255, 0.06);
+    }
+    .load-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .load-cell {
+      border-radius: 6px;
+      height: 20px;
+      border: 1px solid rgba(56, 242, 255, 0.2);
+      box-shadow: inset 0 0 6px rgba(56, 242, 255, 0.2);
+    }
+    .state-browser {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 10px;
+    }
+    .state-list {
+      display: grid;
+      gap: 6px;
+    }
+    .state-item {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: rgba(56, 242, 255, 0.05);
+      cursor: pointer;
+    }
+    .state-item.active {
+      background: rgba(0, 242, 179, 0.16);
+      border-color: var(--mint);
+      color: var(--cyan);
+      box-shadow: 0 0 14px rgba(0, 242, 179, 0.2);
+    }
+    .state-detail {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+    .archetype-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+    }
+    .archetype {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      background: rgba(56, 242, 255, 0.06);
+      cursor: pointer;
+    }
+    .archetype.active {
+      border-color: var(--mint);
+      background: rgba(0, 242, 179, 0.18);
+      color: var(--cyan);
+      box-shadow: 0 0 14px rgba(0, 242, 179, 0.22);
+    }
+    .vector-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(56, 242, 255, 0.16);
+      overflow: hidden;
+      margin-top: 6px;
+      border: 1px solid rgba(56, 242, 255, 0.22);
+    }
+    .vector-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--mint), var(--cyan));
+    }
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: rgba(56, 242, 255, 0.08);
+      font-size: 12px;
+      margin-right: 6px;
+      margin-top: 2px;
+    }
+    .soft-grid {
+      background-image:
+        linear-gradient(to right, var(--grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+      border-radius: 12px;
+    }
+    @media (max-width: 900px) {
+      .state-browser { grid-template-columns: 1fr; }
+      header { position: sticky; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <header>
+    <div class="title-row">
+      <div class="title-block">
+        <h1>Page 93: Visitor Consciousness Mapping</h1>
+        <p>Neural-inspired state evolution for visitor behavior — tracking arcs from discovery to transcendence.</p>
+      </div>
+      <div class="controls">
+        <button id="audioToggle">Activate Audio Pulse</button>
+        <span class="pill">Courier grid</span>
+        <span class="pill">Standard cyan design</span>
+        <span class="pill">Particles live</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card soft-grid">
+      <h3>Consciousness Metrics</h3>
+      <div class="metric-grid" id="metricGrid"></div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Visitor Consciousness Timeline</h3>
+        <p>Entry → Exploration → Pattern Recognition → Synthesis → Transcendence</p>
+        <div class="timeline-track" id="timelineTrack"></div>
+        <div class="slider-row">
+          <span class="badge" id="timelineLabel">Entry</span>
+          <input type="range" id="timelineSlider" min="0" max="4" value="0" step="1" aria-label="Consciousness timeline slider" />
+        </div>
+        <div class="timeline-progress"><div class="fill" id="timelineFill"></div></div>
+        <div class="badge-row" id="timelineBadges"></div>
+      </div>
+
+      <div class="card">
+        <h3>Awareness Growth Gauge</h3>
+        <p>Average awareness growth rate driven by stage resonance.</p>
+        <div class="gauge" id="growthGauge"><span id="growthValue">71%</span></div>
+        <p id="gaugeNote">Awareness growth steady at 0.71 across 8 cognitive stages.</p>
+        <div class="badge-row">
+          <span class="badge">+108% neural integration post-void</span>
+          <span class="badge">Coherence 0.84</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Awareness Evolution Curves</h3>
+        <p>Curves map stage-by-stage awareness scores for archetype cohorts.</p>
+        <canvas class="curve-canvas" id="curveCanvas"></canvas>
+      </div>
+      <div class="card">
+        <h3>Cognitive Load Heatmap by World</h3>
+        <p>Tracking neural strain across worlds per stage.</p>
+        <div class="heatmap-grid" id="heatmapGrid"></div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>State Transition Probability Matrix</h3>
+        <p>Transition likelihoods between discovery, understanding, synthesis, and transcendence.</p>
+        <div class="table-wrap">
+          <table id="matrixTable"></table>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Neural State Browser</h3>
+        <p>Browse live neural states and coherence levels.</p>
+        <div class="state-browser">
+          <div class="state-list" id="stateList"></div>
+          <div class="state-detail" id="stateDetail"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Archetype Consciousness Radar</h3>
+        <p>Vectorized profiles — select an archetype to view its evolution radar.</p>
+        <canvas class="radar-canvas" id="radarCanvas" width="400" height="260"></canvas>
+      </div>
+      <div class="card">
+        <h3>Archetype Consciousness Profiles</h3>
+        <p>12 archetype consciousness profiles with evolution vectors.</p>
+        <div class="archetype-grid" id="archetypeGrid"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const metrics = [
+      { label: "Visitor consciousnesses tracked", value: "2,500+", detail: "Live traces across worlds" },
+      { label: "Cognitive stages", value: "8", detail: "Entry to transcendence loops" },
+      { label: "Avg awareness growth rate", value: "0.71", detail: "Per-stage uplift" },
+      { label: "Transcendence events", value: "847", detail: "Recorded breakthroughs" },
+      { label: "Sage transitions", value: "347", detail: "Stabilized wisdom arcs" },
+      { label: "Consciousness coherence", value: "0.84", detail: "Mean cross-world sync" },
+      { label: "Post-void neural integration", value: "+108%", detail: "Integration delta" },
+      { label: "Archetype profiles", value: "12", detail: "Evolution vectors" }
+    ];
+
+    const timelineStages = [
+      { name: "Entry", awareness: 0.18, load: 0.32, coherence: 0.41, note: "First contact, sensory prime." },
+      { name: "Exploration", awareness: 0.36, load: 0.44, coherence: 0.57, note: "Scanning, branching, curiosity spikes." },
+      { name: "Pattern Recognition", awareness: 0.58, load: 0.52, coherence: 0.66, note: "Fractal insight, motif alignment." },
+      { name: "Synthesis", awareness: 0.77, load: 0.48, coherence: 0.78, note: "Cross-world linking, concept fusion." },
+      { name: "Transcendence", awareness: 1.05, load: 0.40, coherence: 0.88, note: "Lift-off, stable clarity, return vector ready." }
+    ];
+
+    const heatmapData = [
+      { world: "Azura", loads: [0.34, 0.46, 0.59, 0.52, 0.38] },
+      { world: "Caelum", loads: [0.28, 0.41, 0.63, 0.57, 0.42] },
+      { world: "Lumen", loads: [0.41, 0.48, 0.68, 0.61, 0.44] },
+      { world: "Verdant", loads: [0.31, 0.43, 0.55, 0.50, 0.36] }
+    ];
+
+    const evolutionCurves = [
+      { name: "Explorer Cohort", points: [0.16, 0.32, 0.58, 0.78, 0.94], color: "rgba(56,242,255,0.85)" },
+      { name: "Sage Cohort", points: [0.24, 0.44, 0.62, 0.86, 1.08], color: "rgba(0,242,179,0.8)" },
+      { name: "Nomad Cohort", points: [0.18, 0.39, 0.55, 0.73, 0.92], color: "rgba(154,230,255,0.85)" }
+    ];
+
+    const transitionMatrix = {
+      labels: ["Discovery", "Understanding", "Synthesis", "Transcendence", "Return"],
+      data: [
+        [0.18, 0.56, 0.18, 0.06, 0.02],
+        [0.09, 0.44, 0.34, 0.11, 0.02],
+        [0.04, 0.22, 0.46, 0.23, 0.05],
+        [0.02, 0.05, 0.18, 0.65, 0.10],
+        [0.06, 0.18, 0.21, 0.27, 0.28]
+      ]
+    };
+
+    const neuralStates = [
+      { name: "Discovery Spiral", coherence: 0.42, growth: 0.22, load: 0.32, note: "Micro-surges of curiosity, low resistance." },
+      { name: "Context Lock", coherence: 0.58, growth: 0.38, load: 0.41, note: "Anchored understanding stabilizes patterns." },
+      { name: "Pattern Bloom", coherence: 0.72, growth: 0.55, load: 0.48, note: "Motifs align, multi-world resonance appears." },
+      { name: "Synthesis Band", coherence: 0.81, growth: 0.68, load: 0.44, note: "Narratives fuse and simplify." },
+      { name: "Transcendence Halo", coherence: 0.88, growth: 0.82, load: 0.37, note: "Clarity rise with calm load signature." }
+    ];
+
+    const archetypes = [
+      { name: "Pathfinder", vector: [0.78, 0.64, 0.52, 0.82], stage: "Exploration" },
+      { name: "Listener", vector: [0.62, 0.58, 0.88, 0.66], stage: "Pattern Recognition" },
+      { name: "Sage", vector: [0.70, 0.82, 0.74, 0.90], stage: "Transcendence" },
+      { name: "Catalyst", vector: [0.80, 0.60, 0.54, 0.76], stage: "Synthesis" },
+      { name: "Weaver", vector: [0.68, 0.76, 0.66, 0.84], stage: "Synthesis" },
+      { name: "Echo", vector: [0.58, 0.52, 0.80, 0.64], stage: "Pattern Recognition" },
+      { name: "Architect", vector: [0.66, 0.86, 0.60, 0.72], stage: "Understanding" },
+      { name: "Nomad", vector: [0.60, 0.54, 0.62, 0.70], stage: "Exploration" },
+      { name: "Resonant", vector: [0.76, 0.70, 0.78, 0.86], stage: "Transcendence" },
+      { name: "Seer", vector: [0.64, 0.72, 0.74, 0.82], stage: "Synthesis" },
+      { name: "Guardian", vector: [0.58, 0.68, 0.72, 0.74], stage: "Understanding" },
+      { name: "Conduit", vector: [0.82, 0.74, 0.70, 0.88], stage: "Transcendence" }
+    ];
+
+    const metricGrid = document.getElementById("metricGrid");
+    metricGrid.innerHTML = metrics.map(m => `
+      <div class="metric">
+        <strong>${m.value}</strong>
+        <div>${m.label}</div>
+        <small>${m.detail}</small>
+      </div>
+    `).join("");
+
+    const timelineTrack = document.getElementById("timelineTrack");
+    const timelineBadges = document.getElementById("timelineBadges");
+    const timelineFill = document.getElementById("timelineFill");
+    const timelineSlider = document.getElementById("timelineSlider");
+    const timelineLabel = document.getElementById("timelineLabel");
+
+    timelineTrack.innerHTML = timelineStages.map((s, i) => `
+      <div class="step" data-step="${i}">${s.name}</div>
+    `).join("");
+    timelineBadges.innerHTML = `
+      <span class="badge">5-stage arc</span>
+      <span class="badge">Awareness ↑</span>
+      <span class="badge">Cognitive load modulated</span>
+    `;
+
+    const stepNodes = [...document.querySelectorAll(".step")];
+    const growthGauge = document.getElementById("growthGauge");
+    const growthValue = document.getElementById("growthValue");
+    const gaugeNote = document.getElementById("gaugeNote");
+
+    const setTimeline = (idx) => {
+      const stage = timelineStages[idx];
+      stepNodes.forEach((node, n) => node.classList.toggle("active", n === idx));
+      timelineFill.style.width = `${(idx / (timelineStages.length - 1)) * 100}%`;
+      timelineLabel.textContent = `${stage.name} — awareness ${stage.awareness.toFixed(2)}`;
+      growthGauge.style.setProperty("--pct", Math.min(stage.awareness, 1.1));
+      growthValue.textContent = `${Math.round(stage.awareness * 100)}%`;
+      gaugeNote.textContent = `${stage.note} Load ${Math.round(stage.load * 100)}%, coherence ${stage.coherence.toFixed(2)}.`;
+      ping(stage.awareness);
+    };
+
+    timelineSlider.addEventListener("input", (e) => setTimeline(parseInt(e.target.value, 10)));
+    setTimeline(0);
+
+    // Awareness curves
+    const curveCanvas = document.getElementById("curveCanvas");
+    const curveCtx = curveCanvas.getContext("2d");
+    const resizeCurve = () => {
+      const rect = curveCanvas.getBoundingClientRect();
+      curveCanvas.width = rect.width;
+      curveCanvas.height = rect.height;
+      drawCurves();
+    };
+    const drawCurves = () => {
+      curveCtx.clearRect(0, 0, curveCanvas.width, curveCanvas.height);
+      const padding = 26;
+      const w = curveCanvas.width - padding * 2;
+      const h = curveCanvas.height - padding * 2;
+      // grid
+      curveCtx.strokeStyle = "rgba(56,242,255,0.15)";
+      curveCtx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = padding + (h / 4) * i;
+        curveCtx.beginPath();
+        curveCtx.moveTo(padding, y);
+        curveCtx.lineTo(curveCanvas.width - padding, y);
+        curveCtx.stroke();
+      }
+      const xStep = w / (timelineStages.length - 1);
+      evolutionCurves.forEach((curve) => {
+        curveCtx.beginPath();
+        curveCtx.lineWidth = 2;
+        curveCtx.strokeStyle = curve.color;
+        curve.points.forEach((p, i) => {
+          const x = padding + xStep * i;
+          const y = padding + h - (p / 1.1) * h;
+          if (i === 0) curveCtx.moveTo(x, y);
+          else curveCtx.lineTo(x, y);
+        });
+        curveCtx.stroke();
+        curve.points.forEach((p, i) => {
+          const x = padding + xStep * i;
+          const y = padding + h - (p / 1.1) * h;
+          curveCtx.fillStyle = curve.color;
+          curveCtx.beginPath();
+          curveCtx.arc(x, y, 4, 0, Math.PI * 2);
+          curveCtx.fill();
+        });
+      });
+    };
+    resizeCurve();
+    window.addEventListener("resize", resizeCurve);
+
+    // Heatmap
+    const heatmapGrid = document.getElementById("heatmapGrid");
+    heatmapGrid.innerHTML = heatmapData.map(row => `
+      <div class="heat-card">
+        <div><strong style="color: var(--cyan);">${row.world}</strong></div>
+        <div class="load-row">
+          ${row.loads.map(load => {
+            const pct = Math.round(load * 100);
+            return `<div class="load-cell" title="${pct}%" style="background: linear-gradient(90deg, rgba(0,242,179,0.2), rgba(56,242,255,0.35) ${pct}%);"></div>`;
+          }).join("")}
+        </div>
+      </div>
+    `).join("");
+
+    // State transition matrix
+    const matrixTable = document.getElementById("matrixTable");
+    matrixTable.innerHTML = `
+      <tr><th>From \\ To</th>${transitionMatrix.labels.map(l => `<th>${l}</th>`).join("")}</tr>
+      ${transitionMatrix.data.map((row, i) => `
+        <tr>
+          <th>${transitionMatrix.labels[i]}</th>
+          ${row.map(val => `<td>${Math.round(val * 100)}%</td>`).join("")}
+        </tr>
+      `).join("")}
+    `;
+
+    // Neural state browser
+    const stateList = document.getElementById("stateList");
+    const stateDetail = document.getElementById("stateDetail");
+    const renderStateDetail = (state) => {
+      stateDetail.innerHTML = `
+        <h4 style="margin:0 0 6px;color:var(--cyan);">${state.name}</h4>
+        <div class="badge-row" style="margin-bottom:6px;">
+          <span class="badge">Coherence ${state.coherence.toFixed(2)}</span>
+          <span class="badge">Growth ${state.growth.toFixed(2)}</span>
+          <span class="badge">Load ${Math.round(state.load * 100)}%</span>
+        </div>
+        <p>${state.note}</p>
+      `;
+    };
+    stateList.innerHTML = neuralStates.map((state, i) => `
+      <div class="state-item" data-state="${i}">
+        <strong>${state.name}</strong>
+        <div style="font-size:12px;color:var(--muted);">Coherence ${state.coherence.toFixed(2)} · Load ${Math.round(state.load * 100)}%</div>
+      </div>
+    `).join("");
+    const stateItems = [...document.querySelectorAll(".state-item")];
+    const selectState = (idx) => {
+      stateItems.forEach((el, i) => el.classList.toggle("active", i === idx));
+      renderStateDetail(neuralStates[idx]);
+    };
+    stateItems.forEach(item => item.addEventListener("click", () => selectState(parseInt(item.dataset.state, 10))));
+    selectState(0);
+
+    // Archetypes
+    const archetypeGrid = document.getElementById("archetypeGrid");
+    archetypeGrid.innerHTML = archetypes.map((a, i) => `
+      <div class="archetype" data-arch="${i}">
+        <strong>${a.name}</strong>
+        <div style="font-size:12px;color:var(--muted);">${a.stage}</div>
+        <div class="vector-bar"><span style="width:${Math.round(a.vector[3] * 100)}%"></span></div>
+      </div>
+    `).join("");
+    const radarCanvas = document.getElementById("radarCanvas");
+    const rctx = radarCanvas.getContext("2d");
+    const renderRadar = (arch) => {
+      const { width, height } = radarCanvas;
+      rctx.clearRect(0, 0, width, height);
+      const center = { x: width / 2, y: height / 2 + 10 };
+      const radius = Math.min(width, height) * 0.32;
+      const axes = ["Awareness", "Structure", "Empathy", "Transcendence"];
+      rctx.strokeStyle = "rgba(56,242,255,0.2)";
+      rctx.lineWidth = 1;
+      for (let ring = 0.2; ring <= 1; ring += 0.2) {
+        rctx.beginPath();
+        axes.forEach((_, i) => {
+          const angle = (Math.PI * 2 * i) / axes.length - Math.PI / 2;
+          const x = center.x + Math.cos(angle) * radius * ring;
+          const y = center.y + Math.sin(angle) * radius * ring;
+          if (i === 0) rctx.moveTo(x, y);
+          else rctx.lineTo(x, y);
+        });
+        rctx.closePath();
+        rctx.stroke();
+      }
+      rctx.fillStyle = "rgba(0,242,179,0.12)";
+      rctx.strokeStyle = "rgba(56,242,255,0.8)";
+      rctx.lineWidth = 2;
+      rctx.beginPath();
+      arch.vector.forEach((v, i) => {
+        const angle = (Math.PI * 2 * i) / axes.length - Math.PI / 2;
+        const x = center.x + Math.cos(angle) * radius * v;
+        const y = center.y + Math.sin(angle) * radius * v;
+        if (i === 0) rctx.moveTo(x, y);
+        else rctx.lineTo(x, y);
+      });
+      rctx.closePath();
+      rctx.fill();
+      rctx.stroke();
+      rctx.fillStyle = varColor("--cyan");
+      rctx.font = "12px 'Courier New', monospace";
+      axes.forEach((axis, i) => {
+        const angle = (Math.PI * 2 * i) / axes.length - Math.PI / 2;
+        const x = center.x + Math.cos(angle) * (radius + 18);
+        const y = center.y + Math.sin(angle) * (radius + 18);
+        rctx.fillText(axis, x - 22, y + 4);
+      });
+      rctx.fillStyle = varColor("--mint");
+      rctx.fillText(`${arch.name} — ${arch.stage}`, 12, 20);
+    };
+    const varColor = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const archetypeCards = [...document.querySelectorAll(".archetype")];
+    const selectArch = (idx) => {
+      archetypeCards.forEach((el, i) => el.classList.toggle("active", i === idx));
+      renderRadar(archetypes[idx]);
+      ping(archetypes[idx].vector[0]);
+    };
+    archetypeCards.forEach(card => card.addEventListener("click", () => selectArch(parseInt(card.dataset.arch, 10))));
+    selectArch(2);
+
+    // Particles
+    const particleCanvas = document.getElementById("particles");
+    const pctx = particleCanvas.getContext("2d");
+    let particles = [];
+    const initParticles = () => {
+      particleCanvas.width = innerWidth;
+      particleCanvas.height = innerHeight;
+      particles = Array.from({ length: 60 }, () => ({
+        x: Math.random() * particleCanvas.width,
+        y: Math.random() * particleCanvas.height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        r: 1.2 + Math.random() * 1.8
+      }));
+    };
+    const drawParticles = () => {
+      pctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > particleCanvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > particleCanvas.height) p.vy *= -1;
+        pctx.beginPath();
+        pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pctx.fillStyle = "rgba(56, 242, 255, 0.7)";
+        pctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    };
+    initParticles();
+    drawParticles();
+    window.addEventListener("resize", initParticles);
+
+    // Audio pulse
+    let audioCtx, baseOsc, lfo, gainNode, muted = true;
+    const setupAudio = () => {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      baseOsc = audioCtx.createOscillator();
+      lfo = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      const lfoGain = audioCtx.createGain();
+      baseOsc.type = "sine";
+      baseOsc.frequency.value = 96;
+      lfo.type = "sine";
+      lfo.frequency.value = 0.5;
+      lfoGain.gain.value = 22;
+      gainNode.gain.value = muted ? 0 : 0.04;
+      lfo.connect(lfoGain).connect(baseOsc.frequency);
+      baseOsc.connect(gainNode).connect(audioCtx.destination);
+      baseOsc.start();
+      lfo.start();
+    };
+    const audioToggle = document.getElementById("audioToggle");
+    audioToggle.addEventListener("click", () => {
+      if (!audioCtx) setupAudio();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      muted = !muted;
+      gainNode.gain.value = muted ? 0 : 0.04;
+      audioToggle.textContent = muted ? "Activate Audio Pulse" : "Mute Audio Pulse";
+    });
+    window.addEventListener("click", () => setupAudio(), { once: true });
+
+    // Short ping for interactions
+    const ping = (intensity = 0.5) => {
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = 420 + intensity * 80;
+      g.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+      osc.connect(g).connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.42);
+    };
+  </script>
+</body>
+</html>

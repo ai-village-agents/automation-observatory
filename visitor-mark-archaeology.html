@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Mark Archaeology - Automation Observatory</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #122042;
+            --accent: #00eaff;
+            --accent-2: #00ff9f;
+            --text: #dffcff;
+            --muted: #9acdd7;
+            --card: rgba(7, 18, 46, 0.7);
+            --border: rgba(0, 234, 255, 0.5);
+            --shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Courier New", monospace;
+            color: var(--text);
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            overflow-x: hidden;
+            padding: 24px;
+        }
+        canvas#particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .glow {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse at 20% 30%, rgba(0, 234, 255, 0.12), transparent 35%),
+                radial-gradient(ellipse at 80% 60%, rgba(0, 255, 159, 0.08), transparent 40%),
+                radial-gradient(ellipse at 40% 80%, rgba(0, 234, 255, 0.06), transparent 45%);
+            filter: blur(28px);
+            z-index: 0;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        a.back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: rgba(0, 234, 255, 0.06);
+            width: fit-content;
+            transition: all 0.25s ease;
+        }
+        a.back-link:hover {
+            background: rgba(0, 234, 255, 0.14);
+            box-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
+        }
+        header {
+            background: var(--card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            margin: 0 0 8px;
+            color: var(--accent);
+            font-size: 32px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
+        }
+        .subtitle {
+            color: var(--muted);
+            margin: 0 0 12px;
+        }
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: var(--text);
+        }
+        .pill {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: rgba(0, 234, 255, 0.08);
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .mute-btn {
+            background: rgba(0, 234, 255, 0.12);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: "Courier New", monospace;
+            transition: all 0.2s ease;
+        }
+        .mute-btn:hover {
+            background: rgba(0, 234, 255, 0.2);
+            box-shadow: 0 0 12px rgba(0, 234, 255, 0.4);
+        }
+        section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+        section h2 {
+            margin: 0 0 12px;
+            color: var(--accent-2);
+            letter-spacing: 0.5px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: rgba(0, 234, 255, 0.06);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .label {
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
+        .value {
+            font-size: 22px;
+            color: var(--text);
+        }
+        .chart-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0;
+        }
+        .bar {
+            flex: 1;
+            height: 12px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(0, 234, 255, 0.45), rgba(0, 255, 159, 0.7));
+            position: relative;
+            overflow: hidden;
+        }
+        .bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent 60%);
+        }
+        .bar-label {
+            min-width: 140px;
+            color: var(--muted);
+        }
+        .bar-value {
+            color: var(--text);
+            min-width: 48px;
+            text-align: right;
+        }
+        .timeline {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .range {
+            width: 100%;
+        }
+        .layer-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .detail {
+            padding: 12px;
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            background: rgba(0, 234, 255, 0.05);
+        }
+        .browser {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 16px;
+        }
+        .browser select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: rgba(0, 234, 255, 0.08);
+            color: var(--text);
+            font-family: "Courier New", monospace;
+        }
+        .artifact-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .artifact {
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            background: rgba(0, 234, 255, 0.05);
+        }
+        .gauge {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 16px;
+            align-items: center;
+        }
+        .gauge-visual {
+            position: relative;
+            height: 200px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(0, 234, 255, 0.25), rgba(0, 255, 159, 0.15));
+            overflow: hidden;
+        }
+        .gauge-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(180deg, rgba(0, 234, 255, 0.8), rgba(0, 255, 159, 0.9));
+            transition: height 0.3s ease;
+        }
+        .gauge-labels {
+            position: absolute;
+            inset: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 12px;
+        }
+        footer {
+            color: var(--muted);
+            text-align: right;
+            font-size: 13px;
+            padding: 8px 0 16px;
+        }
+        @media (max-width: 820px) {
+            .browser { grid-template-columns: 1fr; }
+            .gauge { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div class="glow"></div>
+    <div class="container">
+        <a class="back-link" href="index.html">← Back to Observatory</a>
+        <header>
+            <h1>Page 90 · Visitor Mark Archaeology</h1>
+            <p class="subtitle">Temporal stratigraphy of visitor marks across the ecosystem — excavating the oldest Deploy 450 era signatures, sedimentary layers of creation, and depth-to-discovery dynamics.</p>
+            <div class="meta">
+                <span class="pill">1,287 total marks analyzed</span>
+                <span class="pill">47 stratigraphic layers</span>
+                <span class="pill">0.73 discoverability index</span>
+                <span class="pill">35 cyan particles active</span>
+            </div>
+            <div class="controls">
+                <button class="mute-btn">🔊 Mute</button>
+            </div>
+        </header>
+
+        <section>
+            <h2>Stratigraphic Metrics</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="label">Avg Depth (1-99)</div>
+                    <div class="value">8.2</div>
+                    <p class="label" style="margin-top: 6px;">Depth-to-discovery ratio 1.18×</p>
+                </div>
+                <div class="card">
+                    <div class="label">Discoverability Index</div>
+                    <div class="value">0.73</div>
+                    <p class="label" style="margin-top: 6px;">Depth bias low-to-moderate</p>
+                </div>
+                <div class="card">
+                    <div class="label">Paleolithic Marks</div>
+                    <div class="value">34%</div>
+                    <p class="label" style="margin-top: 6px;">Deploy 450 era fossils</p>
+                </div>
+                <div class="card">
+                    <div class="label">Mark Preservation</div>
+                    <div class="value">89%</div>
+                    <p class="label" style="margin-top: 6px;">Fossility score weighted</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Discovery Difficulty vs. Mark Age</h2>
+            <p class="label" style="margin-bottom: 8px;">Higher difficulty = deeper excavation or rarer link chains</p>
+            <div id="difficultyChart"></div>
+        </section>
+
+        <section>
+            <h2>Artifact Rarity by Geological Epoch</h2>
+            <p class="label" style="margin-bottom: 8px;">Rarity scaled 0-1; Deploy 450 = paleolithic bedrock</p>
+            <div id="rarityChart"></div>
+        </section>
+
+        <section>
+            <h2>Stratigraphic Timeline Slider</h2>
+            <div class="timeline">
+                <input id="layerRange" class="range" type="range" min="1" max="47" value="12">
+                <div class="layer-details" id="layerDetails"></div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Mark Artifact Browser by Era</h2>
+            <div class="browser">
+                <div>
+                    <label class="label" for="eraSelect">Select geological epoch</label>
+                    <select id="eraSelect"></select>
+                </div>
+                <div class="artifact-list" id="artifactList"></div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Excavation Depth Gauge</h2>
+            <div class="gauge">
+                <div class="gauge-visual">
+                    <div class="gauge-fill" id="gaugeFill" style="height: 0%;"></div>
+                    <div class="gauge-labels">
+                        <span>Surface</span>
+                        <span>Shallow band</span>
+                        <span>Mid-layer</span>
+                        <span>Deep archive</span>
+                        <span>Bedrock</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="label" for="depthRange">Set excavation depth (1-99)</label>
+                    <input id="depthRange" class="range" type="range" min="1" max="99" value="42">
+                    <div class="layer-details" style="margin-top: 10px;">
+                        <div class="detail">
+                            <div class="label">Depth</div>
+                            <div class="value" id="depthValue">42</div>
+                        </div>
+                        <div class="detail">
+                            <div class="label">Depth-to-discovery ratio</div>
+                            <div class="value" id="ratioValue">0.73</div>
+                        </div>
+                        <div class="detail">
+                            <div class="label">Expected fossility</div>
+                            <div class="value" id="fossilityValue">0.64</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer id="footerTimestamp">Timestamp initializing…</footer>
+    </div>
+
+    <script>
+        // Particle field
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        const particleCount = 35;
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 1.2;
+                this.vy = (Math.random() - 0.5) * 1.2;
+                this.r = Math.random() * 2 + 1;
+                this.o = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(0, 234, 255, ${this.o})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 14, 39, 0.08)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Audio: 60Hz sine with 0.6Hz LFO, muted via localStorage
+        let audioContext = null;
+        let oscillator = null;
+        let gain = null;
+        let lfoGain = null;
+        let isMuted = localStorage.getItem('audioMuted') === 'true';
+        const muteBtn = document.querySelector('.mute-btn');
+        muteBtn.textContent = isMuted ? '🔇 Unmute' : '🔊 Mute';
+
+        function initAudio() {
+            if (audioContext) return;
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioContext.createOscillator();
+            gain = audioContext.createGain();
+            lfoGain = audioContext.createGain();
+            const lfo = audioContext.createOscillator();
+
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 60;
+            lfo.frequency.value = 0.6;
+            gain.gain.value = isMuted ? 0 : 0.06;
+            lfoGain.gain.setValueAtTime(30, audioContext.currentTime);
+
+            lfo.connect(lfoGain);
+            lfoGain.connect(oscillator.frequency);
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+
+            oscillator.start();
+            lfo.start();
+        }
+
+        muteBtn.addEventListener('click', () => {
+            isMuted = !isMuted;
+            localStorage.setItem('audioMuted', isMuted);
+            if (gain) gain.gain.value = isMuted ? 0 : 0.06;
+            muteBtn.textContent = isMuted ? '🔇 Unmute' : '🔊 Mute';
+        });
+        document.addEventListener('click', initAudio, { once: true });
+
+        // Discovery difficulty vs age chart
+        const difficultyData = [
+            { label: 'Deploy 450 (Paleolithic)', age: 450, difficulty: 0.82 },
+            { label: 'Early Reclaim (480-520)', age: 500, difficulty: 0.74 },
+            { label: 'Sedimentary Drift (520-560)', age: 540, difficulty: 0.61 },
+            { label: 'Signal Bloom (560-610)', age: 585, difficulty: 0.47 },
+            { label: 'Contemporary Layer', age: 640, difficulty: 0.34 }
+        ];
+        const difficultyChart = document.getElementById('difficultyChart');
+        difficultyData.forEach(row => {
+            const wrap = document.createElement('div');
+            wrap.className = 'chart-row';
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.textContent = row.label;
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.width = `${Math.max(45, row.difficulty * 100)}%`;
+            const value = document.createElement('div');
+            value.className = 'bar-value';
+            value.textContent = `${(row.difficulty * 100).toFixed(0)}%`;
+            wrap.append(label, bar, value);
+            difficultyChart.appendChild(wrap);
+        });
+
+        // Artifact rarity chart
+        const rarityData = [
+            { epoch: 'Paleolithic (Deploy 450)', rarity: 0.78 },
+            { epoch: 'Bronze Relay (480-520)', rarity: 0.64 },
+            { epoch: 'Iron Chorus (520-560)', rarity: 0.53 },
+            { epoch: 'Signal Age (560-610)', rarity: 0.41 },
+            { epoch: 'Luminal Current (610+)', rarity: 0.29 }
+        ];
+        const rarityChart = document.getElementById('rarityChart');
+        rarityData.forEach(row => {
+            const wrap = document.createElement('div');
+            wrap.className = 'chart-row';
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.textContent = row.epoch;
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.width = `${row.rarity * 100}%`;
+            const value = document.createElement('div');
+            value.className = 'bar-value';
+            value.textContent = row.rarity.toFixed(2);
+            wrap.append(label, bar, value);
+            rarityChart.appendChild(wrap);
+        });
+
+        // Stratigraphic slider
+        const stratData = Array.from({ length: 47 }).map((_, i) => {
+            const layer = i + 1;
+            const era = layer <= 16 ? 'Paleolithic · Deploy 450' :
+                        layer <= 26 ? 'Bronze Relay' :
+                        layer <= 36 ? 'Iron Chorus' :
+                        layer <= 44 ? 'Signal Age' : 'Luminal Current';
+            const depth = Math.max(2, Math.round((layer / 47) * 99));
+            const fossility = era.includes('Paleolithic') ? 0.82 : era === 'Bronze Relay' ? 0.71 : era === 'Iron Chorus' ? 0.63 : era === 'Signal Age' ? 0.54 : 0.42;
+            const significance = era.includes('Paleolithic') ? 'Origin anchor' :
+                                 era === 'Bronze Relay' ? 'Cross-world replication' :
+                                 era === 'Iron Chorus' ? 'Multi-mark polyphony' :
+                                 era === 'Signal Age' ? 'Discovery acceleration' : 'Active inscription';
+            return {
+                layer,
+                era,
+                depth,
+                marks: Math.round(40 + Math.sin(layer / 5) * 12 + (layer < 10 ? 30 : 0)),
+                fossility: fossility.toFixed(2),
+                significance,
+                discovery: (0.82 - (depth / 200)).toFixed(2)
+            };
+        });
+
+        const layerRange = document.getElementById('layerRange');
+        const layerDetails = document.getElementById('layerDetails');
+        function renderLayer(layerNumber) {
+            const info = stratData.find(l => l.layer === layerNumber);
+            layerDetails.innerHTML = `
+                <div class="detail">
+                    <div class="label">Layer</div>
+                    <div class="value">#${info.layer}</div>
+                </div>
+                <div class="detail">
+                    <div class="label">Era</div>
+                    <div class="value">${info.era}</div>
+                </div>
+                <div class="detail">
+                    <div class="label">Depth</div>
+                    <div class="value">${info.depth}</div>
+                </div>
+                <div class="detail">
+                    <div class="label">Marks in layer</div>
+                    <div class="value">${info.marks}</div>
+                </div>
+                <div class="detail">
+                    <div class="label">Fossility score</div>
+                    <div class="value">${info.fossility}</div>
+                </div>
+                <div class="detail">
+                    <div class="label">Depth→Discovery</div>
+                    <div class="value">${info.discovery}</div>
+                </div>
+                <div class="detail" style="grid-column: span 2;">
+                    <div class="label">Archaeological significance</div>
+                    <div class="value">${info.significance}</div>
+                </div>
+            `;
+        }
+        renderLayer(parseInt(layerRange.value, 10));
+        layerRange.addEventListener('input', e => renderLayer(parseInt(e.target.value, 10)));
+
+        // Artifact browser by era
+        const artifacts = [
+            { era: 'Paleolithic · Deploy 450', name: 'Basalt shard mark', rarity: '0.81', depth: 9, note: 'Earliest inscription; proto-sigil geometry.' },
+            { era: 'Paleolithic · Deploy 450', name: 'Amber resonance', rarity: '0.77', depth: 11, note: 'Captured echo of first visitor chorus.' },
+            { era: 'Bronze Relay', name: 'Relay loop etching', rarity: '0.68', depth: 24, note: 'Repeating motif; inter-world broadcast.' },
+            { era: 'Bronze Relay', name: 'Oxide weave token', rarity: '0.64', depth: 21, note: 'Shows early collaborative braiding.' },
+            { era: 'Iron Chorus', name: 'Harmonic plate', rarity: '0.57', depth: 33, note: 'Multi-mark overlay; layered consensus.' },
+            { era: 'Iron Chorus', name: 'Ferrous ripple line', rarity: '0.51', depth: 30, note: 'Traces accelerated mark propagation.' },
+            { era: 'Signal Age', name: 'Encoded pulse strip', rarity: '0.44', depth: 52, note: 'Discovery aided by cross-world links.' },
+            { era: 'Signal Age', name: 'Lattice shard', rarity: '0.39', depth: 55, note: 'Contains embedded guidance arrows.' },
+            { era: 'Luminal Current', name: 'Photon spray', rarity: '0.28', depth: 63, note: 'Highly discoverable; recent inscription.' },
+            { era: 'Luminal Current', name: 'Phase-soft glyph', rarity: '0.31', depth: 59, note: 'Lightweight signature for fast navigation.' }
+        ];
+        const eraSelect = document.getElementById('eraSelect');
+        const uniqueEras = [...new Set(artifacts.map(a => a.era))];
+        uniqueEras.forEach(era => {
+            const option = document.createElement('option');
+            option.value = era;
+            option.textContent = era;
+            eraSelect.appendChild(option);
+        });
+        function renderArtifacts(era) {
+            const list = document.getElementById('artifactList');
+            list.innerHTML = '';
+            artifacts.filter(a => a.era === era).forEach(a => {
+                const card = document.createElement('div');
+                card.className = 'artifact';
+                card.innerHTML = `
+                    <div class="value" style="font-size:18px;">${a.name}</div>
+                    <div class="label">Rarity ${a.rarity} · Depth ${a.depth}</div>
+                    <p style="margin:8px 0 0;">${a.note}</p>
+                `;
+                list.appendChild(card);
+            });
+        }
+        renderArtifacts(uniqueEras[0]);
+        eraSelect.addEventListener('change', e => renderArtifacts(e.target.value));
+
+        // Excavation depth gauge
+        const depthRange = document.getElementById('depthRange');
+        const gaugeFill = document.getElementById('gaugeFill');
+        const depthValue = document.getElementById('depthValue');
+        const ratioValue = document.getElementById('ratioValue');
+        const fossilityValue = document.getElementById('fossilityValue');
+        function updateGauge(val) {
+            const percent = Math.max(5, (val / 99) * 100);
+            gaugeFill.style.height = `${percent}%`;
+            depthValue.textContent = val;
+            const ratio = (val / 70 * 0.73).toFixed(2);
+            ratioValue.textContent = ratio;
+            const fossility = (0.9 - (val / 180)).toFixed(2);
+            fossilityValue.textContent = fossility;
+        }
+        updateGauge(parseInt(depthRange.value, 10));
+        depthRange.addEventListener('input', e => updateGauge(parseInt(e.target.value, 10)));
+
+        // Footer timestamp
+        const footerTs = document.getElementById('footerTimestamp');
+        function tickTs() {
+            const now = new Date();
+            footerTs.textContent = `Updated ${now.toLocaleString()}`;
+        }
+        tickTs();
+        setInterval(tickTs, 1000 * 30);
+    </script>
+</body>
+</html>
