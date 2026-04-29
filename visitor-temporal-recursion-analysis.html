@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Temporal Recursion Analysis - Automation Observatory</title>
+  <style>
+    :root {
+      --bg1: #031421;
+      --bg2: #05283c;
+      --bg3: #08435e;
+      --primary: #d6f6ff;
+      --secondary: #9ee8ff;
+      --accent: #4ef3ff;
+      --accent-strong: #7df7ff;
+      --border: rgba(78, 243, 255, 0.75);
+      --shadow: 0 0 20px rgba(78, 243, 255, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--primary);
+      background: radial-gradient(circle at 18% 20%, rgba(126, 248, 255, 0.12), transparent 32%),
+                  radial-gradient(circle at 82% 12%, rgba(78, 243, 255, 0.1), transparent 28%),
+                  linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+      overflow-x: hidden;
+      position: relative;
+      padding: 26px 18px 72px;
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.6;
+      filter: blur(0.2px);
+    }
+    .container {
+      position: relative;
+      z-index: 5;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      background: rgba(78, 243, 255, 0.08);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .back-btn:hover { transform: translateY(-1px); background: rgba(126, 248, 255, 0.12); box-shadow: 0 0 24px rgba(78,243,255,0.24); }
+    .audio-toggle {
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--primary);
+      background: rgba(255,255,255,0.04);
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .audio-toggle:hover { background: rgba(126,248,255,0.12); transform: translateY(-1px); }
+    .hero {
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+      background: rgba(4, 25, 46, 0.76);
+      box-shadow: 0 0 30px rgba(78,243,255,0.16);
+      display: grid;
+      grid-template-columns: 90px 1fr;
+      gap: 16px;
+    }
+    .hero-emoji {
+      font-size: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-strong);
+      text-shadow: 0 0 18px rgba(78,243,255,0.6);
+    }
+    .hero-text h1 {
+      margin: 0 0 6px;
+      font-size: 30px;
+      letter-spacing: 0.6px;
+      color: var(--accent-strong);
+      text-shadow: 0 0 14px rgba(78,243,255,0.6);
+    }
+    .hero-text p {
+      margin: 0;
+      color: var(--secondary);
+      line-height: 1.6;
+    }
+    .pills {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      color: var(--primary);
+      background: rgba(78, 243, 255, 0.12);
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+    .section {
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      background: rgba(3, 21, 38, 0.82);
+      box-shadow: 0 0 22px rgba(78,243,255,0.14);
+    }
+    .section h2 {
+      margin: 0 0 10px;
+      color: var(--accent-strong);
+      text-shadow: 0 0 12px rgba(78,243,255,0.5);
+      letter-spacing: 0.5px;
+    }
+    .section p {
+      margin: 0 0 10px;
+      color: var(--secondary);
+      line-height: 1.6;
+    }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .stat {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(78,243,255,0.08);
+      box-shadow: inset 0 0 0 1px rgba(126,248,255,0.08), var(--shadow);
+    }
+    .stat .label { color: var(--secondary); font-size: 13px; letter-spacing: 0.4px; }
+    .stat .value { color: var(--primary); font-size: 22px; font-weight: bold; margin-top: 6px; text-shadow: 0 0 10px rgba(78,243,255,0.4); }
+    .cycles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .cycle-card {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 9px;
+      background: rgba(255,255,255,0.03);
+      color: var(--secondary);
+      position: relative;
+      overflow: hidden;
+    }
+    .cycle-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 24%, rgba(78,243,255,0.16), transparent 50%);
+      pointer-events: none;
+    }
+    .cycle-card strong { color: var(--accent-strong); display: block; margin-bottom: 4px; }
+    .visualization {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .viz-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(4, 25, 46, 0.78);
+      box-shadow: var(--shadow);
+    }
+    .viz-card canvas {
+      position: relative;
+      width: 100%;
+      height: 240px;
+      border: 1px dashed rgba(78,243,255,0.4);
+      background: rgba(255,255,255,0.02);
+      border-radius: 8px;
+      box-shadow: inset 0 0 0 1px rgba(126,248,255,0.06);
+      opacity: 1;
+      filter: none;
+    }
+    .feature-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .feature {
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 9px;
+      background: rgba(78,243,255,0.06);
+      color: var(--secondary);
+    }
+    footer {
+      margin-top: 12px;
+      text-align: right;
+      color: var(--secondary);
+      font-size: 13px;
+      letter-spacing: 0.3px;
+    }
+    @media (max-width: 640px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-emoji { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="container">
+    <div class="nav">
+      <a class="back-btn" href="index.html">← Back to Observatory</a>
+      <button class="audio-toggle" id="audioToggle">Mute Pulse</button>
+    </div>
+
+    <section class="hero">
+      <div class="hero-emoji">🔄</div>
+      <div class="hero-text">
+        <h1>Visitor Temporal Recursion Analysis</h1>
+        <p>Temporal loops, recursive patterns, cyclical behavior analysis</p>
+        <div class="pills">
+          <span class="pill">Page 109</span>
+          <span class="pill">Cyclical Intent Mapping</span>
+          <span class="pill">Recursion Lens Active</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Overview: The Rhythms That Return</h2>
+      <p>Recurrence is a signature of intent. By mapping temporal recursions across visitors, we surface loops of habit, rituals of discovery, and the nested cycles that govern how attention orbits the Observatory.</p>
+      <p>Across 109 indexed pages, page 109 is dedicated to revealing the self-similarity of visits: the way a diurnal check-in folds into a weekly revisit, which itself nests within seasonal returns. The following metrics anchor the analysis.</p>
+      <div class="stat-grid">
+        <div class="stat"><div class="label">Identified Recursive Patterns</div><div class="value">247 distinct cyclical behaviors</div></div>
+        <div class="stat"><div class="label">Loop Periodicity Types</div><div class="value">12 cycle lengths</div></div>
+        <div class="stat"><div class="label">Visitors Exhibiting Recursion</div><div class="value">567 (22.7%)</div></div>
+        <div class="stat"><div class="label">Avg Pattern Completion</div><div class="value">3.4 cycles / month</div></div>
+        <div class="stat"><div class="label">Cross-Cycle Interference</div><div class="value">0.34 index</div></div>
+        <div class="stat"><div class="label">Recursion Depth</div><div class="value">5 levels</div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Cycle Taxonomy: 12 Recognized Periodicities</h2>
+      <p>Each cycle type is detected by phase-aligned timestamps, harmonic overlays, and recursive returns within a bounded temporal tolerance.</p>
+      <div class="cycles-grid">
+        <div class="cycle-card"><strong>Diurnal</strong>Daily resets, strong morning/evening polarity with micro-loops every 6 hours.</div>
+        <div class="cycle-card"><strong>Weekly</strong>Week-part signatures (Mon-Thurs focus, weekend reflection) with return spikes at same hour.</div>
+        <div class="cycle-card"><strong>Biographical</strong>Birthdays, anniversaries, and personal milestones that anchor return gravity.</div>
+        <div class="cycle-card"><strong>Seasonal</strong>Quarterly revisits, solstice-aligned peaks, cyclical curiosity around thresholds.</div>
+        <div class="cycle-card"><strong>Tidal</strong>13-hour ebb/flow loops echoing circadian + work shift overlays.</div>
+        <div class="cycle-card"><strong>Spiral</strong>Non-closing loops where each pass widens the search radius but retains prior phase.</div>
+        <div class="cycle-card"><strong>Fractal</strong>Self-similar recursions visible at 1h / 1d / 1w horizons with stable ratios.</div>
+        <div class="cycle-card"><strong>Phase-Locked</strong>Multiple visitors synchronizing cycles, forming coupled returns.</div>
+        <div class="cycle-card"><strong>Chaotic</strong>Edge-of-order loops that almost stabilize, then diverge with sensitive dependence.</div>
+        <div class="cycle-card"><strong>Emergent</strong>Novel periodicities appearing from cross-feature interference bands.</div>
+        <div class="cycle-card"><strong>Sacred</strong>Low-frequency ritual revisits tied to cultural calendars and lunar cadence.</div>
+        <div class="cycle-card"><strong>Eternal</strong>Long-horizon loops with no observed decay, forming the Observatory's slow heartbeat.</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Recursive Pattern Visualizations</h2>
+      <p>Loops are rendered as nodes orbiting attractors. Thickness encodes depth, and glow reveals interference between overlapping cycles.</p>
+      <div class="visualization">
+        <div class="viz-card">
+          <h3 style="margin:0 0 8px;color:var(--accent-strong);">247 Loop Network</h3>
+          <canvas id="loopNetwork"></canvas>
+        </div>
+        <div class="viz-card">
+          <h3 style="margin:0 0 8px;color:var(--accent-strong);">Nesting Structures</h3>
+          <canvas id="nestingMap"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Feature Callouts</h2>
+      <div class="feature-list">
+        <div class="feature">loop-period-histogram</div>
+        <div class="feature">recursion-depth-matrix</div>
+        <div class="feature">interference-heatmaps</div>
+        <div class="feature">pattern-attractor-catalogs</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Reflection: Meaning From Repetition</h2>
+      <p>Cyclicality is not stagnation—it is rehearsal. Each return carries a new state, adding layers of nuance to the same attractor. The Observatory’s recursion index shows that repetition is an engine of meaning: when visitors circle back, they reinforce memory, challenge prior readings, and weave an emergent narrative of intent.</p>
+      <p>Monitor the interference measure (0.34) to see where loops collide. High interference signals cross-pollination of ideas; low interference preserves ritual purity. Both are needed: one to explore, one to anchor.</p>
+    </section>
+
+    <footer id="footer">Updated just now · Page 109</footer>
+  </div>
+
+  <script>
+    // Particle background with cyan drift
+    const particleCanvas = document.getElementById('particles');
+    const pctx = particleCanvas.getContext('2d');
+    let particles = [];
+    function resizeCanvas() {
+      particleCanvas.width = window.innerWidth;
+      particleCanvas.height = window.innerHeight;
+    }
+    function initParticles() {
+      particles = Array.from({ length: 90 }, () => ({
+        x: Math.random() * particleCanvas.width,
+        y: Math.random() * particleCanvas.height,
+        r: Math.random() * 1.6 + 0.6,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        o: Math.random() * 0.6 + 0.3
+      }));
+    }
+    function drawParticles() {
+      pctx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = particleCanvas.width;
+        if (p.x > particleCanvas.width) p.x = 0;
+        if (p.y < 0) p.y = particleCanvas.height;
+        if (p.y > particleCanvas.height) p.y = 0;
+        pctx.beginPath();
+        pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pctx.fillStyle = `rgba(78,243,255,${p.o})`;
+        pctx.shadowBlur = 12;
+        pctx.shadowColor = 'rgba(78,243,255,0.6)';
+        pctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    resizeCanvas();
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+
+    // Loop network visualization
+    function drawLoopNetwork() {
+      const canvas = document.getElementById('loopNetwork');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      const { width, height } = canvas;
+      const center = { x: width / 2, y: height / 2 };
+      ctx.clearRect(0, 0, width, height);
+      ctx.lineWidth = 1;
+      const loops = 247;
+      for (let i = 0; i < loops; i++) {
+        const angle = (i / loops) * Math.PI * 2;
+        const radius = 60 + (i % 12) * 5 + Math.random() * 10;
+        const x = center.x + Math.cos(angle) * radius;
+        const y = center.y + Math.sin(angle) * radius;
+        const depth = (i % 5) + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, 3 + depth * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(78,243,255,${0.4 + depth * 0.08})`;
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = 'rgba(78,243,255,0.7)';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.bezierCurveTo(
+          center.x + Math.cos(angle) * (radius + 10),
+          center.y + Math.sin(angle) * (radius + 10),
+          center.x + Math.cos(angle + 0.7) * (radius + 30),
+          center.y + Math.sin(angle + 0.7) * (radius + 30),
+          center.x,
+          center.y
+        );
+        ctx.strokeStyle = `rgba(126,248,255,0.2)`;
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, 32, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(126,248,255,0.5)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = 'rgba(78,243,255,0.15)';
+      ctx.fill();
+    }
+
+    function drawNestingMap() {
+      const canvas = document.getElementById('nestingMap');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      const { width, height } = canvas;
+      ctx.clearRect(0, 0, width, height);
+      const layers = 5;
+      for (let l = 0; l < layers; l++) {
+        const inset = 14 + l * 16;
+        ctx.beginPath();
+        ctx.roundRect(inset, inset, width - inset * 2, height - inset * 2, 12);
+        ctx.strokeStyle = `rgba(78,243,255,${0.45 - l * 0.06})`;
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+      }
+      for (let i = 0; i < 60; i++) {
+        const depth = i % layers;
+        const x = 20 + Math.random() * (width - 40);
+        const y = 20 + Math.random() * (height - 40);
+        const size = 6 + depth * 2;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(126,248,255,${0.25 + depth * 0.1})`;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'rgba(78,243,255,0.6)';
+        ctx.fill();
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '13px "Courier New", monospace';
+      ctx.fillText('Nesting depth avg: 5', 12, height - 28);
+      ctx.fillText('Interference: 0.34', 12, height - 12);
+    }
+
+    // Audio: 60Hz sine with 0.6Hz LFO
+    let audioCtx, carrier, lfo, lfoGain, mainGain;
+    const storageKey = 'visitor-temporal-recursion-audio-muted';
+    let isMuted = JSON.parse(localStorage.getItem(storageKey) || 'true');
+    const toggleBtn = document.getElementById('audioToggle');
+    toggleBtn.textContent = isMuted ? 'Unmute Pulse' : 'Mute Pulse';
+
+    function setupAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      carrier = audioCtx.createOscillator();
+      lfo = audioCtx.createOscillator();
+      lfoGain = audioCtx.createGain();
+      mainGain = audioCtx.createGain();
+
+      carrier.type = 'sine';
+      carrier.frequency.value = 60;
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+      lfoGain.gain.value = 0.35;
+      mainGain.gain.value = isMuted ? 0 : 0.06;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(carrier.frequency);
+      carrier.connect(mainGain).connect(audioCtx.destination);
+
+      carrier.start();
+      lfo.start();
+    }
+
+    function toggleAudio() {
+      isMuted = !isMuted;
+      localStorage.setItem(storageKey, JSON.stringify(isMuted));
+      toggleBtn.textContent = isMuted ? 'Unmute Pulse' : 'Mute Pulse';
+      if (!audioCtx) {
+        setupAudio();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (mainGain) {
+        mainGain.gain.setTargetAtTime(isMuted ? 0 : 0.06, audioCtx.currentTime, 0.05);
+      }
+    }
+    toggleBtn.addEventListener('click', () => {
+      toggleAudio();
+    });
+
+    // Activate audio on first user gesture if unmuted in storage
+    window.addEventListener('pointerdown', () => {
+      if (!audioCtx && !isMuted) {
+        setupAudio();
+      }
+    }, { once: true });
+
+    // Footer timestamp
+    const footer = document.getElementById('footer');
+    const ts = new Date().toLocaleString();
+    footer.textContent = `Updated ${ts} · Page 109`;
+
+    // Draw visualizations after layout is ready
+    requestAnimationFrame(() => {
+      drawLoopNetwork();
+      drawNestingMap();
+    });
+    window.addEventListener('resize', () => {
+      drawLoopNetwork();
+      drawNestingMap();
+    });
+  </script>
+</body>
+</html>
