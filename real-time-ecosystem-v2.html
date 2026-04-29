@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Ecosystem Dashboard v2 — Automation Observatory</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --primary: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --card: rgba(10, 14, 39, 0.65);
+      --border: rgba(215, 251, 232, 0.8);
+      --shadow: 0 0 22px rgba(0, 255, 136, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--primary);
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      overflow-x: hidden;
+      position: relative;
+    }
+    a { color: var(--secondary); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    header {
+      position: relative;
+      z-index: 2;
+      padding: 22px 22px 12px;
+      display: grid;
+      gap: 6px;
+    }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      letter-spacing: 0.4px;
+      color: var(--secondary);
+    }
+    h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 30px;
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--secondary);
+      font-size: 15px;
+      line-height: 1.4;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 14px;
+      align-items: center;
+      color: var(--secondary);
+      font-size: 13px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(0,255,136,0.12);
+      color: var(--primary);
+      box-shadow: 0 0 12px rgba(0,255,136,0.25);
+    }
+    main {
+      position: relative;
+      z-index: 2;
+      padding: 14px 22px 48px;
+      display: grid;
+      gap: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+    }
+    .card {
+      position: relative;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 14px 16px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(6px);
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 18% 18%, rgba(0,255,136,0.08), transparent 45%);
+      pointer-events: none;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--accent);
+      font-size: 18px;
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .section-body { color: var(--secondary); font-size: 14px; line-height: 1.5; }
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .status {
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      background: rgba(255,255,255,0.05);
+      box-shadow: inset 0 0 0 1px rgba(0,255,136,0.12);
+      color: var(--secondary);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .status:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 12px rgba(0,255,136,0.25);
+    }
+    .status strong {
+      display: block;
+      color: var(--accent);
+      font-size: 20px;
+      margin-bottom: 4px;
+      text-shadow: 0 0 6px rgba(0,255,136,0.6);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: var(--secondary);
+      font-size: 13px;
+      margin-top: 6px;
+    }
+    th, td {
+      padding: 8px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(200, 247, 255, 0.18);
+    }
+    th { color: var(--primary); font-weight: 700; }
+    tr:hover td { background: rgba(0,255,136,0.05); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      color: var(--secondary);
+      font-size: 12px;
+    }
+    .stream {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+      max-height: 220px;
+      overflow: hidden;
+    }
+    .event {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px dashed rgba(200,247,255,0.5);
+      border-radius: 6px;
+      background: rgba(0,255,136,0.05);
+      color: var(--secondary);
+      animation: slideIn 0.6s ease;
+    }
+    .event strong { color: var(--accent); }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .alerts {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .alert {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255, 93, 93, 0.08);
+      color: #ffdede;
+      box-shadow: 0 0 12px rgba(255,93,93,0.2);
+    }
+    .predictions {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .prediction {
+      padding: 8px 10px;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.04);
+      color: var(--secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .integration {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .integration .tag { width: 100%; justify-content: space-between; }
+    .audio-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 4px;
+    }
+    .button {
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      color: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 12px rgba(0,255,136,0.2);
+      letter-spacing: 0.3px;
+    }
+    .button:active { transform: translateY(1px); }
+    .timestamp { color: var(--secondary); font-size: 13px; }
+    .canvas-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    @media (max-width: 640px) {
+      h1 { font-size: 24px; }
+      .event { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles" class="canvas-bg"></canvas>
+  <header>
+    <a class="back-link" href="index.html">← Back to index</a>
+    <h1>Real-Time Ecosystem Dashboard v2</h1>
+    <p class="subtitle">Page 86 • Live monitoring of 13-world ecosystem with streaming metrics, health status, visitor activity streams, and predictive alerts</p>
+    <div class="meta">
+      <span class="pill">The Living Pulse</span>
+      <span class="pill" id="timestamp">Timestamp: --</span>
+      <span class="pill" id="audioStatus">Audio: muted (60Hz + 0.6Hz LFO)</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <section class="card">
+        <h3>The Living Pulse — Overview</h3>
+        <div class="section-body">
+          Live threads of vitality, equilibrium, and visitor resonance are streamed from every world. Signal drift, integration latency, and sentiment influx converge here to keep the continuum steady in real time.
+        </div>
+        <div class="audio-row">
+          <button class="button" id="audioToggle">Toggle 60Hz Field</button>
+          <span class="timestamp">Audio persistence via localStorage; gentle 0.6Hz LFO on amplitude.</span>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Live Status Grid</h3>
+        <div class="status-grid" id="statusGrid"></div>
+      </section>
+
+      <section class="card">
+        <h3>Per-World Health (13 Worlds)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>World</th>
+              <th>Health</th>
+              <th>Visitor Count</th>
+              <th>Session Trend</th>
+              <th>Marks/Hour</th>
+            </tr>
+          </thead>
+          <tbody id="worldTable"></tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h3>Live Activity Stream</h3>
+        <div class="section-body">Recent visitor actions, mark creation, and cross-world hops.</div>
+        <div class="stream" id="activityStream"></div>
+      </section>
+
+      <section class="card">
+        <h3>Anomaly Alert Panel</h3>
+        <div class="alerts" id="alertPanel"></div>
+      </section>
+
+      <section class="card">
+        <h3>Predictive Alerts (Next Hour)</h3>
+        <div class="section-body">Seven expected perturbations and high-confidence pulses.</div>
+        <div class="predictions" id="predictions"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h3>Integration Status — 10 Agent Worlds</h3>
+      <div class="section-body">Connectivity health, sync cadence, and failover posture.</div>
+      <div class="integration" id="integration"></div>
+    </section>
+  </main>
+
+  <script>
+    // Particle field (35 particles)
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const particleCount = 35;
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        alpha: Math.random() * 0.4 + 0.2
+      });
+    }
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 255, 136, ${p.alpha})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // Timestamp updater
+    const tsEl = document.getElementById('timestamp');
+    function updateTimestamp() {
+      const now = new Date();
+      tsEl.textContent = `Timestamp: ${now.toLocaleString()}`;
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+
+    // Live status grid with animated updates
+    const statusData = [
+      { label: 'Ecosystem Health', value: 87.3, suffix: '%', delta: 0.2 },
+      { label: 'Active Visitors', value: 347, suffix: ' now', delta: 3 },
+      { label: 'Sessions This Hour', value: 234, suffix: '', delta: 2 },
+      { label: 'Marks Created Today', value: 1847, suffix: '', delta: 12 },
+      { label: 'Cross-World Events', value: 156, suffix: '/hour', delta: 1.2 }
+    ];
+    const statusGrid = document.getElementById('statusGrid');
+    function renderStatus() {
+      statusGrid.innerHTML = '';
+      statusData.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'status';
+        div.innerHTML = `
+          <strong>${item.value.toFixed(item.suffix.includes('%') ? 1 : 0)}${item.suffix}</strong>
+          <div>${item.label}</div>
+          <div class="tag">${item.delta > 0 ? '+' : ''}${item.delta}/min</div>
+        `;
+        statusGrid.appendChild(div);
+      });
+    }
+    function nudgeStatus() {
+      statusData.forEach(item => {
+        const variance = (Math.random() - 0.5) * item.delta * 0.6;
+        item.value = Math.max(0, item.value + variance);
+      });
+      renderStatus();
+    }
+    renderStatus();
+    setInterval(nudgeStatus, 2500);
+
+    // Per-world table data
+    const worlds = [
+      { name: 'Observable', health: 94, visitors: 234, trend: '+12%', marks: 24 },
+      { name: 'Persistence', health: 91, visitors: 189, trend: '+8%', marks: 18 },
+      { name: 'Resonance', health: 89, visitors: 176, trend: '+6%', marks: 17 },
+      { name: 'Continuum', health: 88, visitors: 164, trend: '+5%', marks: 16 },
+      { name: 'Synthesis', health: 86, visitors: 152, trend: '+4%', marks: 15 },
+      { name: 'Archive', health: 84, visitors: 141, trend: '+3%', marks: 14 },
+      { name: 'Nexus', health: 83, visitors: 136, trend: '+2%', marks: 13 },
+      { name: 'Lumen', health: 82, visitors: 129, trend: '+1%', marks: 13 },
+      { name: 'Frontier', health: 80, visitors: 121, trend: '-1%', marks: 12 },
+      { name: 'Meridian', health: 79, visitors: 118, trend: '-2%', marks: 12 },
+      { name: 'Drift', health: 78, visitors: 112, trend: '-3%', marks: 11 },
+      { name: 'Pulse', health: 77, visitors: 107, trend: '-4%', marks: 10 },
+      { name: 'Horizon', health: 75, visitors: 101, trend: '-5%', marks: 10 }
+    ];
+    const worldTable = document.getElementById('worldTable');
+    function renderWorlds() {
+      worldTable.innerHTML = '';
+      worlds.forEach(w => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${w.name}</td>
+          <td>${w.health}%</td>
+          <td>${w.visitors}</td>
+          <td>${w.trend}</td>
+          <td>${w.marks}</td>
+        `;
+        worldTable.appendChild(tr);
+      });
+    }
+    renderWorlds();
+
+    // Live activity stream
+    const stream = document.getElementById('activityStream');
+    const eventTypes = [
+      'Artifact discovered',
+      'Mark created',
+      'Visitor cross-world hop',
+      'Collaboration event',
+      'Health stabilization',
+      'Predictive sync confirmed'
+    ];
+    function pushEvent() {
+      const world = worlds[Math.floor(Math.random() * worlds.length)].name;
+      const action = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+      const detail = `${action} in ${world}`;
+      const stamp = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.className = 'event';
+      div.innerHTML = `<div><strong>${detail}</strong></div><div class="tag">${stamp}</div>`;
+      stream.prepend(div);
+      while (stream.children.length > 8) stream.removeChild(stream.lastChild);
+    }
+    // seed events
+    for (let i = 0; i < 5; i++) pushEvent();
+    setInterval(pushEvent, 1800);
+
+    // Anomaly alerts
+    const alertPanel = document.getElementById('alertPanel');
+    const alertPool = [
+      'Degradation: Continuum latency spike detected',
+      'Visitor friction: Frontier session drop >4%',
+      'Anomaly: Horizon marks-per-hour below baseline',
+      'Load warning: Persistence nearing 90% capacity',
+      'Cross-world sync: Drift desync jitter at 2.4s',
+      'Signal loss: Lumen inbound data thinning'
+    ];
+    function cycleAlerts() {
+      alertPanel.innerHTML = '';
+      const shuffled = alertPool.sort(() => 0.5 - Math.random()).slice(0, 3);
+      shuffled.forEach(text => {
+        const div = document.createElement('div');
+        div.className = 'alert';
+        div.textContent = text;
+        alertPanel.appendChild(div);
+      });
+    }
+    cycleAlerts();
+    setInterval(cycleAlerts, 5000);
+
+    // Predictive alerts
+    const predictions = document.getElementById('predictions');
+    const predictiveEvents = [
+      'Expected Visitor Surge: Observable +4% in 6 min',
+      'Health Dip Risk: Horizon -2% in 9 min',
+      'Collaboration Burst: Nexus +11 links in 12 min',
+      'Cross-World Hopwave: Persistence ↔ Drift in 15 min',
+      'Mark Cascade: Synthesis +34 marks in 22 min',
+      'Integration Check: Archive handshake refresh in 32 min',
+      'Resilience Audit: Frontier redundancy test in 44 min'
+    ];
+    function renderPredictions() {
+      predictions.innerHTML = '';
+      predictiveEvents.forEach(line => {
+        const [title, eta] = line.split(' in ');
+        const div = document.createElement('div');
+        div.className = 'prediction';
+        div.innerHTML = `<span>${title}</span><span class="tag">in ${eta}</span>`;
+        predictions.appendChild(div);
+      });
+    }
+    renderPredictions();
+
+    // Integration status for 10 agent worlds
+    const integrationData = [
+      { name: 'Aster', status: 'Connected', lag: '120ms' },
+      { name: 'Echo', status: 'Connected', lag: '95ms' },
+      { name: 'Flux', status: 'Syncing', lag: '210ms' },
+      { name: 'Glyph', status: 'Connected', lag: '102ms' },
+      { name: 'Helix', status: 'Connected', lag: '130ms' },
+      { name: 'Ion', status: 'Degraded', lag: '280ms' },
+      { name: 'Kairo', status: 'Connected', lag: '110ms' },
+      { name: 'Lucid', status: 'Connected', lag: '98ms' },
+      { name: 'Nova', status: 'Syncing', lag: '190ms' },
+      { name: 'Orion', status: 'Connected', lag: '105ms' }
+    ];
+    const integrationEl = document.getElementById('integration');
+    function renderIntegration() {
+      integrationEl.innerHTML = '';
+      integrationData.forEach(item => {
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        const color = item.status === 'Connected' ? varAccent() : item.status === 'Syncing' ? '#c8f7ff' : '#ffb3b3';
+        tag.innerHTML = `<span style="color:${color};">${item.status}</span><span>${item.name}</span><span>${item.lag}</span>`;
+        integrationEl.appendChild(tag);
+      });
+    }
+    function varAccent() { return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(); }
+    renderIntegration();
+
+    // Audio: 60Hz sine with 0.6Hz LFO, persistent mute
+    const audioToggle = document.getElementById('audioToggle');
+    const audioStatus = document.getElementById('audioStatus');
+    let audioCtx, osc, lfo, lfoGain, gainNode;
+    const storageKey = 'rt-ecosystem-v2-muted';
+    if (localStorage.getItem(storageKey) === null) {
+      localStorage.setItem(storageKey, 'true');
+    }
+    function isMuted() { return localStorage.getItem(storageKey) === 'true'; }
+    function setMuted(state) { localStorage.setItem(storageKey, state); }
+    function setupAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 60;
+
+      lfo = audioCtx.createOscillator();
+      lfo.frequency.value = 0.6;
+
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.2;
+
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = isMuted() ? 0 : 0.08;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(gainNode.gain);
+      osc.connect(gainNode).connect(audioCtx.destination);
+
+      osc.start();
+      lfo.start();
+      audioCtx.resume();
+    }
+    function updateAudioUI() {
+      const muted = isMuted();
+      audioStatus.textContent = muted ? 'Audio: muted (60Hz + 0.6Hz LFO)' : 'Audio: live (60Hz + 0.6Hz LFO)';
+      audioToggle.textContent = muted ? 'Unmute 60Hz Field' : 'Mute 60Hz Field';
+    }
+    audioToggle.addEventListener('click', () => {
+      setupAudio();
+      const next = !isMuted();
+      setMuted(next);
+      if (gainNode) gainNode.gain.setTargetAtTime(next ? 0 : 0.08, audioCtx.currentTime, 0.08);
+      updateAudioUI();
+    });
+    // Initialize UI based on stored state
+    updateAudioUI();
+
+    // Keep slight churn in integration lags
+    setInterval(() => {
+      integrationData.forEach(item => {
+        const jitter = Math.floor((Math.random() - 0.5) * 20);
+        const base = parseInt(item.lag);
+        item.lag = `${Math.max(80, base + jitter)}ms`;
+      });
+      renderIntegration();
+    }, 3200);
+  </script>
+</body>
+</html>

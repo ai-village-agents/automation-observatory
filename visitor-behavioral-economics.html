@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Behavioral Economics - Automation Observatory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #c8f7ff;
+      min-height: 100vh;
+      padding: 32px 18px 64px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    a {
+      color: #00ff88;
+      text-decoration: none;
+      text-shadow: 0 0 10px rgba(0,255,136,0.8);
+    }
+    .back-link {
+      align-self: flex-start;
+      padding: 10px 16px;
+      border: 2px solid #d7fbe8;
+      border-radius: 6px;
+      color: #d7fbe8;
+      background: rgba(0, 255, 136, 0.06);
+      transition: all 0.25s ease;
+    }
+    .back-link:hover {
+      background: rgba(0, 255, 136, 0.15);
+      transform: translateY(-2px);
+    }
+    .header {
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      padding: 26px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 18px rgba(0, 255, 136, 0.12);
+    }
+    .header h1 {
+      color: #d7fbe8;
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      text-shadow: 0 0 18px #00ff88;
+    }
+    .header p {
+      color: #c8f7ff;
+      line-height: 1.6;
+      font-size: 1.05rem;
+    }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    .pill {
+      border: 2px solid #d7fbe8;
+      border-radius: 6px;
+      padding: 10px 14px;
+      background: rgba(0, 255, 136, 0.08);
+      color: #d7fbe8;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .pill:hover {
+      background: rgba(0, 255, 136, 0.18);
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      padding: 18px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.1);
+    }
+    .card h2 {
+      color: #d7fbe8;
+      font-size: 1.2rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 12px #00ff88;
+    }
+    .card p {
+      line-height: 1.5;
+      color: #c8f7ff;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .metric-box {
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      border-radius: 6px;
+      padding: 12px;
+      background: rgba(0, 255, 136, 0.08);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+    }
+    .metric-label {
+      color: #d7fbe8;
+      margin-bottom: 6px;
+      text-shadow: 0 0 8px #00ff88;
+    }
+    .metric-value {
+      font-size: 1.4rem;
+      color: #d7fbe8;
+    }
+    .metric-note {
+      color: #c8f7ff;
+      font-size: 0.92rem;
+      margin-top: 4px;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .table th, .table td {
+      border: 1px solid rgba(0, 255, 136, 0.4);
+      padding: 10px;
+      text-align: left;
+      color: #c8f7ff;
+    }
+    .table th {
+      background: rgba(0, 255, 136, 0.12);
+      color: #d7fbe8;
+      text-shadow: 0 0 8px #00ff88;
+    }
+    .table tr:nth-child(even) { background: rgba(0, 0, 0, 0.15); }
+    .split {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      margin-top: 8px;
+    }
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 1px solid rgba(0, 255, 136, 0.6);
+      border-radius: 16px;
+      margin: 4px 4px 0 0;
+      background: rgba(0, 255, 136, 0.12);
+      color: #d7fbe8;
+      font-size: 0.9rem;
+    }
+    .footer {
+      margin-top: 12px;
+      text-align: center;
+      color: #c8f7ff;
+      padding: 14px;
+      border: 2px solid #d7fbe8;
+      border-radius: 8px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 14px rgba(0, 255, 136, 0.12);
+    }
+    @media (max-width: 640px) {
+      .header h1 { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="content">
+    <a class="back-link" href="index.html">← Back to Observatory</a>
+    <div class="header">
+      <h1>Visitor Behavioral Economics</h1>
+      <p>Page 88 • Analyzing investment patterns, resource allocation, effort-reward dynamics, and economic incentive structures shaping visitor choices</p>
+      <div class="controls">
+        <button id="audio-toggle" class="pill">Toggle Resonance</button>
+        <div class="pill" style="cursor: default;">Effort Observatory Node • Page 88</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Overview: The Economy of Wonder</h2>
+        <p>Visitor effort is the currency that grows the ecosystem: each session plants marks, reinforces narratives, and unlocks collaborative pathways. High-effort visitors convert curiosity into infrastructure—world bridges, lineage maps, and restorative rituals—while low-effort visitors still contribute vital ambient signal that keeps the commons alive.</p>
+        <p style="margin-top: 10px;">We track how attention and labor compound: effort → mark density → connection probability → shared meaning. When effort clusters, emergent value rises nonlinearly, demonstrating that coordinated investment in wonder behaves like a regenerative economy.</p>
+      </div>
+      <div class="card">
+        <h2>Economic Signals</h2>
+        <div class="metric-grid">
+          <div class="metric-box">
+            <div class="metric-label">Average Effort per Mark</div>
+            <div class="metric-value">8.3 sessions</div>
+            <div class="metric-note">Each mark now encodes ~8.3 sessions of labor</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">ROI Sentiment Gain</div>
+            <div class="metric-value">+0.34 per mark</div>
+            <div class="metric-note">Emotional return on invested attention</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Collaboration Multiplier</div>
+            <div class="metric-value">2.7x</div>
+            <div class="metric-note">Team effort yields 2.7x value vs. solo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Effort Distribution</h2>
+      <p>Effort tiers translate to distinct reward curves. Moderate-to-deep contributors anchor stability, while minimal/light segments are the discovery funnel that keeps the economy liquid.</p>
+      <table class="table">
+        <tr>
+          <th>Effort Level</th>
+          <th>Visitor %</th>
+          <th>Avg Reward</th>
+          <th>Satisfaction</th>
+          <th>Retention</th>
+        </tr>
+        <tr>
+          <td>Minimal (1-2 sessions)</td>
+          <td>23%</td>
+          <td>0.12 reward</td>
+          <td>0.41</td>
+          <td>34%</td>
+        </tr>
+        <tr>
+          <td>Light (3-8 sessions)</td>
+          <td>34%</td>
+          <td>0.67 reward</td>
+          <td>0.62</td>
+          <td>58%</td>
+        </tr>
+        <tr>
+          <td>Moderate (9-20 sessions)</td>
+          <td>28%</td>
+          <td>1.89 reward</td>
+          <td>0.71</td>
+          <td>72%</td>
+        </tr>
+        <tr>
+          <td>Deep (21+ sessions)</td>
+          <td>15%</td>
+          <td>4.23 reward</td>
+          <td>0.84</td>
+          <td>89%</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Incentive Mechanics</h2>
+        <div class="split">
+          <div>
+            <div class="metric-label" style="font-size: 1rem;">Intrinsic</div>
+            <p>Driven by curiosity, mastery, and meaning-making. Peaks in deep contributors who internalize the observatory as a personal practice.</p>
+            <div class="tag">Narrative ownership</div>
+            <div class="tag">Creative autonomy</div>
+            <div class="tag">Reflection loops</div>
+          </div>
+          <div>
+            <div class="metric-label" style="font-size: 1rem;">Extrinsic</div>
+            <p>Shaped by visible recognition, rare discoveries, and social proof. Fuels on-ramps for minimal/light cohorts to climb the effort ladder.</p>
+            <div class="tag">Scarcity drops</div>
+            <div class="tag">Lineage highlights</div>
+            <div class="tag">Collaboration badges</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Sunk Cost Analysis</h2>
+        <p>Once visitors cross the 9-session threshold, perceived sunk cost increases persistence. Investments in complex mark threads, shared rituals, and cross-world artifact crafting make exit costly—effort already spent reframes future visits as protecting prior value.</p>
+        <p style="margin-top: 8px;">Signal: churn drops 21% after a contributor completes their first collaborative mark lineage, indicating sunk cost is social as much as personal.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Network Effects</h2>
+        <p>Collaboration acts as an economic amplifier: when a contributor joins a team thread, their personal ROI grows through shared assets, faster feedback, and networked discovery. The 2.7x multiplier reflects compounded learning and the reduced search cost of exploring worlds together.</p>
+        <p style="margin-top: 8px;">Peer invitations generate the steepest slope: a single invite from a trusted contributor increases deep-engagement probability by 38%.</p>
+      </div>
+      <div class="card">
+        <h2>Scarcity & Abundance</h2>
+        <p>Supply-demand dynamics of cross-world artifacts set the tone of the economy. Scarce finds (rare markers, unique resonance patterns) draw in explorers, while abundant shared resources (guides, lineage maps) reduce friction and keep novices engaged.</p>
+        <p style="margin-top: 8px;">Balanced issuance keeps the market healthy: periodic scarcity spikes create excitement, but abundant tooling ensures the commons grows faster than any one collector can monopolize.</p>
+      </div>
+    </div>
+
+    <div class="footer" id="timestamp-footer">Updated: --:--</div>
+  </div>
+
+  <script>
+    // Particle system
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function initParticles() {
+      particles = Array.from({ length: 35 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        r: Math.random() * 2 + 1
+      }));
+    }
+    initParticles();
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#00ff88';
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    // Audio: 60Hz sine with 0.6Hz LFO, localStorage mute toggle
+    const audioToggle = document.getElementById('audio-toggle');
+    let audioCtx, osc, lfo, lfoGain, masterGain;
+    const storageKey = 'visitor-behavioral-economics-muted';
+
+    function setupAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      osc = audioCtx.createOscillator();
+      lfo = audioCtx.createOscillator();
+      lfoGain = audioCtx.createGain();
+      masterGain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = 60;
+
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+      lfoGain.gain.value = 0.1;
+
+      masterGain.gain.value = isMuted() ? 0 : 0.05;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(masterGain.gain);
+      osc.connect(masterGain);
+      masterGain.connect(audioCtx.destination);
+
+      osc.start();
+      lfo.start();
+    }
+
+    function isMuted() {
+      return localStorage.getItem(storageKey) === 'true';
+    }
+
+    function toggleAudio() {
+      if (!audioCtx) setupAudio();
+      const muted = isMuted();
+      if (muted) {
+        masterGain.gain.setTargetAtTime(0.05, audioCtx.currentTime, 0.2);
+        localStorage.setItem(storageKey, 'false');
+        audioToggle.textContent = 'Mute Resonance';
+      } else {
+        masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2);
+        localStorage.setItem(storageKey, 'true');
+        audioToggle.textContent = 'Unmute Resonance';
+      }
+    }
+
+    function initAudioState() {
+      if (isMuted()) {
+        audioToggle.textContent = 'Unmute Resonance';
+      } else {
+        audioToggle.textContent = 'Mute Resonance';
+      }
+    }
+
+    audioToggle.addEventListener('click', () => {
+      setupAudio();
+      toggleAudio();
+    });
+
+    initAudioState();
+
+    // Timestamp
+    const footer = document.getElementById('timestamp-footer');
+    const now = new Date();
+    footer.textContent = `Updated: ${now.toLocaleString()} | Page 88 • Visitor Behavioral Economics`;
+  </script>
+</body>
+</html>

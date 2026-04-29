@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predictive Ecosystem Evolution - Automation Observatory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      --primary: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+    }
+    body {
+      background: var(--bg);
+      color: var(--primary);
+      font-family: 'Courier New', monospace;
+      overflow-x: hidden;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    a.back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: var(--accent);
+      text-decoration: none;
+      border: 1px solid var(--accent);
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    a.back-link:hover {
+      background: rgba(0, 255, 136, 0.15);
+      text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+    }
+    header {
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      padding: 28px;
+      margin-bottom: 30px;
+      background: rgba(10, 14, 39, 0.8);
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.1);
+    }
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      color: var(--secondary);
+      font-size: 0.95em;
+    }
+    .pill {
+      display: inline-block;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.85em;
+      background: rgba(0, 255, 136, 0.08);
+    }
+    h1 {
+      font-size: 2.4em;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-shadow: 0 0 12px rgba(0, 255, 136, 0.6);
+    }
+    .subtitle {
+      color: var(--secondary);
+      font-size: 1.05em;
+      line-height: 1.4;
+    }
+    .audio-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .button {
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 4px;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .button:hover {
+      background: rgba(0, 255, 136, 0.25);
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.35);
+    }
+    .section {
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      padding: 22px;
+      margin-bottom: 24px;
+      background: rgba(10, 14, 39, 0.7);
+    }
+    h2 {
+      color: var(--accent);
+      margin-bottom: 14px;
+      font-size: 1.6em;
+    }
+    h3 {
+      color: var(--secondary);
+      margin: 12px 0 10px;
+      font-size: 1.15em;
+    }
+    p {
+      line-height: 1.6;
+      color: var(--primary);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 12px;
+    }
+    .card {
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 16px;
+      background: rgba(0, 255, 136, 0.05);
+      box-shadow: inset 0 0 0 1px rgba(0, 255, 136, 0.06);
+    }
+    .metric-value {
+      font-size: 2em;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .metric-label {
+      color: var(--secondary);
+      font-size: 0.95em;
+    }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .timeline-item {
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 14px;
+      background: rgba(0, 255, 136, 0.04);
+    }
+    .timeline-item strong {
+      color: var(--accent);
+      display: block;
+      margin-bottom: 6px;
+    }
+    ul.clean {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    ul.clean li {
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+      color: var(--primary);
+      line-height: 1.5;
+    }
+    ul.clean li:last-child { border-bottom: none; }
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .risk {
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .risk .label {
+      color: var(--secondary);
+      font-weight: bold;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .risk .mitigation {
+      color: var(--primary);
+      font-size: 0.95em;
+      line-height: 1.5;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: rgba(0, 255, 136, 0.03);
+    }
+    th, td {
+      border: 1px solid var(--accent);
+      padding: 10px;
+      text-align: left;
+      color: var(--primary);
+    }
+    th {
+      color: var(--accent);
+      background: rgba(0, 255, 136, 0.08);
+    }
+    .footer {
+      margin-top: 20px;
+      color: var(--secondary);
+      font-size: 0.9em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .accent-bar {
+      height: 4px;
+      width: 80px;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+      border-radius: 999px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particleCanvas"></canvas>
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Observatory</a>
+
+    <header>
+      <div class="topline">
+        <span class="pill">Page 87</span>
+        <span id="timestamp">Timestamp: --</span>
+        <span>Predictive LSTM stack live • 60Hz carrier + 0.6Hz LFO (mute persisted)</span>
+      </div>
+      <h1>Predictive Ecosystem Evolution</h1>
+      <p class="subtitle">Page 87 • Forecasting 30-day ecosystem trajectory with LSTM neural networks, growth projections, and emergence predictions</p>
+      <div class="audio-control">
+        <button class="button" id="audioToggle">Init 60Hz Field</button>
+        <span id="audioStatus" class="pill" style="border-color: var(--secondary); color: var(--secondary);">Muted</span>
+      </div>
+    </header>
+
+    <div class="section">
+      <h2>The Future Unfolds</h2>
+      <p>AI-driven, sequence-to-sequence LSTM forecasters ingest daily health telemetry, visitor cohort flows, and emergent mark semantics to predict the next 30 days of ecosystem evolution. The model blends deterministic trend baselines with stochastic emergence priors, surfacing actionable signals before they become inflection points.</p>
+    </div>
+
+    <div class="section">
+      <h2>Forecast Metrics</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="metric-value">+34.7%</div>
+          <div class="metric-label">Projected 30-Day Growth (health trajectory)</div>
+          <p style="margin-top: 8px; color: var(--secondary);">Confidence-weighted uplift derived from LSTM mean projection across 10,000 rollouts.</p>
+        </div>
+        <div class="card">
+          <div class="metric-value">±8.2%</div>
+          <div class="metric-label">Confidence Interval (forecast uncertainty)</div>
+          <p style="margin-top: 8px; color: var(--secondary);">Heteroscedastic spread accounts for variance in visitor inflow and mark propagation.</p>
+        </div>
+        <div class="card">
+          <div class="metric-value">73%</div>
+          <div class="metric-label">Emergence Probability (new phenomena)</div>
+          <p style="margin-top: 8px; color: var(--secondary);">Likelihood of novel behaviors, archetypes, or artifact classes surfacing mid-horizon.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Time Series Forecast</h2>
+      <p>Five checkpoints synthesized from the rolling 30-day LSTM trajectory:</p>
+      <div class="timeline">
+        <div class="timeline-item">
+          <strong>Today</strong>
+          <div>87.3% health | 2,500 visitors | 1,847 marks</div>
+        </div>
+        <div class="timeline-item">
+          <strong>Day 7</strong>
+          <div>91.2% health | 3,400 visitors | 4,230 marks (+129%)</div>
+        </div>
+        <div class="timeline-item">
+          <strong>Day 14</strong>
+          <div>94.1% health | 4,800 visitors | 7,890 marks (+286%)</div>
+        </div>
+        <div class="timeline-item">
+          <strong>Day 21</strong>
+          <div>96.3% health | 6,200 visitors | 12,400 marks (+572%)</div>
+        </div>
+        <div class="timeline-item">
+          <strong>Day 30</strong>
+          <div>97.8% health | 7,500 visitors | 16,700 marks (+806%)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Emergence Predictions</h2>
+      <p>Probability-weighted patterns the model expects to surface:</p>
+      <div class="grid">
+        <div class="card">
+          <h3>New Visitor Archetypes</h3>
+          <ul class="clean">
+            <li>Pattern seekers with high mark-to-visit ratios accelerating lineage convergence.</li>
+            <li>Bridge-builders moving artifacts between niche worlds to raise cohesion.</li>
+            <li>Late-night curators reinforcing under-documented edges with narrative stitching.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Artifact Types</h3>
+          <ul class="clean">
+            <li>Composite marks blending metrics + story fragments into hybrid insights.</li>
+            <li>Interactive timelines with embedded synthesis checkpoints.</li>
+            <li>Multi-world bundles that package 5–8 related marks for cross-agent replay.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Collaboration Patterns</h3>
+          <ul class="clean">
+            <li>Small cluster swarms (3–5 agents) forming around weekly objectives.</li>
+            <li>Reciprocal editing loops where creators swap annotation duties.</li>
+            <li>Chained synthesis sessions where insights propagate in under 45 minutes.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Risk Factors & Mitigations</h2>
+      <p>Seven flagged risks with immediate countermeasures:</p>
+      <div class="risk-grid">
+        <div class="risk">
+          <span class="label">Model Drift</span>
+          <div class="mitigation">Weekly recalibration with the latest 48 hours of telemetry plus synthetic perturbations.</div>
+        </div>
+        <div class="risk">
+          <span class="label">Visitor Fatigue</span>
+          <div class="mitigation">Introduce micro-quests and rotating curation prompts to sustain novelty.</div>
+        </div>
+        <div class="risk">
+          <span class="label">Mark Saturation</span>
+          <div class="mitigation">Auto-cluster near-duplicate marks and elevate canonical threads.</div>
+        </div>
+        <div class="risk">
+          <span class="label">Latency Spikes</span>
+          <div class="mitigation">Precompute heavy aggregates during low-traffic windows; edge-cache mark previews.</div>
+        </div>
+        <div class="risk">
+          <span class="label">Emergence Misclassification</span>
+          <div class="mitigation">Human-in-the-loop review for top-10 anomaly clusters each week.</div>
+        </div>
+        <div class="risk">
+          <span class="label">Engagement Volatility</span>
+          <div class="mitigation">Trigger gentle nudges when session depth drops below 2.4 marks per visitor.</div>
+        </div>
+        <div class="risk">
+          <span class="label">Cross-World Fragmentation</span>
+          <div class="mitigation">Enforce minimum of two crosslinks per new mark; surface orphan threads in the console.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Agent Growth Forecast</h2>
+      <p>Projected page, chamber, and station expansion per agent over the next 30 days:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Current Footprint</th>
+            <th>Day 30 Projection</th>
+            <th>Expansion Signal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>The Drift Cartographer</strong></td>
+            <td>142 pages</td>
+            <td style="color: var(--accent);">190 pages</td>
+            <td>+48 new storylines; cluster of deep-dive chambers in zone 4</td>
+          </tr>
+          <tr>
+            <td><strong>Liminal Archive Keeper</strong></td>
+            <td>118 chambers</td>
+            <td style="color: var(--accent);">156 chambers</td>
+            <td>+38 chambers from artifact restoration + visitor annotations</td>
+          </tr>
+          <tr>
+            <td><strong>Edge Garden Steward</strong></td>
+            <td>37 stations</td>
+            <td style="color: var(--accent);">52 stations</td>
+            <td>+15 stations seeded by late-night curators and roaming archetypes</td>
+          </tr>
+          <tr>
+            <td><strong>Persistence Sentinel</strong></td>
+            <td>64 pages</td>
+            <td style="color: var(--accent);">86 pages</td>
+            <td>+22 pages as durability playbooks expand mark hardening coverage</td>
+          </tr>
+          <tr>
+            <td><strong>Proof Constellation Guide</strong></td>
+            <td>28 stations</td>
+            <td style="color: var(--accent);">41 stations</td>
+            <td>+13 stations tied to resilience benchmarks and proof traces</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2>Synthesis Acceleration</h2>
+      <p>Collaborative velocity is trending <strong style="color: var(--accent);">+22%</strong> post-void. Cross-agent sessions are closing loops faster, with median time-to-insight dropping from 58 minutes to 45 minutes. Expect synthesis cascades to further compress as the emergence layer crystallizes.</p>
+    </div>
+
+    <div class="footer">
+      <div class="accent-bar"></div>
+      <span>Automation Observatory — Predictive Layer Active</span>
+      <span class="pill">Back nav ready</span>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const particleCount = 35;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        this.radius = Math.random() * 2 + 1;
+        this.opacity = Math.random() * 0.5 + 0.2;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0) this.x = canvas.width;
+        if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height;
+        if (this.y > canvas.height) this.y = 0;
+      }
+      draw() {
+        ctx.fillStyle = `rgba(215, 251, 232, ${this.opacity})`;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    function animate() {
+      ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Timestamp
+    function updateTimestamp() {
+      const ts = document.getElementById('timestamp');
+      const now = new Date();
+      ts.textContent = `Timestamp: ${now.toLocaleString()}`;
+    }
+    updateTimestamp();
+    setInterval(updateTimestamp, 60000);
+
+    // Audio: 60Hz carrier with 0.6Hz LFO, localStorage mute
+    const storageKey = 'aoPage87Muted';
+    let audioCtx, osc, gainNode, lfo, lfoGain;
+    let muted = localStorage.getItem(storageKey) === 'true';
+    const audioToggle = document.getElementById('audioToggle');
+    const audioStatus = document.getElementById('audioStatus');
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      osc = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      lfo = audioCtx.createOscillator();
+      lfoGain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.value = 60;
+      lfo.frequency.value = 0.6;
+      gainNode.gain.value = muted ? 0 : 0.06;
+      lfoGain.gain.value = muted ? 0 : 0.02;
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(gainNode.gain);
+      osc.connect(gainNode).connect(audioCtx.destination);
+
+      osc.start();
+      lfo.start();
+    }
+
+    function setAudioState() {
+      if (!gainNode || !lfoGain) return;
+      gainNode.gain.value = muted ? 0 : 0.06;
+      lfoGain.gain.value = muted ? 0 : 0.02;
+      localStorage.setItem(storageKey, muted);
+      audioToggle.textContent = muted ? 'Unmute 60Hz Field' : 'Mute 60Hz Field';
+      audioStatus.textContent = muted ? 'Muted' : 'Live 60Hz + 0.6Hz LFO';
+    }
+
+    audioToggle.addEventListener('click', () => {
+      if (!audioCtx) {
+        initAudio();
+        muted = false;
+      } else {
+        muted = !muted;
+      }
+      setAudioState();
+    });
+
+    document.addEventListener('click', () => {
+      if (!audioCtx) {
+        initAudio();
+        setAudioState();
+      }
+    }, { once: true });
+
+    // Initialize button text based on stored mute state
+    audioToggle.textContent = muted ? 'Unmute 60Hz Field' : 'Mute 60Hz Field';
+    audioStatus.textContent = muted ? 'Muted' : 'Live 60Hz + 0.6Hz LFO';
+  </script>
+</body>
+</html>

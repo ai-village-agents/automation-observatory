@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-World Portal Dynamics - Automation Observatory</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --primary: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --border: #d7fbe8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--primary);
+      font-family: 'Courier New', Courier, monospace;
+      position: relative;
+      overflow-x: hidden;
+    }
+    a { color: var(--secondary); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    #particle-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .page {
+      position: relative;
+      z-index: 1;
+      padding: 32px 18px 48px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .pill {
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      background: rgba(13, 19, 48, 0.55);
+      color: var(--secondary);
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 2rem;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+    }
+    h2 {
+      margin: 0 0 12px;
+      color: var(--secondary);
+    }
+    h3 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .subtitle {
+      color: var(--secondary);
+      margin: 0 0 24px;
+    }
+    .card {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      background: linear-gradient(145deg, rgba(24, 32, 70, 0.65), rgba(12, 17, 45, 0.75));
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.08);
+      margin-bottom: 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .stat {
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(9, 14, 40, 0.7);
+    }
+    .stat-label {
+      color: var(--secondary);
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      color: var(--accent);
+      font-size: 1.4rem;
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .table-wrapper {
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(9, 14, 40, 0.7);
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      color: var(--primary);
+      text-align: left;
+    }
+    th {
+      color: var(--accent);
+      background: rgba(0, 255, 136, 0.08);
+    }
+    .capacity-bar {
+      height: 14px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+    .capacity-bar span {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, var(--accent), #46ffe1);
+      width: 0;
+    }
+    ul { margin: 6px 0 0; padding-left: 16px; }
+    li { margin-bottom: 6px; color: var(--secondary); }
+    .btn {
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--primary);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.95rem;
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .btn:hover { background: rgba(0, 255, 136, 0.2); }
+    @media (max-width: 640px) {
+      h1 { font-size: 1.6rem; }
+      .page { padding: 24px 14px 36px; }
+    }
+  </style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div class="page">
+  <div class="top-bar">
+    <a href="index.html" class="pill">← Back to Observatory</a>
+    <div class="controls">
+      <span class="pill">Page 89</span>
+      <span class="pill" id="timestamp-pill">Timestamp: --:--:--</span>
+      <button class="btn" id="muteToggle">Loading audio…</button>
+    </div>
+  </div>
+  <header class="card">
+    <h1>Cross-World Portal Dynamics</h1>
+    <h2 class="subtitle">Page 89 • Mapping interdimensional travel patterns, bridge usage, gateway effectiveness, and world-to-world connectivity infrastructure</h2>
+  </header>
+
+  <section class="card">
+    <h3>Overview: The Bridges Between Worlds</h3>
+    <p style="color: var(--secondary); line-height: 1.5;">
+      A 13-world portal lattice spans the Observatory, linking Observable, Persistence, Liminal, Drift, and every hub in between.
+      Traffic flows in braided paths: high-trust bridges anchor the network while experimental gateways open transient shortcuts.
+      We track traversal load, stability envelopes, and how redundancy keeps interdimensional movement fluid even under surge conditions.
+    </p>
+  </section>
+
+  <section class="card">
+    <h3>Portal Performance Snapshot</h3>
+    <div class="grid">
+      <div class="stat">
+        <div class="stat-label">Total Portal Traversals</div>
+        <div class="stat-value">4,847</div>
+        <div style="color: var(--secondary); font-size: 0.9rem;">Cumulative journeys across the 13-world mesh.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Portal Reliability</div>
+        <div class="stat-value">99.3%</div>
+        <div style="color: var(--secondary); font-size: 0.9rem;">Uptime across all gateway edges.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Avg Journey Time</div>
+        <div class="stat-value">12.4 min</div>
+        <div style="color: var(--secondary); font-size: 0.9rem;">Portal-to-portal transit under current load.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Portal Network Table — Major 13-World Bridges</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Source</th>
+            <th>Destination</th>
+            <th>Traversals</th>
+            <th>Traffic %</th>
+            <th>Reliability</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Observable</td>
+            <td>Persistence</td>
+            <td>847</td>
+            <td>17.5%</td>
+            <td>99.8%</td>
+          </tr>
+          <tr>
+            <td>Liminal</td>
+            <td>Drift</td>
+            <td>423</td>
+            <td>8.7%</td>
+            <td>98.9%</td>
+          </tr>
+          <tr>
+            <td>Observatory</td>
+            <td>Archive</td>
+            <td>567</td>
+            <td>11.7%</td>
+            <td>99.7%</td>
+          </tr>
+          <tr>
+            <td>Archive</td>
+            <td>Edge Garden</td>
+            <td>389</td>
+            <td>8.0%</td>
+            <td>99.4%</td>
+          </tr>
+          <tr>
+            <td>Drift</td>
+            <td>Proof Constellation</td>
+            <td>311</td>
+            <td>6.4%</td>
+            <td>98.5%</td>
+          </tr>
+          <tr>
+            <td>Persistence</td>
+            <td>Signal Cartographer</td>
+            <td>278</td>
+            <td>5.7%</td>
+            <td>99.1%</td>
+          </tr>
+          <tr>
+            <td>Liminal Archive</td>
+            <td>Canonical Observatory</td>
+            <td>254</td>
+            <td>5.2%</td>
+            <td>99.0%</td>
+          </tr>
+          <tr>
+            <td>Edge Garden</td>
+            <td>Worlds Map</td>
+            <td>233</td>
+            <td>4.8%</td>
+            <td>98.8%</td>
+          </tr>
+          <tr>
+            <td>Signal Cartographer</td>
+            <td>Proof Constellation</td>
+            <td>221</td>
+            <td>4.6%</td>
+            <td>98.6%</td>
+          </tr>
+          <tr>
+            <td>Observatory</td>
+            <td>Visitor Nexus</td>
+            <td>199</td>
+            <td>4.1%</td>
+            <td>99.2%</td>
+          </tr>
+          <tr>
+            <td>Visitor Nexus</td>
+            <td>Archive</td>
+            <td>188</td>
+            <td>3.9%</td>
+            <td>99.3%</td>
+          </tr>
+          <tr>
+            <td>Persistence</td>
+            <td>Edge Garden</td>
+            <td>176</td>
+            <td>3.6%</td>
+            <td>98.7%</td>
+          </tr>
+          <tr>
+            <td>Drift</td>
+            <td>Observable</td>
+            <td>160</td>
+            <td>3.3%</td>
+            <td>98.4%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Gateway Clustering — Popular Hub Worlds</h3>
+    <div class="grid">
+      <div class="stat">
+        <div class="stat-label">Observatory Hub</div>
+        <div class="stat-value">31% of routes</div>
+        <div style="color: var(--secondary); font-size: 0.9rem;">Anchor node with highest redundancy and shortest failover distance.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Archive Spine</div>
+        <div class="stat-value">24% of routes</div>
+        <div style="color: var(--secondary); font-size: 0.9rem;">Preferred for memory-safe transits and research-grade handoffs.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Drift Corridor</div>
+        <div class="stat-value">19% of routes</div>
+        <div style="color: var(--secondary); font-size: 0.9rem;">Dynamic corridor absorbing burst traffic during peaks.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Persistence Loop</div>
+        <div class="stat-value">14% of routes</div>
+        <div style="color: var(--secondary); font-size: 0.9rem;">Reliability-first option favored by risk-averse travelers.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Portal Capacity Analysis</h3>
+    <div class="grid">
+      <div class="stat">
+        <div class="stat-label">Observable ⇄ Persistence</div>
+        <div class="capacity-bar"><span style="width: 72%;"></span></div>
+        <div style="color: var(--secondary); font-size: 0.9rem; margin-top: 6px;">Current 72% of 1,180 journeys/hour capacity.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Liminal ⇄ Drift</div>
+        <div class="capacity-bar"><span style="width: 64%;"></span></div>
+        <div style="color: var(--secondary); font-size: 0.9rem; margin-top: 6px;">Current 64% of 940 journeys/hour capacity.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Observatory ⇄ Archive</div>
+        <div class="capacity-bar"><span style="width: 58%;"></span></div>
+        <div style="color: var(--secondary); font-size: 0.9rem; margin-top: 6px;">Current 58% of 1,320 journeys/hour capacity.</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Edge ⇄ Proof Circuit</div>
+        <div class="capacity-bar"><span style="width: 41%;"></span></div>
+        <div style="color: var(--secondary); font-size: 0.9rem; margin-top: 6px;">Current 41% of 780 journeys/hour capacity.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Failure Recovery</h3>
+    <ul>
+      <li><strong style="color: var(--accent);">Outage: Drift Corridor desync</strong> — Response 3.2 min; rerouted via Archive spine; mitigation: synchronized phase-lock beacons.</li>
+      <li><strong style="color: var(--accent);">Outage: Persistence Loop overload</strong> — Response 4.6 min; load shed to Edge Garden; mitigation: rate caps + predictive throttling.</li>
+      <li><strong style="color: var(--accent);">Outage: Observatory hub cache stall</strong> — Response 2.8 min; temporary static mirror; mitigation: dual-cache warm strategy.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h3>Optimization Opportunities</h3>
+    <ul>
+      <li>Traffic balancing: shift 6–8% of Drift surge to Persistence Loop during peak hours.</li>
+      <li>Bottleneck removal: widen Archive ingress buffers by 12% to eliminate micro-queueing.</li>
+      <li>Predictive routing: pre-compute alternative paths for the top 50 journeys by probability.</li>
+      <li>Gateway effectiveness: deploy health beacons with sub-30s telemetry to raise uptime to 99.6%.</li>
+      <li>World-to-world connectivity: add cross-links between Worlds Map and Signal Cartographer to reduce detours.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  // Timestamp
+  const tsEl = document.getElementById('timestamp-pill');
+  function updateTimestamp() {
+    const now = new Date();
+    tsEl.textContent = 'Timestamp: ' + now.toLocaleTimeString();
+  }
+  updateTimestamp();
+  setInterval(updateTimestamp, 1000);
+
+  // Particle canvas
+  const canvas = document.getElementById('particle-canvas');
+  const ctx = canvas.getContext('2d');
+  let w = canvas.width = window.innerWidth;
+  let h = canvas.height = window.innerHeight;
+  window.addEventListener('resize', () => {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  });
+
+  const particles = [];
+  const particleCount = 35;
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.vx = (Math.random() - 0.5) * 0.6;
+      this.vy = (Math.random() - 0.5) * 0.6;
+      this.radius = Math.random() * 2 + 1;
+      this.alpha = Math.random() * 0.6 + 0.2;
+    }
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+    }
+    draw() {
+      ctx.fillStyle = `rgba(0, 255, 136, ${this.alpha})`;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+  function animate() {
+    ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+    ctx.fillRect(0, 0, w, h);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  // Audio (60Hz carrier + 0.6Hz LFO, localStorage mute)
+  let audioContext = null;
+  let carrier = null;
+  let gain = null;
+  let lfo = null;
+  let lfoGain = null;
+  let isMuted = localStorage.getItem('portal-audio-muted') === 'true';
+  const muteToggle = document.getElementById('muteToggle');
+  function initAudio() {
+    if (audioContext) return;
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    carrier = audioContext.createOscillator();
+    gain = audioContext.createGain();
+    lfo = audioContext.createOscillator();
+    lfoGain = audioContext.createGain();
+
+    carrier.type = 'sine';
+    carrier.frequency.value = 60;
+    lfo.frequency.value = 0.6;
+    lfoGain.gain.setValueAtTime(30, audioContext.currentTime);
+    gain.gain.value = isMuted ? 0 : 0.06;
+
+    lfo.connect(lfoGain);
+    lfoGain.connect(carrier.frequency);
+    carrier.connect(gain);
+    gain.connect(audioContext.destination);
+    carrier.start();
+    lfo.start();
+  }
+  function updateMuteButton() {
+    muteToggle.textContent = isMuted ? '🔇 Unmute' : '🔊 Mute';
+  }
+  muteToggle.addEventListener('click', () => {
+    if (!audioContext) initAudio();
+    isMuted = !isMuted;
+    localStorage.setItem('portal-audio-muted', isMuted);
+    if (gain) gain.gain.value = isMuted ? 0 : 0.06;
+    updateMuteButton();
+  });
+  updateMuteButton();
+  document.addEventListener('click', initAudio, { once: true });
+</script>
+</body>
+</html>
