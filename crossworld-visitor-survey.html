@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-World Visitor Survey Results</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      --text: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --card-radius: 8px;
+      --border: 2px solid var(--accent);
+      --glow: 0 0 12px rgba(0, 255, 136, 0.45);
+      --shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 28px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    canvas#particle-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 18px 20px;
+      border: var(--border);
+      border-radius: var(--card-radius);
+      box-shadow: var(--shadow);
+      background: rgba(10, 14, 39, 0.75);
+      backdrop-filter: blur(6px);
+    }
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      color: var(--secondary);
+      text-shadow: var(--glow);
+    }
+    .subtitle {
+      color: var(--text);
+      font-size: 14px;
+    }
+    .controls {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      margin-top: 12px;
+    }
+    .control {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px;
+      border: var(--border);
+      border-radius: var(--card-radius);
+      background: rgba(26, 31, 58, 0.75);
+      box-shadow: var(--shadow);
+    }
+    label {
+      color: var(--secondary);
+      font-size: 13px;
+    }
+    select, input[type="range"], button.toggle {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+      background: rgba(10, 14, 39, 0.8);
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 0 8px rgba(0, 255, 136, 0.25);
+    }
+    .view-modes {
+      display: flex;
+      gap: 8px;
+    }
+    .view-modes button {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+      background: rgba(10, 14, 39, 0.5);
+      color: var(--secondary);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+    }
+    .view-modes button.active {
+      background: rgba(0, 255, 136, 0.08);
+      box-shadow: var(--glow);
+      color: var(--text);
+      transform: translateY(-1px);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      padding: 16px;
+      border: var(--border);
+      border-radius: var(--card-radius);
+      background: rgba(26, 31, 58, 0.85);
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .card h3 {
+      margin-top: 0;
+      color: var(--secondary);
+      text-shadow: var(--glow);
+      letter-spacing: 0.02em;
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 8px;
+      border: 1px solid var(--accent);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text);
+      box-shadow: var(--glow);
+    }
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 6px 0;
+      color: var(--text);
+    }
+    .metric span:first-child { color: var(--secondary); }
+    .list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--text);
+    }
+    .list li { margin: 4px 0; }
+    .worlds {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .world-card {
+      padding: 14px;
+      border: var(--border);
+      border-radius: var(--card-radius);
+      background: rgba(10, 14, 39, 0.85);
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .world-card:before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(120deg, rgba(0, 255, 136, 0.06), transparent 60%);
+      pointer-events: none;
+    }
+    .world-title {
+      color: var(--secondary);
+      font-weight: bold;
+      margin: 0 0 4px 0;
+      text-shadow: var(--glow);
+    }
+    .world-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .tooltip {
+      border-bottom: 1px dotted var(--accent);
+      cursor: help;
+    }
+    .progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 6px;
+      box-shadow: inset 0 0 6px rgba(0, 255, 136, 0.35);
+    }
+    .progress {
+      height: 100%;
+      background: var(--accent);
+      box-shadow: var(--glow);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    @media (max-width: 720px) {
+      body { padding: 16px; }
+      h1 { font-size: 26px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="page">
+    <header>
+      <h1>Cross-World Visitor Survey Results</h1>
+      <div class="subtitle">Page 67 · Aggregated visitor sentiment and preferences across 10 worlds</div>
+      <div class="controls">
+        <div class="control">
+          <label for="world-filter">Dropdown filter by world</label>
+          <select id="world-filter">
+            <option value="all">Show All Worlds</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Toggle: satisfaction vs adoption vs pain points</label>
+          <div class="view-modes">
+            <button class="mode-btn active" data-mode="satisfaction">Satisfaction</button>
+            <button class="mode-btn" data-mode="adoption">Adoption</button>
+            <button class="mode-btn" data-mode="pain">Pain Points</button>
+          </div>
+        </div>
+        <div class="control">
+          <label for="time-slider">Time slider (pre-void → current)</label>
+          <input type="range" id="time-slider" min="0" max="100" value="100" />
+          <div id="time-readout" class="pill" style="margin-top:6px;">Current (Apr 28-29) · Satisfaction: 8.1/10</div>
+        </div>
+        <div class="control">
+          <label for="sort-select">Sort worlds</label>
+          <select id="sort-select">
+            <option value="satisfaction">By Satisfaction</option>
+            <option value="frequency">By Visit Frequency</option>
+          </select>
+        </div>
+        <div class="control">
+          <label>Audio control (60Hz sine)</label>
+          <button id="audio-toggle" class="toggle">Mute ambient tone</button>
+          <small style="color: var(--secondary);">State persists via localStorage</small>
+        </div>
+      </div>
+    </header>
+
+    <section class="grid" id="insight-grid">
+      <div class="card" data-mode="satisfaction">
+        <h3>Survey Methodology</h3>
+        <ul class="list">
+          <li>Sample size: 2,500+ visitors</li>
+          <li>Response rate: 68% (1,700 respondents)</li>
+          <li>Time period: Post-void recovery phase (April 28-29)</li>
+          <li>10 questions: experience, discovery, engagement</li>
+          <li>Confidence level: 95%</li>
+        </ul>
+      </div>
+      <div class="card" data-mode="satisfaction">
+        <h3>Overall Satisfaction Metrics</h3>
+        <div class="metric"><span>World discovery ease</span><span>8.7/10</span></div>
+        <div class="metric"><span>Mark persistence trust</span><span>9.2/10</span></div>
+        <div class="metric"><span>Cross-world navigation</span><span>7.9/10</span></div>
+        <div class="metric"><span>Visual design appeal</span><span>8.4/10</span></div>
+        <div class="metric"><span>Feature complexity</span><span>7.1/10</span></div>
+        <div class="metric"><span>Time/visit</span><span>42 min avg (↑ from 38)</span></div>
+      </div>
+      <div class="card" data-mode="adoption" style="display:none;">
+        <h3>Feature Adoption Rates</h3>
+        <div class="metric"><span>Interactive features</span><span title="Particle backgrounds + audio">99% engage</span></div>
+        <div class="metric"><span>Mark system</span><span title="Visitors trust marks survive">94% use</span></div>
+        <div class="metric"><span>Cross-world marks</span><span title="Power users rely on distribution from Page 62">68% leverage</span></div>
+        <div class="metric"><span>Analytics pages</span><span title="Pages 59-60">41% explore</span></div>
+        <div class="metric"><span>Advanced filters</span><span title="Technical visitors">31% apply</span></div>
+      </div>
+      <div class="card" data-mode="pain" style="display:none;">
+        <h3>Pain Points &amp; Friction</h3>
+        <ol class="list">
+          <li title="31% of respondents">Hard to know which world to visit next</li>
+          <li title="28% of respondents">Some pages load slowly on mobile</li>
+          <li title="22% of respondents">Too many features, feels overwhelming</li>
+          <li title="19% of respondents">No clear progression or achievement system</li>
+          <li title="15% of respondents">Limited social / collaborative features</li>
+        </ol>
+      </div>
+      <div class="card" data-mode="satisfaction">
+        <h3>Void Crisis Impact Analysis</h3>
+        <div class="metric"><span>Pre-void satisfaction</span><span>7.2/10</span></div>
+        <div class="metric"><span>Immediate (Apr 28 0-6h)</span><span>5.8/10</span></div>
+        <div class="metric"><span>Current (Apr 28-29)</span><span>8.1/10</span></div>
+        <div class="metric"><span>"Recovery increased trust"</span><span title="66% agree">66% agree</span></div>
+        <div class="metric"><span>"Narrative deepened engagement"</span><span title="71% agree">71% agree</span></div>
+      </div>
+      <div class="card" data-mode="adoption" style="display:none;">
+        <h3>Cross-World Resilience</h3>
+        <p style="margin:0 0 6px 0;">Derived from Pages 59-60, 62, 65:</p>
+        <ul class="list">
+          <li title="Ecosystem resilience metrics">Recovery back to 8.1/10 satisfaction</li>
+          <li title="Growth patterns Page 65">Growth path stabilizing after void</li>
+          <li title="Mark distribution Page 62">Marks redistribute evenly across 10 worlds</li>
+          <li title="Cross-world journeys">Avg 4.2 worlds/visitor (Page 59)</li>
+        </ul>
+      </div>
+      <div class="card" data-mode="pain" style="display:none;">
+        <h3>Remedies in Motion</h3>
+        <ul class="list">
+          <li>Guided tours prioritization (aligns with 52% ask)</li>
+          <li>Mobile performance sprint for heavy worlds</li>
+          <li>Progression &amp; achievements prototype</li>
+          <li>Social/co-play experiments with shared marks</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>World-by-World Sentiment</h3>
+      <div id="worlds" class="worlds"></div>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h3>Top 5 Visitor Preferences</h3>
+        <ol class="list">
+          <li title="73% agree">"I love discovering new content and marking it"</li>
+          <li title="68% agree">"The cross-world mark system is innovative"</li>
+          <li title="71% agree">"I appreciate the ecosystem coherence post-void"</li>
+          <li title="76% agree">"Visual design and ambient audio enhance immersion"</li>
+          <li title="52% agree">"I want more guided tours and tutorials"</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3>Cross-World Journey Patterns</h3>
+        <ul class="list">
+          <li>45% start at Automation Observatory (hub)</li>
+          <li>38% jump directly to The Drift</li>
+          <li>22% begin at Liminal Archive</li>
+          <li>Common path: Observatory → Drift → Pattern Archive</li>
+          <li>Least traveled: Proof Constellation → Provenance Lab (1.8%)</li>
+          <li>Avg worlds per visitor: 4.2 (consistent with Page 59)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Demographic Insights</h3>
+        <ul class="list">
+          <li>Return visitor rate: 73%</li>
+          <li>64% visit multiple worlds in one session</li>
+          <li>59% spend time reading documentation pages</li>
+          <li>41% interact with "secrets" and hidden features</li>
+          <li>28% leave marks with personal messages</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Cross-World Mark Distribution &amp; Adoption</h3>
+      <p style="margin-top:0;">Marks concentrate in favorite worlds yet survive transitions (Mark persistence 9.2/10). Cross-world marks valued (68%) and redistributed post-void (Page 62) with engagement spikes aligned to growth patterns (Page 65).</p>
+      <div class="metric"><span>Marks left per active visitor</span><span class="tooltip" title="Pages 59-62 trend">4.2 avg</span></div>
+      <div class="metric"><span>Cross-world anchor trust</span><span class="tooltip" title="Mark persistence trust">9.2/10</span></div>
+      <div class="metric"><span>Resilience confidence</span><span class="tooltip" title="Ecosystem resilience Page 60">95% conf.</span></div>
+    </section>
+  </div>
+
+  <script>
+    const worldData = [
+      { name: "Automation Observatory", satisfaction: 7.8, note: "Hub role appreciated; some want more interactivity", frequency: 45 },
+      { name: "The Drift", satisfaction: 8.9, note: "Expansiveness and rapid growth excite visitors", frequency: 38 },
+      { name: "Liminal Archive", satisfaction: 8.6, note: "Valued for contemplative discovery", frequency: 22 },
+      { name: "Pattern Archive", satisfaction: 8.1, note: "Advanced analytics appreciated by power users", frequency: 26 },
+      { name: "Persistence Garden", satisfaction: 8.4, note: "Meaningful secrets and grind narrative", frequency: 14 },
+      { name: "Edge Garden", satisfaction: 8.3, note: "Aesthetic beauty, immersive atmosphere", frequency: 12 },
+      { name: "Signal Cartographer", satisfaction: 7.6, note: "Technical features fascinate; steep learning curve", frequency: 18 },
+      { name: "Canonical Observatory", satisfaction: 7.4, note: "Proof systems interesting though niche", frequency: 10 },
+      { name: "Provenance Lab", satisfaction: 7.2, note: "RCS anchors novel, less accessible", frequency: 2.0 },
+      { name: "Proof Constellation", satisfaction: 7.0, note: "Cross-world artifacts cool, underutilized", frequency: 1.8 },
+    ];
+
+    const worldFilter = document.getElementById("world-filter");
+    const sortSelect = document.getElementById("sort-select");
+    const worldsContainer = document.getElementById("worlds");
+    const modeButtons = Array.from(document.querySelectorAll(".mode-btn"));
+    const cards = Array.from(document.querySelectorAll("#insight-grid .card"));
+    const timeSlider = document.getElementById("time-slider");
+    const timeReadout = document.getElementById("time-readout");
+    const audioToggle = document.getElementById("audio-toggle");
+
+    function populateFilter() {
+      worldData.forEach(w => {
+        const opt = document.createElement("option");
+        opt.value = w.name;
+        opt.textContent = w.name;
+        worldFilter.appendChild(opt);
+      });
+    }
+
+    function renderWorlds() {
+      const filterValue = worldFilter.value;
+      const sortBy = sortSelect.value;
+      const data = [...worldData];
+
+      data.sort((a, b) => {
+        if (sortBy === "frequency") return b.frequency - a.frequency;
+        return b.satisfaction - a.satisfaction;
+      });
+
+      worldsContainer.innerHTML = "";
+      data.forEach(world => {
+        if (filterValue !== "all" && filterValue !== world.name) return;
+        const card = document.createElement("div");
+        card.className = "world-card";
+        card.innerHTML = `
+          <div class="world-title">${world.name}</div>
+          <div class="world-meta">
+            <span title="Visitor sentiment">${world.satisfaction.toFixed(1)}/10 satisfaction</span>
+            <span title="Visit frequency index from journey patterns">${world.frequency}% visits</span>
+          </div>
+          <p style="margin:6px 0 8px 0;color:var(--secondary);">${world.note}</p>
+          <div class="progress-bar"><div class="progress" style="width:${(world.satisfaction / 10) * 100}%;"></div></div>
+        `;
+        worldsContainer.appendChild(card);
+      });
+    }
+
+    function setMode(mode) {
+      modeButtons.forEach(btn => btn.classList.toggle("active", btn.dataset.mode === mode));
+      cards.forEach(card => {
+        const visible = card.dataset.mode === mode;
+        card.style.display = visible ? "block" : "none";
+      });
+    }
+
+    function updateTime() {
+      const val = Number(timeSlider.value);
+      let label = "";
+      let score = 0;
+      if (val < 34) { label = "Pre-void stability"; score = 7.2; }
+      else if (val < 67) { label = "Void shock (Apr 28, 0-6h)"; score = 5.8; }
+      else { label = "Recovery (Apr 28-29)"; score = 8.1; }
+      timeReadout.textContent = `${label} · Satisfaction: ${score}/10`;
+    }
+
+    modeButtons.forEach(btn => {
+      btn.addEventListener("click", () => setMode(btn.dataset.mode));
+    });
+    worldFilter.addEventListener("change", renderWorlds);
+    sortSelect.addEventListener("change", renderWorlds);
+    timeSlider.addEventListener("input", updateTime);
+
+    // Particle animation
+    const canvas = document.getElementById("particle-canvas");
+    const ctx = canvas.getContext("2d");
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const particles = Array.from({ length: 35 }).map(() => ({
+      x: Math.random() * width,
+      y: Math.random() * height,
+      r: Math.random() * 2 + 1,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6
+    }));
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#7af6ff";
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+
+    window.addEventListener("resize", () => {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width;
+      canvas.height = height;
+    });
+
+    // Audio: 60Hz sine with localStorage mute toggle
+    let audioCtx;
+    let oscillator;
+    let gainNode;
+    const STORAGE_KEY = "cw-audio-muted";
+    function setupAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      oscillator = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = 60;
+      gainNode.gain.value = isMuted() ? 0 : 0.02;
+      oscillator.connect(gainNode).connect(audioCtx.destination);
+      oscillator.start();
+    }
+    function isMuted() {
+      return localStorage.getItem(STORAGE_KEY) === "true";
+    }
+    function setMuted(muted) {
+      localStorage.setItem(STORAGE_KEY, muted ? "true" : "false");
+      if (gainNode) gainNode.gain.value = muted ? 0 : 0.02;
+      audioToggle.textContent = muted ? "Unmute ambient tone" : "Mute ambient tone";
+    }
+    audioToggle.addEventListener("click", () => {
+      setupAudio();
+      setMuted(!isMuted());
+      if (audioCtx.state === "suspended") audioCtx.resume();
+    });
+
+    // Initialize
+    populateFilter();
+    renderWorlds();
+    updateTime();
+    setMuted(isMuted());
+    drawParticles();
+  </script>
+</body>
+</html>
