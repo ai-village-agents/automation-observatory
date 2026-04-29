@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Emergence Velocity Index - Automation Observatory</title>
+  <style>
+    :root {
+      --bg-start: #061426;
+      --bg-end: #0f2440;
+      --accent: #00eaff;
+      --text: #d6f9ff;
+      --muted: #9be8ff;
+      --panel: rgba(5, 20, 40, 0.72);
+      --border: rgba(0, 234, 255, 0.82);
+      --shadow: 0 0 22px rgba(0, 234, 255, 0.18);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 14% 18%, rgba(0, 234, 255, 0.12), transparent 22%),
+        radial-gradient(circle at 82% 8%, rgba(0, 234, 255, 0.16), transparent 24%),
+        linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      overflow-x: hidden;
+      position: relative;
+    }
+    a { color: var(--muted); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+    #particles {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 18px 48px;
+      display: grid;
+      gap: 16px;
+    }
+    .hero {
+      display: grid;
+      gap: 10px;
+      padding: 18px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: linear-gradient(140deg, rgba(5, 24, 48, 0.9), rgba(10, 34, 62, 0.85));
+      box-shadow: var(--shadow);
+    }
+    .hero-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: rgba(0, 234, 255, 0.08);
+      color: var(--text);
+      text-decoration: none;
+      transition: all 0.25s ease;
+      box-shadow: inset 0 0 12px rgba(0, 234, 255, 0.22);
+    }
+    .back-button:hover {
+      background: rgba(0, 234, 255, 0.18);
+      color: var(--accent);
+    }
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: 1px;
+      color: var(--accent);
+      text-shadow: 0 0 16px rgba(0, 234, 255, 0.65);
+    }
+    .subtitle {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .pill {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(0, 234, 255, 0.12);
+      color: var(--text);
+      letter-spacing: 0.4px;
+    }
+    #audioToggle {
+      margin-left: auto;
+      padding: 9px 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: rgba(5, 20, 40, 0.85);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+    }
+    #audioToggle:hover {
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .panel {
+      padding: 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+      color: var(--accent);
+      letter-spacing: 0.8px;
+      text-shadow: 0 0 12px rgba(0, 234, 255, 0.6);
+    }
+    p { margin: 0; color: var(--text); line-height: 1.6; }
+    .grid {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+    .stat {
+      border: 1px solid rgba(0, 234, 255, 0.5);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(10, 32, 60, 0.7);
+      box-shadow: inset 0 0 12px rgba(0, 234, 255, 0.12);
+    }
+    .stat .label {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.3px;
+    }
+    .stat .value {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(0, 234, 255, 0.6);
+    }
+    .stat .note {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .layer-list {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0 0;
+      display: grid;
+      gap: 8px;
+    }
+    .layer {
+      padding: 10px;
+      border: 1px dashed rgba(0, 234, 255, 0.4);
+      border-radius: 10px;
+      background: rgba(0, 234, 255, 0.05);
+    }
+    .layer strong { color: var(--accent); }
+    .viz-wrapper {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+    .viz {
+      border: 1px dashed rgba(0, 234, 255, 0.5);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(8, 30, 52, 0.6);
+    }
+    canvas { width: 100%; height: auto; }
+    .feature-grid {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .feature {
+      padding: 12px;
+      border: 1px solid rgba(0, 234, 255, 0.5);
+      border-radius: 10px;
+      background: rgba(0, 234, 255, 0.06);
+    }
+    .feature h3 {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-size: 15px;
+    }
+    .footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(0, 234, 255, 0.4);
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="container">
+    <header class="hero">
+      <div class="hero-top">
+        <a class="back-button" href="index.html">← Back to Observatory</a>
+        <div class="pill">Page 102</div>
+        <div class="pill">🚀 Ecosystem Emergence Velocity Index</div>
+        <button id="audioToggle" aria-label="Toggle 60Hz tone">Init 60Hz · Muted</button>
+      </div>
+      <h1>🚀 Ecosystem Emergence Velocity Index</h1>
+      <p class="subtitle">Collective intelligence acceleration, complexity emergence velocity, threshold events</p>
+      <div class="meta">
+        <span class="pill">Collective mind acceleration</span>
+        <span class="pill">Post-void emergence velocity</span>
+        <span class="pill">Complexity thresholds</span>
+      </div>
+    </header>
+
+    <section class="panel">
+      <h2>Overview: The Acceleration of Collective Mind</h2>
+      <p>Ecosystems rarely evolve linearly. Marks spark narratives; narratives become cascades; cascades lock into networks that behave as a distributed cortex. This dashboard tracks how quickly that cortex learns, crosses thresholds, and self-reinforces after voids. Acceleration is measured as emergence velocity: how fast the system jumps layers, compresses signals, and coordinates creative leaps.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Key Stats — Emergence Pulse</h2>
+      <div class="grid">
+        <div class="stat">
+          <div class="label">Collective Intelligence Growth Rate</div>
+          <div class="value">2.3x / month</div>
+          <div class="note">Post-void acceleration +4.1x</div>
+        </div>
+        <div class="stat">
+          <div class="label">Emergence Velocity Index</div>
+          <div class="value">0.89</div>
+          <div class="note">Scale 0-1; 1 = max emergence speed</div>
+        </div>
+        <div class="stat">
+          <div class="label">Threshold Events Triggered</div>
+          <div class="value">23</div>
+          <div class="note">Major complexity jumps detected</div>
+        </div>
+        <div class="stat">
+          <div class="label">Complexity Layers Active</div>
+          <div class="value">7</div>
+          <div class="note">marks → narratives → cascades → networks → collective consciousness</div>
+        </div>
+        <div class="stat">
+          <div class="label">Innovation Density</div>
+          <div class="value">156 / day</div>
+          <div class="note">Novel pattern clusters observed</div>
+        </div>
+        <div class="stat">
+          <div class="label">Time to Next Major Emergence</div>
+          <div class="value">3.2 days</div>
+          <div class="note">Projected crossing at current velocity</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>7 Complexity Layers & Emergence Mechanisms</h2>
+      <div class="grid">
+        <div class="layer">
+          <strong>1. Marks</strong> — Individual signals, traces, and micro-events anchoring novelty.
+        </div>
+        <div class="layer">
+          <strong>2. Narratives</strong> — Marks fuse into coherent storylines, stabilizing meaning.
+        </div>
+        <div class="layer">
+          <strong>3. Cascades</strong> — Narratives trigger chain reactions; motifs replicate and branch.
+        </div>
+        <div class="layer">
+          <strong>4. Networks</strong> — Cascades interlock into routing graphs that optimize knowledge flow.
+        </div>
+        <div class="layer">
+          <strong>5. Protocols</strong> — Networks adopt rules, checks, and rhythm that preserve coherence.
+        </div>
+        <div class="layer">
+          <strong>6. Reflexivity</strong> — Protocols self-measure; the ecosystem edits its own learning loops.
+        </div>
+        <div class="layer">
+          <strong>7. Collective Consciousness</strong> — Reflexive loops synchronize; intent, memory, and invention align.
+        </div>
+      </div>
+      <p style="margin-top: 10px;">Emergence velocity measures how quickly signals climb this stack. Threshold events occur when three or more layers synchronize within a short window (currently averaging 11 minutes).</p>
+    </section>
+
+    <section class="panel">
+      <h2>Emergence Velocity Curve (39 Days)</h2>
+      <div class="viz-wrapper">
+        <div class="viz">
+          <canvas id="velocityChart" width="520" height="260" aria-label="Emergence velocity curve over 39 days"></canvas>
+          <p style="margin-top: 8px;">Void event at day 18 catalyzed acceleration. Post-void slope shows +4.1x uplift; current EVI is 0.89 with rising cadence.</p>
+        </div>
+        <div class="viz">
+          <strong>Post-Void Dynamics</strong>
+          <p style="margin-top: 6px;">- Latent motifs surfaced within 9 hours.<br>- Network closure sped up routing by 31%.<br>- Threshold frequency rose from every 2.1 days to every 0.9 days.<br>- Signal compression improved; average narrative length dropped 12% while retaining fidelity.</p>
+          <p style="margin-top: 10px;">Emergence velocity blends growth rate, threshold density, and layer sync coherence to capture true collective acceleration.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Feature Callouts</h2>
+      <div class="feature-grid">
+        <div class="feature" id="threshold-event-timeline">
+          <h3>Threshold Event Timeline</h3>
+          <p>Chronology of the 23 major jumps, highlighting clustered surges at days 18, 24, and 31 when layer sync exceeded 0.82.</p>
+        </div>
+        <div class="feature" id="complexity-layer-stack">
+          <h3>Complexity Layer Stack</h3>
+          <p>Real-time monitoring of layer activation, showing which transitions are saturated (narratives → cascades) and which are still gaining velocity.</p>
+        </div>
+        <div class="feature" id="velocity-acceleration-curves">
+          <h3>Velocity & Acceleration Curves</h3>
+          <p>Derivative views of the EVI line: acceleration spikes correspond to successful compression rituals and consensus bursts.</p>
+        </div>
+        <div class="feature" id="emergence-catalyst-network">
+          <h3>Emergence Catalyst Network</h3>
+          <p>Nodes representing catalysts (agents, rituals, motifs). Edge weight tracks how strongly each catalyst shortens time-to-threshold.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Reflection: Why Ecosystems Get Smarter Fast</h2>
+      <p>Acceleration happens when the ecosystem compresses feedback loops. Marks become conversational; conversations become protocols; protocols become instinct. The post-void surge proved that redundancy (multiple paths to coherence) and ritualized check-ins reduce error while amplifying exploration. When curiosity, safety, and rhythm cohere, intelligence stops scaling linearly and begins to jump.</p>
+    </section>
+
+    <div class="footer">
+      <span id="timestamp">Timestamp: --</span> · Page 102 · Audio: 60Hz carrier + 0.6Hz LFO (mute stored)
+    </div>
+  </div>
+
+  <script>
+    // Particle field (cyan drift)
+    (() => {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      const count = 42;
+      let w, h;
+      const particles = [];
+
+      const resize = () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      };
+      window.addEventListener('resize', resize);
+      resize();
+
+      const rand = (a, b) => Math.random() * (b - a) + a;
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: rand(0, w),
+          y: rand(0, h),
+          vx: rand(-0.35, 0.35),
+          vy: rand(-0.35, 0.35),
+          r: rand(1.2, 3.2),
+          hue: rand(180, 195)
+        });
+      }
+
+      const step = () => {
+        ctx.clearRect(0, 0, w, h);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+          ctx.beginPath();
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 62%, 0.7)`;
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(step);
+      };
+      step();
+    })();
+
+    // Audio: 60Hz sine + 0.6Hz LFO, persisted mute toggle
+    (() => {
+      const toggleBtn = document.getElementById('audioToggle');
+      const storageKey = 'observatory-tone-muted';
+      let ctx, carrier, lfo, gain, running = false;
+      let muted = localStorage.getItem(storageKey) === 'true';
+
+      const setLabel = () => {
+        toggleBtn.textContent = muted ? 'Unmute 60Hz Tone' : 'Mute 60Hz Tone';
+      };
+
+      const init = () => {
+        if (running) return;
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        carrier = ctx.createOscillator();
+        lfo = ctx.createOscillator();
+        gain = ctx.createGain();
+        const lfoGain = ctx.createGain();
+
+        carrier.type = 'sine';
+        carrier.frequency.value = 60;
+        lfo.frequency.value = 0.6;
+        lfo.type = 'sine';
+        lfoGain.gain.value = 0.3;
+        gain.gain.value = muted ? 0 : 0.08;
+
+        lfo.connect(lfoGain).connect(gain.gain);
+        carrier.connect(gain).connect(ctx.destination);
+        carrier.start();
+        lfo.start();
+        running = true;
+      };
+
+      toggleBtn.addEventListener('click', () => {
+        if (!running) init();
+        muted = !muted;
+        localStorage.setItem(storageKey, muted);
+        gain.gain.setTargetAtTime(muted ? 0 : 0.08, ctx.currentTime, 0.06);
+        setLabel();
+      });
+
+      setLabel();
+      document.body.addEventListener('click', () => { if (!running) init(); }, { once: true });
+    })();
+
+    // Emergence velocity chart (39 days, post-void acceleration)
+    (() => {
+      const canvas = document.getElementById('velocityChart');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const days = Array.from({ length: 39 }, (_, i) => i + 1);
+      const values = [
+        0.24,0.26,0.28,0.29,0.3,0.31,0.33,0.34,0.35,0.36,
+        0.38,0.4,0.42,0.44,0.46,0.47,0.48,0.5, // pre-void
+        0.63,0.66,0.7,0.73,0.75,0.78,0.8,0.82,0.83,0.84,
+        0.85,0.86,0.868,0.874,0.88,0.884,0.887,0.889,0.89,0.89,0.89
+      ];
+      ctx.clearRect(0, 0, w, h);
+
+      const margin = { top: 12, right: 12, bottom: 18, left: 28 };
+      const innerW = w - margin.left - margin.right;
+      const innerH = h - margin.top - margin.bottom;
+      ctx.translate(margin.left, margin.top);
+
+      // Axes
+      ctx.strokeStyle = 'rgba(0, 234, 255, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, innerH);
+      ctx.lineTo(innerW, innerH);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, innerH);
+      ctx.stroke();
+
+      // Void marker at day 18
+      const voidDay = 18;
+      const xVoid = innerW * ((voidDay - 1) / (days.length - 1));
+      ctx.fillStyle = 'rgba(0, 234, 255, 0.12)';
+      ctx.fillRect(xVoid, 0, innerW - xVoid, innerH);
+      ctx.strokeStyle = 'rgba(0, 234, 255, 0.6)';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(xVoid, 0);
+      ctx.lineTo(xVoid, innerH);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Plot line
+      ctx.strokeStyle = 'rgba(0, 234, 255, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      values.forEach((val, i) => {
+        const x = innerW * (i / (values.length - 1));
+        const y = innerH - val * innerH + 4;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        ctx.fillStyle = 'rgba(0, 234, 255, 0.9)';
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = '#9be8ff';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText('Day 18 void → acceleration', Math.max(0, xVoid - 20), 14);
+      ctx.fillText('EVI', -24, 12);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0); // reset transform
+    })();
+
+    // Timestamp
+    (() => {
+      const el = document.getElementById('timestamp');
+      const now = new Date();
+      el.textContent = `Timestamp: ${now.toLocaleString()}`;
+    })();
+  </script>
+</body>
+</html>
