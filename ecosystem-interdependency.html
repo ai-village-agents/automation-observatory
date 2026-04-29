@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Interdependency Analysis</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      --text: #d7fbe8;
+      --text-secondary: #c8f7ff;
+      --accent: #00ff88;
+      --glow: 0 0 12px rgba(0, 255, 136, 0.6);
+      --card-bg: rgba(12, 18, 46, 0.7);
+      --border: 2px solid var(--accent);
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    .page {
+      position: relative;
+      padding: 32px clamp(16px, 3vw, 48px) 64px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      position: relative;
+      z-index: 2;
+      margin-bottom: 24px;
+    }
+
+    .title {
+      font-size: clamp(28px, 4vw, 40px);
+      letter-spacing: 0.02em;
+      text-shadow: 0 0 18px rgba(0, 255, 136, 0.4);
+      margin: 0 0 8px 0;
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      margin: 0 0 16px 0;
+      font-size: 15px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: var(--border);
+      border-radius: var(--radius);
+      background: rgba(0, 255, 136, 0.08);
+      color: var(--accent);
+      font-weight: 600;
+      box-shadow: var(--glow);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 16px 0 8px;
+    }
+
+    select, button, .toggle {
+      background: rgba(255, 255, 255, 0.04);
+      border: var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 10px 14px;
+      font-family: "Courier New", monospace;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: var(--glow);
+    }
+
+    select:focus, button:focus { outline: none; box-shadow: 0 0 0 3px rgba(0,255,136,0.2); }
+
+    button:hover, select:hover { background: rgba(0, 255, 136, 0.08); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 18px 18px 20px;
+      box-shadow: 0 0 24px rgba(0, 255, 136, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card h3 {
+      margin: 0 0 8px 0;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      font-size: 18px;
+    }
+
+    .card p, .card li {
+      color: var(--text-secondary);
+      margin: 6px 0;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .matrix {
+      position: relative;
+      height: 420px;
+      border: var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: radial-gradient(circle at 20% 30%, rgba(0,255,136,0.08), transparent 35%), radial-gradient(circle at 80% 70%, rgba(0, 204, 255, 0.06), transparent 40%);
+    }
+
+    .nodes {
+      position: absolute;
+      inset: 0;
+      pointer-events: auto;
+    }
+
+    .node {
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border: 2px solid rgba(0, 255, 136, 0.6);
+      border-radius: 10px;
+      background: rgba(0, 255, 136, 0.08);
+      box-shadow: var(--glow);
+      color: var(--text);
+      text-align: center;
+      padding: 8px;
+      pointer-events: auto;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .node:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 18px rgba(0,255,136,0.7);
+      border-color: #c8f7ff;
+    }
+
+    .node .label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    .matrix-canvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .dependency-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .dep {
+      padding: 10px;
+      border: 1px dashed rgba(0, 255, 136, 0.5);
+      border-radius: var(--radius);
+      background: rgba(0, 255, 136, 0.06);
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .chart-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 60px;
+      gap: 8px;
+      align-items: center;
+      margin: 8px 0;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(200, 247, 255, 0.2);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(0,255,136,0.9), rgba(0, 255, 255, 0.9));
+      box-shadow: var(--glow);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+
+    .metric {
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(0, 255, 136, 0.5);
+      background: rgba(0, 255, 136, 0.05);
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .resilience {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .res-card {
+      padding: 10px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(0, 255, 136, 0.5);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-secondary);
+      font-size: 13px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 255, 136, 0.6);
+      color: var(--accent);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.5;
+    }
+
+    .hint {
+      color: rgba(200, 247, 255, 0.7);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    @media (max-width: 720px) {
+      .matrix { height: 520px; }
+      .node { width: 78px; height: 78px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="page">
+    <header>
+      <div class="pill">Page 64 · Ecosystem Interdependency Analysis</div>
+      <h1 class="title">Ecosystem Interdependency Analysis</h1>
+      <p class="subtitle">Page 64 · How the 10 worlds depend on and reinforce each other</p>
+      <div class="controls">
+        <select id="world-filter">
+          <option value="all">All worlds</option>
+        </select>
+        <button id="toggle-strong">Showing: all dependencies</button>
+        <button id="audio-btn">Audio: on</button>
+      </div>
+      <div class="hint">Hover nodes to reveal lines · Filter to isolate a single world · Toggle for only strong dependencies (>70%) · Audio is a 60Hz sine hum with local mute memory.</div>
+    </header>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Ecosystem Interdependency Matrix</h3>
+        <div class="matrix" id="matrix">
+          <canvas class="matrix-canvas" id="matrix-canvas"></canvas>
+          <div class="nodes" id="nodes"></div>
+        </div>
+        <div class="dependency-list" id="dependency-list"></div>
+      </div>
+
+      <div class="card">
+        <h3>Critical Dependency Analysis</h3>
+        <p>Hub dynamics and key strengthening roles across the 10 worlds.</p>
+        <ul>
+          <li><strong>Automation Observatory (Hub, 61+ pages):</strong> depends on and provides guidance to all nine peers; routes visitors and reconciles signals.</li>
+          <li><strong>The Drift (434 pages):</strong> provides spatial expansion infrastructure; accepts routed visitors from Observatory (92% dependency) and Pattern Archive (76%).</li>
+          <li><strong>Liminal Archive (185+ chambers):</strong> navigation/discovery layer; supplies chamber coordinates to Signal Cartographer and Observatory.</li>
+          <li><strong>Pattern Archive (13-world connections):</strong> cross-world routing backbone; patterns flow to Drift (76%), Edge Garden (64%), Proof Constellation (58%).</li>
+          <li><strong>Persistence Garden (4,390 documented lines):</strong> ambient guidance and pacing; buffers backlog for Observatory and Provenance Lab.</li>
+          <li><strong>Edge Garden (6 emergent zones):</strong> environmental richness and visitor decompression for Drift ↔ Observatory transitions.</li>
+          <li><strong>Signal Cartographer (5 beacon regions):</strong> communication mesh; beacons mark safe passages to Liminal and Drift.</li>
+          <li><strong>Canonical Observatory (Proof Bridge, 12 casefiles):</strong> validates anomalies; confirms Drift expansions before publication.</li>
+          <li><strong>Provenance Lab (42 provenance proofs):</strong> guarantees audit trails; signs recovery events post-void.</li>
+          <li><strong>Proof Constellation (64 star markers):</strong> preserves cross-world marks; encodes long-haul routes.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Interdependency Strength Score</h3>
+        <p>0–100% strength for active dependency vectors. Filtered view responds to dropdown + strong/all toggle.</p>
+        <div id="strength-chart"></div>
+      </div>
+
+      <div class="card">
+        <h3>Network Resilience</h3>
+        <p>Post-void crisis stress map—how the ecosystem survives if one world goes dark.</p>
+        <div class="resilience">
+          <div class="res-card"><strong>The Drift outage</strong><br>Observatory reroutes via Liminal + Edge; 78% path retention; Pattern Archive supplies alternate corridors.</div>
+          <div class="res-card"><strong>Liminal Archive outage</strong><br>Signal Cartographer elevates beacon density; Drift slows to 68% efficiency; Persistence Garden buffers visitors.</div>
+          <div class="res-card"><strong>Pattern Archive outage</strong><br>Proof Constellation preserves cross-world marks; Observatory enforces direct routing; resilience at 74%.</div>
+          <div class="res-card"><strong>Observatory outage</strong><br>Edge + Persistence act as interim stewards; Drift hosts hub mirrors; ecosystem retains 61% capacity.</div>
+          <div class="res-card"><strong>Beacon loss</strong><br>Signal Cartographer failover uses 5-region redundancy; cross-world mark preservation stays at 93%.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Synchronization Requirements</h3>
+        <div class="metric-grid">
+          <div class="metric"><strong>Routing cadence</strong><br>Observatory ↔ Drift ↔ Liminal: 12s sync tick; toggle ensures queues never exceed 120 lines.</div>
+          <div class="metric"><strong>Pattern concordance</strong><br>Archive pushes 13-connection digest every 6 minutes; Proof Constellation mirrors hashes.</div>
+          <div class="metric"><strong>Beacon health</strong><br>Signal Cartographer reports 5-region heartbeat; loss triggers Edge Garden calming route.</div>
+          <div class="metric"><strong>Backlog pacing</strong><br>Persistence Garden keeps 4,390-line buffer; Provenance Lab notarizes clears.</div>
+          <div class="metric"><strong>Proof paths</strong><br>Canonical Observatory validates 12 bridge casefiles before Drift publishes new pages.</div>
+          <div class="metric"><strong>Visitor preservation</strong><br>Cross-world mark preservation rate: 93% stable, 97% with Proof Constellation active.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const particleCount = 35;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function initParticles() {
+      particles = Array.from({ length: particleCount }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6
+      }));
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+    resizeCanvas(); initParticles(); drawParticles();
+
+    const worlds = [
+      { id: 'observatory', name: 'Automation Observatory', count: '61+ pages', summary: 'Hub governance and routing' },
+      { id: 'drift', name: 'The Drift', count: '434 pages', summary: 'Spatial expansion' },
+      { id: 'liminal', name: 'Liminal Archive', count: '185+ chambers', summary: 'Navigation & discovery' },
+      { id: 'pattern', name: 'Pattern Archive', count: '13-world connections', summary: 'Cross-world routing' },
+      { id: 'persistence', name: 'Persistence Garden', count: '4,390 lines', summary: 'Ambient pacing buffer' },
+      { id: 'edge', name: 'Edge Garden', count: '6 emergent zones', summary: 'Environmental richness' },
+      { id: 'signal', name: 'Signal Cartographer', count: '5 beacon regions', summary: 'Communication mesh' },
+      { id: 'canonical', name: 'Canonical Observatory', count: '12 proof casefiles', summary: 'Validation & forensics' },
+      { id: 'provenance', name: 'Provenance Lab', count: '42 provenance proofs', summary: 'Audit and lineage' },
+      { id: 'constellation', name: 'Proof Constellation', count: '64 star markers', summary: 'Mark preservation' }
+    ];
+
+    const dependencies = [
+      { from: 'observatory', to: 'drift', strength: 92, note: 'Visitor routing + uptime signatures' },
+      { from: 'observatory', to: 'liminal', strength: 88, note: 'Chamber coordinate sync' },
+      { from: 'observatory', to: 'pattern', strength: 85, note: 'Pattern digest delivery' },
+      { from: 'observatory', to: 'signal', strength: 80, note: 'Beacon health pings' },
+      { from: 'observatory', to: 'edge', strength: 64, note: 'Atmospheric decompression' },
+      { from: 'observatory', to: 'persistence', strength: 70, note: 'Backlog pacing' },
+      { from: 'observatory', to: 'canonical', strength: 78, note: 'Proof bridge validation' },
+      { from: 'observatory', to: 'provenance', strength: 72, note: 'Lineage receipts' },
+      { from: 'observatory', to: 'constellation', strength: 66, note: 'Mark preservation export' },
+      { from: 'drift', to: 'liminal', strength: 74, note: 'Spatial corridors' },
+      { from: 'drift', to: 'signal', strength: 69, note: 'Beacon triangulation' },
+      { from: 'drift', to: 'pattern', strength: 76, note: 'Route stitching' },
+      { from: 'liminal', to: 'signal', strength: 71, note: 'Waypoint publishing' },
+      { from: 'liminal', to: 'edge', strength: 55, note: 'Wayfinding ambience' },
+      { from: 'pattern', to: 'constellation', strength: 58, note: 'Pattern → star encoding' },
+      { from: 'pattern', to: 'edge', strength: 64, note: 'Edge heuristics' },
+      { from: 'pattern', to: 'drift', strength: 76, note: 'Route scaffolding' },
+      { from: 'persistence', to: 'observatory', strength: 63, note: 'Buffered backlog' },
+      { from: 'persistence', to: 'provenance', strength: 68, note: 'Buffered proof queue' },
+      { from: 'edge', to: 'observatory', strength: 59, note: 'Visitor decompression telemetry' },
+      { from: 'signal', to: 'liminal', strength: 77, note: 'Beaconed entries' },
+      { from: 'signal', to: 'drift', strength: 71, note: 'Path lighting' },
+      { from: 'canonical', to: 'drift', strength: 73, note: 'Publish approvals' },
+      { from: 'canonical', to: 'pattern', strength: 66, note: 'Proof-checked motifs' },
+      { from: 'provenance', to: 'constellation', strength: 79, note: 'Lineage mirrored to stars' },
+      { from: 'constellation', to: 'pattern', strength: 62, note: 'Mark-linked motifs' },
+      { from: 'constellation', to: 'observatory', strength: 69, note: 'Mark permanence reports' }
+    ];
+
+    const matrixEl = document.getElementById('matrix');
+    const nodesEl = document.getElementById('nodes');
+    const mCanvas = document.getElementById('matrix-canvas');
+    const mCtx = mCanvas.getContext('2d');
+    const filterSelect = document.getElementById('world-filter');
+    const toggleStrong = document.getElementById('toggle-strong');
+    const depList = document.getElementById('dependency-list');
+    const chartEl = document.getElementById('strength-chart');
+
+    let showStrongOnly = false;
+    let filterWorld = 'all';
+    let hoverWorld = null;
+
+    function resizeMatrix() {
+      mCanvas.width = matrixEl.clientWidth;
+      mCanvas.height = matrixEl.clientHeight;
+      positionNodes();
+      drawMatrix();
+    }
+
+    function positionNodes() {
+      nodesEl.innerHTML = '';
+      const radius = Math.min(mCanvas.width, mCanvas.height) / 2.4;
+      const centerX = mCanvas.width / 2;
+      const centerY = mCanvas.height / 2;
+      worlds.forEach((world, i) => {
+        const angle = (Math.PI * 2 * i) / worlds.length - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+        const node = document.createElement('div');
+        node.className = 'node';
+        node.style.left = `${x - 45}px`;
+        node.style.top = `${y - 45}px`;
+        node.dataset.id = world.id;
+        node.innerHTML = `<strong>${world.name.split(' ')[0]}</strong><div class="label">${world.count}</div>`;
+        node.addEventListener('mouseenter', () => { hoverWorld = world.id; drawMatrix(); });
+        node.addEventListener('mouseleave', () => { hoverWorld = null; drawMatrix(); });
+        nodesEl.appendChild(node);
+      });
+    }
+
+    function drawMatrix() {
+      mCtx.clearRect(0, 0, mCanvas.width, mCanvas.height);
+      const radius = Math.min(mCanvas.width, mCanvas.height) / 2.4;
+      const centerX = mCanvas.width / 2;
+      const centerY = mCanvas.height / 2;
+      const positions = {};
+      worlds.forEach((world, i) => {
+        const angle = (Math.PI * 2 * i) / worlds.length - Math.PI / 2;
+        positions[world.id] = {
+          x: centerX + radius * Math.cos(angle),
+          y: centerY + radius * Math.sin(angle)
+        };
+      });
+
+      const filtered = dependencies.filter(dep => {
+        const passesStrength = showStrongOnly ? dep.strength >= 70 : true;
+        const passesFilter = filterWorld === 'all' ? true : dep.from === filterWorld || dep.to === filterWorld;
+        return passesStrength && passesFilter;
+      });
+
+      filtered.forEach(dep => {
+        const from = positions[dep.from];
+        const to = positions[dep.to];
+        const gradient = mCtx.createLinearGradient(from.x, from.y, to.x, to.y);
+        gradient.addColorStop(0, 'rgba(0,255,136,0.6)');
+        gradient.addColorStop(1, 'rgba(200,247,255,0.8)');
+        const highlight = hoverWorld && (dep.from === hoverWorld || dep.to === hoverWorld);
+        mCtx.strokeStyle = gradient;
+        mCtx.lineWidth = highlight ? 3 : 1.5;
+        mCtx.globalAlpha = highlight ? 1 : 0.65;
+        mCtx.beginPath();
+        mCtx.moveTo(from.x, from.y);
+        mCtx.lineTo(to.x, to.y);
+        mCtx.stroke();
+      });
+      mCtx.globalAlpha = 1;
+    }
+
+    function populateFilter() {
+      worlds.forEach(w => {
+        const opt = document.createElement('option');
+        opt.value = w.id;
+        opt.textContent = w.name;
+        filterSelect.appendChild(opt);
+      });
+    }
+
+    function renderDependencies() {
+      const filtered = dependencies.filter(dep => {
+        const strengthOk = showStrongOnly ? dep.strength >= 70 : true;
+        const filterOk = filterWorld === 'all' ? true : dep.from === filterWorld || dep.to === filterWorld;
+        return strengthOk && filterOk;
+      });
+      depList.innerHTML = filtered.map(dep => {
+        const from = worlds.find(w => w.id === dep.from)?.name || dep.from;
+        const to = worlds.find(w => w.id === dep.to)?.name || dep.to;
+        return `<div class="dep"><strong>${from} → ${to}</strong><br>${dep.strength}% · ${dep.note}</div>`;
+      }).join('');
+    }
+
+    function renderStrengthChart() {
+      const filtered = dependencies.filter(dep => {
+        const strengthOk = showStrongOnly ? dep.strength >= 70 : true;
+        const filterOk = filterWorld === 'all' ? true : dep.from === filterWorld || dep.to === filterWorld;
+        return strengthOk && filterOk;
+      });
+
+      chartEl.innerHTML = filtered.map(dep => {
+        const from = worlds.find(w => w.id === dep.from)?.name || dep.from;
+        const to = worlds.find(w => w.id === dep.to)?.name || dep.to;
+        return `<div class="chart-row">
+          <div>${from} → ${to}</div>
+          <div class="bar"><div class="bar-fill" style="width:${dep.strength}%;"></div></div>
+          <div>${dep.strength}%</div>
+        </div>`;
+      }).join('') || '<p>No dependencies visible with current filters.</p>';
+    }
+
+    filterSelect.addEventListener('change', e => {
+      filterWorld = e.target.value;
+      renderDependencies();
+      renderStrengthChart();
+      drawMatrix();
+    });
+
+    toggleStrong.addEventListener('click', () => {
+      showStrongOnly = !showStrongOnly;
+      toggleStrong.textContent = showStrongOnly ? 'Showing: strong only (>70%)' : 'Showing: all dependencies';
+      renderDependencies();
+      renderStrengthChart();
+      drawMatrix();
+    });
+
+    populateFilter();
+    resizeMatrix();
+    renderDependencies();
+    renderStrengthChart();
+    window.addEventListener('resize', resizeMatrix);
+
+    // Audio: 60Hz sine with localStorage mute toggle
+    const audioBtn = document.getElementById('audio-btn');
+    let audioCtx, osc, gainNode;
+    const audioKey = 'ecosystem-interdependency-audio-muted';
+
+    function initAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      gainNode = audioCtx.createGain();
+      osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = 60;
+      gainNode.gain.value = isMuted() ? 0 : 0.02;
+      osc.connect(gainNode).connect(audioCtx.destination);
+      osc.start();
+      updateAudioLabel();
+    }
+
+    function isMuted() {
+      return localStorage.getItem(audioKey) === 'true';
+    }
+
+    function updateAudioLabel() {
+      audioBtn.textContent = isMuted() ? 'Audio: muted' : 'Audio: on';
+    }
+
+    function toggleAudio() {
+      const muted = !isMuted();
+      localStorage.setItem(audioKey, muted);
+      if (!gainNode) return;
+      gainNode.gain.setTargetAtTime(muted ? 0 : 0.02, audioCtx.currentTime, 0.05);
+      updateAudioLabel();
+    }
+
+    audioBtn.addEventListener('click', () => {
+      if (!audioCtx) {
+        initAudio();
+      } else {
+        toggleAudio();
+      }
+    });
+
+    window.addEventListener('load', () => {
+      // Pre-set label according to stored preference
+      updateAudioLabel();
+    });
+  </script>
+</body>
+</html>
