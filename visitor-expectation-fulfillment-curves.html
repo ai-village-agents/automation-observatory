@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page 98 · Visitor Expectation Fulfillment Curves</title>
+  <style>
+    :root {
+      --bg: #03121c;
+      --panel: rgba(0, 217, 255, 0.08);
+      --accent: #19d7ff;
+      --accent-2: #7ef3ff;
+      --text: #e8ffff;
+      --muted: #8ed8e5;
+      --shadow: 0 10px 40px rgba(0,0,0,0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", Courier, monospace;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(0,217,255,0.08), transparent 50%), var(--bg);
+      color: var(--text);
+      position: relative;
+      overflow-x: hidden;
+    }
+    #particles {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0;
+      letter-spacing: 1px;
+      font-size: 24px;
+      text-transform: uppercase;
+    }
+    .pill {
+      border: 1px solid var(--accent);
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: linear-gradient(120deg, rgba(0,217,255,0.15), rgba(0,217,255,0.05));
+      color: var(--accent-2);
+      box-shadow: var(--shadow);
+    }
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+    .metrics {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(0,217,255,0.25);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,217,255,0.08), transparent 45%);
+      pointer-events: none;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .metric-value {
+      font-size: 26px;
+      color: var(--accent-2);
+    }
+    .metric-label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .flex {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .half {
+      flex: 1 1 380px;
+    }
+    canvas {
+      width: 100%;
+      height: 220px;
+      display: block;
+      background: rgba(0,217,255,0.03);
+      border-radius: 10px;
+      border: 1px solid rgba(0,217,255,0.18);
+    }
+    .list {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .list-item {
+      border: 1px dashed rgba(0,217,255,0.25);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(0,217,255,0.04);
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      margin-right: 6px;
+      border-radius: 6px;
+      background: rgba(0,217,255,0.18);
+      color: var(--text);
+      font-size: 11px;
+    }
+    .timeline {
+      position: relative;
+      padding-left: 12px;
+    }
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: rgba(0,217,255,0.35);
+    }
+    .event {
+      position: relative;
+      padding: 6px 0 6px 14px;
+    }
+    .event::before {
+      content: "";
+      position: absolute;
+      left: -2px;
+      top: 10px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(0,217,255,0.6);
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 50px;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .bar {
+      background: rgba(0,217,255,0.12);
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(0,217,255,0.2);
+      height: 10px;
+      position: relative;
+    }
+    .bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    }
+    .audio {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(0,217,255,0.2);
+      border: 1px solid rgba(0,217,255,0.35);
+      color: var(--text);
+      font-size: 11px;
+    }
+    @media (max-width: 768px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .bar-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <main>
+    <header>
+      <div>
+        <div class="pill">Page 98 · Visitor Expectation Fulfillment Curves</div>
+        <h1>Expectation vs Experience Observatory</h1>
+      </div>
+      <div class="audio">
+        <span class="badge">Ambient Audio</span>
+        <audio controls loop>
+          <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_03a3ad2b88.mp3?filename=ambient-11057.mp3" type="audio/mpeg">
+        </audio>
+      </div>
+    </header>
+
+    <section class="grid metrics">
+      <div class="card">
+        <h3>Visitors Tracked</h3>
+        <div class="metric-value">2,500+</div>
+        <div class="metric-label">Sessions monitored</div>
+      </div>
+      <div class="card">
+        <h3>Fulfillment Ratio</h3>
+        <div class="metric-value">0.84</div>
+        <div class="metric-label">Avg expectation delivery</div>
+      </div>
+      <div class="card">
+        <h3>Expectation Accuracy</h3>
+        <div class="metric-value">0.76</div>
+        <div class="metric-label">Before vs after calibration</div>
+      </div>
+      <div class="card">
+        <h3>Peak Delight Moments</h3>
+        <div class="metric-value">347</div>
+        <div class="metric-label">Spikes logged</div>
+      </div>
+      <div class="card">
+        <h3>Major Surprises</h3>
+        <div class="metric-value">89</div>
+        <div class="metric-label">Cataloged anomalies</div>
+      </div>
+      <div class="card">
+        <h3>Sentiment Surprise</h3>
+        <div class="metric-value">+54%</div>
+        <div class="metric-label">Post-void delta</div>
+      </div>
+      <div class="card">
+        <h3>Breakthroughs</h3>
+        <div class="metric-value">12.4</div>
+        <div class="metric-label">Per 100 sessions</div>
+      </div>
+      <div class="card">
+        <h3>Discovery Multiplier</h3>
+        <div class="metric-value">3.2x</div>
+        <div class="metric-label">Exploration lift</div>
+      </div>
+      <div class="card">
+        <h3>Wow Persistence</h3>
+        <div class="metric-value">0.87</div>
+        <div class="metric-label">Retention of delight</div>
+      </div>
+    </section>
+
+    <section class="flex">
+      <div class="card half">
+        <h3>Fulfillment Gauge</h3>
+        <canvas id="gauge" height="200"></canvas>
+        <div class="flex" style="gap:8px;">
+          <span class="badge">Expectation Tracker</span>
+          <span class="badge">Fulfillment Curve</span>
+          <span class="badge">Live Drift Monitor</span>
+        </div>
+      </div>
+      <div class="card half">
+        <h3>Expectation vs Reality · Worlds</h3>
+        <canvas id="scatterWorlds" height="200"></canvas>
+        <div class="flex" style="gap:8px; flex-wrap:wrap;" id="worldLegend"></div>
+      </div>
+    </section>
+
+    <section class="flex">
+      <div class="card half">
+        <h3>Fulfillment Curve Progression</h3>
+        <canvas id="fulfillmentCurve" height="200"></canvas>
+      </div>
+      <div class="card half">
+        <h3>Expectation Accuracy Over Time</h3>
+        <canvas id="expectationAccuracy" height="200"></canvas>
+      </div>
+    </section>
+
+    <section class="flex">
+      <div class="card half">
+        <h3>Sentiment vs Fulfillment Correlation</h3>
+        <canvas id="sentimentCorrelation" height="200"></canvas>
+      </div>
+      <div class="card half">
+        <h3>Discovery Trajectory by Archetype</h3>
+        <canvas id="archetypeTrajectory" height="200"></canvas>
+      </div>
+    </section>
+
+    <section class="flex">
+      <div class="card half">
+        <h3>Delight Moments Heatmap</h3>
+        <canvas id="delightHeatmap" height="220"></canvas>
+      </div>
+      <div class="card half">
+        <h3>Surprise Catalog Browser</h3>
+        <div class="list" id="surpriseList"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Delight Timeline</h3>
+      <div class="timeline" id="delightTimeline"></div>
+    </section>
+
+    <section class="card">
+      <h3>Archetype Fulfillment Profiles</h3>
+      <div id="archetypeBars"></div>
+    </section>
+  </main>
+
+  <script>
+    const random = (min, max) => Math.random() * (max - min) + min;
+
+    // Particle field
+    (() => {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      const particles = Array.from({ length: 120 }, () => ({
+        x: Math.random(), y: Math.random(),
+        r: random(0.5, 1.8),
+        v: random(0.0003, 0.0008)
+      }));
+      const resize = () => { w = canvas.width = innerWidth; h = canvas.height = innerHeight; };
+      resize(); addEventListener('resize', resize);
+      function tick() {
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = 'rgba(25,215,255,0.7)';
+        particles.forEach(p => {
+          p.y += p.v; if (p.y > 1) p.y = 0; if (p.y < 0) p.y = 1;
+          p.x += (Math.sin(Date.now()/10000) * 0.0004);
+          ctx.beginPath();
+          ctx.arc(p.x * w, p.y * h, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(tick);
+      }
+      tick();
+    })();
+
+    function drawGauge() {
+      const canvas = document.getElementById('gauge');
+      const ctx = canvas.getContext('2d');
+      const ratio = 0.84;
+      const accuracy = 0.76;
+      const start = Math.PI * 0.75;
+      const end = Math.PI * 2.25;
+      const center = { x: canvas.width / 2, y: canvas.height * 0.9 };
+      const radius = canvas.width * 0.35;
+
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = 'rgba(0,217,255,0.15)';
+      ctx.beginPath(); ctx.arc(center.x, center.y, radius, start, end); ctx.stroke();
+
+      const sweep = start + (end - start) * ratio;
+      ctx.strokeStyle = 'rgba(0,217,255,0.8)';
+      ctx.beginPath(); ctx.arc(center.x, center.y, radius, start, sweep); ctx.stroke();
+
+      ctx.fillStyle = '#0ad3ff';
+      ctx.beginPath();
+      ctx.arc(center.x + Math.cos(sweep) * radius, center.y + Math.sin(sweep) * radius, 7, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle = '#8ed8e5';
+      ctx.font = '14px "Courier New", monospace';
+      ctx.fillText('Fulfillment', center.x - 42, center.y - radius - 6);
+      ctx.font = '26px "Courier New", monospace';
+      ctx.fillStyle = '#19d7ff';
+      ctx.fillText((ratio*100).toFixed(0) + '%', center.x - 32, center.y - radius + 22);
+      ctx.font = '13px "Courier New", monospace';
+      ctx.fillStyle = '#8ed8e5';
+      ctx.fillText('Expectation Accuracy ' + (accuracy*100).toFixed(0) + '%', center.x - 86, center.y + 24);
+    }
+
+    function drawLine(canvasId, data, options = {}) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const margin = 30;
+      const maxY = Math.max(...data.map(d => d.y)) * 1.05;
+      const minY = Math.min(...data.map(d => d.y)) * 0.95;
+      ctx.strokeStyle = 'rgba(0,217,255,0.2)';
+      ctx.lineWidth = 1;
+      // grid
+      for (let i=0;i<5;i++) {
+        const y = margin + ((h - margin*2) / 4) * i;
+        ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(w-margin, y); ctx.stroke();
+      }
+      ctx.strokeStyle = options.color || '#19d7ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      data.forEach((d,i) => {
+        const x = margin + (i/(data.length-1)) * (w - margin*2);
+        const y = margin + (1 - (d.y - minY) / (maxY - minY)) * (h - margin*2);
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = '#8ed8e5';
+      ctx.font = '12px "Courier New", monospace';
+      ctx.fillText(options.label || '', margin, margin - 10);
+    }
+
+    function drawScatter(canvasId, points, colorMap) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const margin = 30;
+      ctx.strokeStyle = 'rgba(0,217,255,0.2)';
+      for (let i=0;i<5;i++) {
+        const y = margin + ((h - margin*2) / 4) * i;
+        ctx.beginPath(); ctx.moveTo(margin, y); ctx.lineTo(w-margin, y); ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(0,217,255,0.4)';
+      ctx.beginPath(); ctx.moveTo(margin, h-margin); ctx.lineTo(w-margin, margin); ctx.stroke();
+
+      points.forEach(p => {
+        const x = margin + p.x * (w - margin*2);
+        const y = margin + (1-p.y) * (h - margin*2);
+        ctx.fillStyle = colorMap[p.world] || '#19d7ff';
+        ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+      });
+    }
+
+    function drawHeatmap(canvasId, rows, cols, values) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const cellW = w / cols;
+      const cellH = h / rows;
+      const maxV = Math.max(...values);
+      values.forEach((v,i) => {
+        const r = Math.floor(i / cols);
+        const c = i % cols;
+        const intensity = v / maxV;
+        ctx.fillStyle = `rgba(25,215,255,${0.15 + intensity*0.75})`;
+        ctx.fillRect(c * cellW, r * cellH, cellW - 1, cellH - 1);
+      });
+    }
+
+    function renderList() {
+      const list = document.getElementById('surpriseList');
+      const items = Array.from({ length: 8 }, (_,i) => ({
+        title: `Surprise #${i+1}`,
+        type: ['Delight','Disruption','Expectation Shift'][i%3],
+        impact: random(0.4,1).toFixed(2),
+        note: ['Interface spark','Content reveal','Hidden path','Unexpected NPC','Temporal shift','Resource surge','Audio cue','Secret door'][i]
+      }));
+      list.innerHTML = items.map(item => `
+        <div class="list-item">
+          <div><span class="tag">${item.type}</span><span class="tag">Impact ${item.impact}</span></div>
+          <div style="margin-top:6px;color:var(--text);">${item.note}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderTimeline() {
+      const el = document.getElementById('delightTimeline');
+      const events = Array.from({ length: 7 }, (_,i) => ({
+        t: `${5+i*7}m`,
+        label: ['First Discovery','Secret Passage','Vista Reveal','Helper NPC','Lore Hit','Mechanic Mastery','Final Surprise'][i],
+        score: (0.6 + Math.random()*0.35).toFixed(2)
+      }));
+      el.innerHTML = events.map(ev => `
+        <div class="event">
+          <div style="color:var(--accent);">${ev.t} · score ${ev.score}</div>
+          <div style="color:var(--text);">${ev.label}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderArchetypeBars() {
+      const el = document.getElementById('archetypeBars');
+      const archetypes = [
+        { name: 'Seeker', fulfillment: 0.88, discovery: 0.92 },
+        { name: 'Strategist', fulfillment: 0.81, discovery: 0.78 },
+        { name: 'Wanderer', fulfillment: 0.73, discovery: 0.69 },
+        { name: 'Builder', fulfillment: 0.9, discovery: 0.84 },
+        { name: 'Speedrunner', fulfillment: 0.68, discovery: 0.55 }
+      ];
+      el.innerHTML = archetypes.map(a => `
+        <div class="bar-row">
+          <div style="color:var(--text);">${a.name}</div>
+          <div class="bar"><span style="width:${a.fulfillment*100}%"></span></div>
+          <div style="color:var(--muted);">${(a.fulfillment*100).toFixed(0)}%</div>
+          <div class="bar"><span style="width:${a.discovery*100}%;background:linear-gradient(90deg,#7ef3ff,#19d7ff);"></span></div>
+          <div style="color:var(--muted);">${(a.discovery*100).toFixed(0)}%</div>
+        </div>
+      `).join('');
+    }
+
+    function initCharts() {
+      drawGauge();
+
+      const worlds = ['Verdant','Aether','Rust','Deep','Lumen'];
+      const colors = {
+        Verdant: '#19d7ff',
+        Aether: '#7ef3ff',
+        Rust: '#45c2d8',
+        Deep: '#0c94b8',
+        Lumen: '#52f1ff'
+      };
+      const points = Array.from({ length: 140 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        world: worlds[Math.floor(Math.random()*worlds.length)]
+      }));
+      drawScatter('scatterWorlds', points, colors);
+      const legend = document.getElementById('worldLegend');
+      legend.innerHTML = worlds.map(w => `<span class="badge" style="background:rgba(0,217,255,0.18);color:var(--text);border-color:${colors[w]};">${w}</span>`).join('');
+
+      const fulfillmentSeries = Array.from({ length: 22 }, (_,i) => ({ y: 0.68 + Math.sin(i/3)*0.05 + i*0.004 }));
+      drawLine('fulfillmentCurve', fulfillmentSeries, { label: 'Fulfillment Ratio', color: '#19d7ff' });
+
+      const accuracySeries = Array.from({ length: 22 }, (_,i) => ({ y: 0.62 + Math.cos(i/2.5)*0.06 + i*0.003 }));
+      drawLine('expectationAccuracy', accuracySeries, { label: 'Expectation Accuracy', color: '#7ef3ff' });
+
+      const sentimentPoints = Array.from({ length: 80 }, () => ({
+        x: 0.4 + Math.random()*0.6,
+        y: 0.3 + Math.random()*0.7
+      }));
+      drawScatter('sentimentCorrelation', sentimentPoints, {});
+
+      const archetypeLines = worlds.slice(0,3).map((name, idx) => ({
+        name,
+        data: Array.from({ length: 14 }, (_,i) => ({ y: 0.55 + Math.sin(i/2 + idx) * 0.07 + i*0.01 }))
+      }));
+      const canvas = document.getElementById('archetypeTrajectory');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      const margin = 30;
+      const maxY = 1.05, minY = 0.4;
+      const colorsLine = ['#19d7ff','#7ef3ff','#45c2d8'];
+      archetypeLines.forEach((serie, sIdx) => {
+        ctx.strokeStyle = colorsLine[sIdx];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        serie.data.forEach((d,i) => {
+          const x = margin + (i/(serie.data.length-1)) * (canvas.width - margin*2);
+          const y = margin + (1 - (d.y - minY)/(maxY - minY)) * (canvas.height - margin*2);
+          i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+        ctx.fillStyle = colorsLine[sIdx];
+        ctx.font = '12px "Courier New", monospace';
+        ctx.fillText(serie.name, canvas.width - margin - 70, margin + 16 + sIdx*14);
+      });
+
+      const heatValues = Array.from({ length: 10*12 }, () => Math.random());
+      drawHeatmap('delightHeatmap', 10, 12, heatValues);
+    }
+
+    renderList();
+    renderTimeline();
+    renderArchetypeBars();
+    initCharts();
+  </script>
+</body>
+</html>

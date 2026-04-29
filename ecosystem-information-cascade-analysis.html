@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page 99 — Ecosystem Information Cascade Analysis</title>
+  <style>
+    :root {
+      --bg-1: #030814;
+      --bg-2: #0b1930;
+      --panel: rgba(8, 26, 46, 0.7);
+      --card: rgba(4, 18, 34, 0.8);
+      --border: #11d3ff;
+      --accent: #32ffe2;
+      --muted: #bde8ff;
+      --text: #e6fbff;
+      --shadow: 0 0 25px rgba(50, 255, 226, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Courier New", Courier, monospace;
+      background: radial-gradient(circle at 20% 20%, rgba(50,255,226,0.08), transparent 35%), linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .particle-layer { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    header {
+      position: relative;
+      z-index: 2;
+      padding: 28px 22px 10px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.4rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+      text-shadow: 0 0 14px rgba(50,255,226,0.6);
+    }
+    .subtitle { color: var(--muted); margin-top: 6px; }
+    .grid {
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      position: relative;
+      z-index: 2;
+    }
+    .panel h2 {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 1.15rem;
+      letter-spacing: 0.5px;
+    }
+    .meta { color: var(--muted); font-size: 0.95rem; margin-top: 4px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    .metric {
+      background: var(--card);
+      border: 1px solid rgba(17, 211, 255, 0.45);
+      border-radius: 8px;
+      padding: 10px 12px;
+      box-shadow: inset 0 0 0 1px rgba(50,255,226,0.1);
+    }
+    .metric-label { color: var(--muted); font-size: 0.85rem; }
+    .metric-value { font-size: 1.35rem; color: var(--accent); margin-top: 4px; }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    label { color: var(--muted); font-size: 0.9rem; }
+    select, button, input[type="range"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      outline: none;
+      font-family: inherit;
+    }
+    button {
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 12px rgba(17, 211, 255, 0.6);
+    }
+    canvas { width: 100%; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(17,211,255,0.3); }
+    .mini {
+      height: 160px;
+    }
+    .wide {
+      height: 240px;
+    }
+    .pill {
+      display: inline-block;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-right: 6px;
+    }
+    .stack { display: flex; flex-direction: column; gap: 10px; }
+    .timeline {
+      display: grid;
+      gap: 8px;
+    }
+    .event {
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(17,211,255,0.25);
+      border-radius: 6px;
+    }
+    .bar {
+      height: 6px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #0dcff0, #32ffe2);
+      box-shadow: 0 0 8px rgba(50,255,226,0.6);
+    }
+    .gauge {
+      width: 160px;
+      height: 160px;
+      margin: 0 auto;
+      border-radius: 50%;
+      position: relative;
+      background: conic-gradient(#32ffe2 calc(var(--value) * 1%), rgba(255,255,255,0.05) 0);
+      border: 2px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .gauge::after {
+      content: attr(data-label);
+      position: absolute;
+      inset: 24px;
+      border-radius: 50%;
+      background: var(--bg-2);
+      border: 1px solid rgba(17,211,255,0.5);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .matrix {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      font-size: 0.9rem;
+    }
+    .matrix th, .matrix td {
+      border: 1px solid rgba(17,211,255,0.25);
+      padding: 6px;
+      text-align: center;
+      color: var(--muted);
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(17,211,255,0.15);
+      color: var(--text);
+      margin-right: 4px;
+      font-size: 0.8rem;
+    }
+    .audio-status { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+    .cascade-tree {
+      background: rgba(255,255,255,0.03);
+      border: 1px dashed rgba(17,211,255,0.4);
+      border-radius: 8px;
+      padding: 10px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.3;
+      overflow: auto;
+      max-height: 220px;
+      white-space: pre;
+    }
+    @media (max-width: 640px) {
+      h1 { font-size: 1.8rem; }
+      .gauge { width: 140px; height: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles" class="particle-layer"></canvas>
+  <header>
+    <h1>Page 99 — Ecosystem Information Cascade Analysis</h1>
+    <div class="subtitle">Modeling how ideas traverse the 10-world ecosystem: cascade trees, adoption curves, influence lattices, virality and recovery.</div>
+  </header>
+
+  <main style="position: relative; z-index: 2; padding: 0 18px 24px;">
+    <section class="panel">
+      <h2>Signal Metrics</h2>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Cascade events tracked</div><div class="metric-value">3,247</div></div>
+        <div class="metric"><div class="metric-label">Avg propagation depth</div><div class="metric-value">5.3 layers</div></div>
+        <div class="metric"><div class="metric-label">Influence coefficient</div><div class="metric-value">0.67</div></div>
+        <div class="metric"><div class="metric-label">Cascade velocity post-void</div><div class="metric-value">+34%</div></div>
+        <div class="metric"><div class="metric-label">Cross-world information flows</div><div class="metric-value">1,247</div></div>
+        <div class="metric"><div class="metric-label">Mentor–learner cascades</div><div class="metric-value">156</div></div>
+        <div class="metric"><div class="metric-label">Cascade accuracy</div><div class="metric-value">89%</div></div>
+        <div class="metric"><div class="metric-label">Avg cascade lifetime</div><div class="metric-value">4.2 days</div></div>
+        <div class="metric"><div class="metric-label">Cascade sustainability</div><div class="metric-value">78%</div></div>
+      </div>
+      <div class="controls">
+        <div>
+          <label for="adoptionSelector">Adoption curve selector</label>
+          <select id="adoptionSelector">
+            <option value="all">All archetypes</option>
+            <option value="mentor">Mentor</option>
+            <option value="explorer">Explorer</option>
+            <option value="synthesist">Synthesist</option>
+            <option value="guardian">Guardian</option>
+          </select>
+        </div>
+        <div>
+          <label for="browserSelector">Cascade browser</label>
+          <select id="browserSelector">
+            <option value="void-signal">Void Signal Recovery</option>
+            <option value="mentor-chain">Mentor Chain Uptake</option>
+            <option value="cross-world">Cross-World Relay</option>
+            <option value="rapid-fire">Rapid Fire Virality</option>
+          </select>
+        </div>
+        <div>
+          <label for="audioToggle">Audio channel</label>
+          <button id="audioToggle">Play cascade hum</button>
+          <div class="audio-status" id="audioStatus">Audio idle</div>
+        </div>
+        <div>
+          <label for="velocityRange">Cascade timeline scrub</label>
+          <input type="range" id="velocityRange" min="0" max="100" value="70">
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top: 14px;">
+      <div class="panel">
+        <h2>Cascade Tree Visualization</h2>
+        <canvas id="cascadeTreeCanvas" class="wide" height="240"></canvas>
+        <div class="meta">Branch density mirrors 5.3-layer depth; tree renders current cascade browser selection.</div>
+      </div>
+      <div class="panel">
+        <h2>Influence Network Graph</h2>
+        <canvas id="influenceNetwork" class="wide" height="240"></canvas>
+        <div class="meta">Influence gauge live: <span class="pill">0.67 coefficient</span> <span class="pill">Mentor-learner: 156</span></div>
+      </div>
+      <div class="panel">
+        <h2>Adoption Rate Curves</h2>
+        <canvas id="adoptionCurves" class="wide" height="240"></canvas>
+        <div class="meta">Use the adoption selector to swap archetype curves; mentor cohorts align to +34% post-void uplift.</div>
+      </div>
+      <div class="panel">
+        <h2>Idea Virality Heatmap</h2>
+        <canvas id="viralityHeatmap" class="wide" height="240"></canvas>
+        <div class="meta">Virality tracker updates every 3s; darker cyan indicates faster replication velocity.</div>
+      </div>
+      <div class="panel">
+        <h2>Cascade Depth Distribution</h2>
+        <canvas id="depthDistribution" class="wide" height="220"></canvas>
+        <div class="meta">Long tail reflects cross-world and mentor chains sustaining 78% viability.</div>
+      </div>
+      <div class="panel">
+        <h2>Information Velocity Timeline</h2>
+        <canvas id="velocityTimeline" class="wide" height="220"></canvas>
+        <div class="meta">Cascade velocity +34% post-void shown as cyan uplift after the inflection marker.</div>
+      </div>
+      <div class="panel">
+        <h2>Cross-World Flow Matrix</h2>
+        <table class="matrix" id="flowMatrix"></table>
+        <div class="meta">1,247 cross-world information flows visualized as normalized intensity grid.</div>
+      </div>
+      <div class="panel">
+        <h2>Cascade-Age Survival Curves</h2>
+        <canvas id="survivalCurve" class="wide" height="220"></canvas>
+        <div class="meta">Average cascade lifetime: 4.2 days with survivorship taper under disinformation recovery.</div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top: 14px;">
+      <div class="panel stack">
+        <h2>Cascade Timeline</h2>
+        <div class="timeline" id="cascadeTimeline"></div>
+      </div>
+      <div class="panel stack">
+        <h2>Influence Gauge</h2>
+        <div class="gauge" id="influenceGauge" style="--value:67;" data-label="0.67"></div>
+        <div class="meta" style="text-align:center;">Influence coefficient calibrated to current network density.</div>
+      </div>
+      <div class="panel stack">
+        <h2>Virality Tracker</h2>
+        <canvas id="viralityTracker" class="mini" height="140"></canvas>
+        <div class="meta">Live sparkline of idea velocity + disinformation recovery pulses.</div>
+      </div>
+      <div class="panel stack">
+        <h2>Cascade Browser</h2>
+        <div class="cascade-tree" id="cascadeBrowser"></div>
+        <div class="meta">Displays the current cascade tree archetype; syncs with visualization canvas.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const particlesCanvas = document.getElementById('particles');
+    const pCtx = particlesCanvas.getContext('2d');
+    let particleSet = [];
+
+    function resizeParticles() {
+      particlesCanvas.width = window.innerWidth;
+      particlesCanvas.height = window.innerHeight;
+    }
+    resizeParticles();
+    window.addEventListener('resize', resizeParticles);
+
+    function spawnParticles(count = 120) {
+      particleSet = Array.from({ length: count }, () => ({
+        x: Math.random() * particlesCanvas.width,
+        y: Math.random() * particlesCanvas.height,
+        r: Math.random() * 1.4 + 0.4,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        o: Math.random() * 0.6 + 0.3
+      }));
+    }
+    spawnParticles();
+
+    function drawParticles() {
+      pCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+      particleSet.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = particlesCanvas.width; if (p.x > particlesCanvas.width) p.x = 0;
+        if (p.y < 0) p.y = particlesCanvas.height; if (p.y > particlesCanvas.height) p.y = 0;
+        pCtx.beginPath();
+        pCtx.fillStyle = `rgba(50,255,226,${p.o})`;
+        pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        pCtx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    const cascadeTrees = {
+      'void-signal': [
+        'Void Signal Recovery',
+        '├─ Anchor: Post-void uplift',
+        '│  ├─ Mentor relay → Depth 4',
+        '│  └─ Synth echo → Depth 3',
+        '└─ Cross-world hops',
+        '   ├─ World 3 → World 7 → World 1',
+        '   └─ World 5 → Mentor chain (x3)'
+      ],
+      'mentor-chain': [
+        'Mentor Chain Uptake',
+        '├─ Mentor A',
+        '│  ├─ Learner 1',
+        '│  │  └─ Peer cluster',
+        '│  └─ Learner 2',
+        '│     └─ Back-prop correction',
+        '└─ Mentor B',
+        '   └─ Learner 3 → Learner 4'
+      ],
+      'cross-world': [
+        'Cross-World Relay',
+        '├─ Portal 1 (World 2 → 6)',
+        '│  └─ Resonance loop (x2)',
+        '└─ Portal 2 (World 4 → 9)',
+        '   ├─ Bridge mentor',
+        '   └─ Explorer swarm uptake'
+      ],
+      'rapid-fire': [
+        'Rapid Fire Virality',
+        '├─ Trigger burst',
+        '│  ├─ Micro cascades (x12)',
+        '│  └─ Correction nodes (x3)',
+        '└─ Cooling tail',
+        '   └─ Survival taper after day 5'
+      ]
+    };
+
+    const cascadeTimeline = [
+      { label: 'Detection', pct: 35, note: '3,247 cascades indexed' },
+      { label: 'Propagation', pct: 60, note: '+34% velocity post-void' },
+      { label: 'Influence', pct: 67, note: '0.67 coefficient' },
+      { label: 'Recovery', pct: 78, note: '89% accuracy after filtering' },
+      { label: 'Sustain', pct: 78, note: 'Cascade sustainability stable' }
+    ];
+
+    function renderTimeline() {
+      const wrap = document.getElementById('cascadeTimeline');
+      wrap.innerHTML = '';
+      cascadeTimeline.forEach(stage => {
+        const div = document.createElement('div');
+        div.className = 'event';
+        div.innerHTML = `<div class="pill">${stage.label}</div><div class="bar" style="width:${stage.pct}%;"></div><div class="meta">${stage.note}</div>`;
+        wrap.appendChild(div);
+      });
+    }
+    renderTimeline();
+
+    function renderBrowser(key) {
+      document.getElementById('cascadeBrowser').textContent = cascadeTrees[key].join('\n');
+    }
+
+    const browserSelector = document.getElementById('browserSelector');
+    browserSelector.addEventListener('change', e => {
+      renderBrowser(e.target.value);
+      drawCascadeTree(e.target.value);
+    });
+
+    function drawCascadeTree(key = 'void-signal') {
+      const canvas = document.getElementById('cascadeTreeCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle = '#32ffe2';
+      ctx.fillStyle = '#32ffe2';
+      ctx.lineWidth = 1.4;
+      const levels = 5;
+      const maxChildren = 4;
+      const centerX = w/2;
+      const startY = 30;
+      const verticalGap = (h - 50) / levels;
+
+      function drawNode(x,y,size=5) {
+        ctx.beginPath();
+        ctx.arc(x,y,size,0,Math.PI*2);
+        ctx.fill();
+      }
+
+      let parents = [{ x: centerX, y: startY }];
+      drawNode(centerX, startY, 6);
+      for (let level = 1; level <= levels; level++) {
+        const children = [];
+        parents.forEach((p, idx) => {
+          const count = 2 + Math.floor(Math.random() * (maxChildren-1));
+          for (let i=0;i<count;i++) {
+            const spread = 140 - level*18;
+            const x = p.x + (i - (count-1)/2) * spread / count;
+            const y = startY + verticalGap * level + Math.random()*14;
+            ctx.beginPath();
+            ctx.moveTo(p.x,p.y);
+            ctx.lineTo(x,y);
+            ctx.stroke();
+            drawNode(x,y,4 - level*0.3);
+            children.push({ x,y });
+          }
+        });
+        parents = children;
+      }
+      ctx.fillStyle = 'rgba(17,211,255,0.2)';
+      ctx.fillRect(0,h-26,w,26);
+      ctx.fillStyle = '#32ffe2';
+      ctx.fillText(`Cascade: ${key.replace('-', ' ')}`, 10, h-10);
+    }
+
+    function drawInfluenceNetwork() {
+      const canvas = document.getElementById('influenceNetwork');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const nodes = Array.from({ length: 22 }, (_, i) => ({
+        x: Math.random() * (w - 60) + 30,
+        y: Math.random() * (h - 40) + 20,
+        r: 4 + Math.random() * 4,
+        type: i < 6 ? 'mentor' : 'learner'
+      }));
+      ctx.strokeStyle = 'rgba(17,211,255,0.5)';
+      nodes.forEach((a, i) => {
+        nodes.slice(i+1).forEach(b => {
+          if (Math.random() > 0.74) return;
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y);
+          ctx.lineTo(b.x,b.y);
+          ctx.stroke();
+        });
+      });
+      nodes.forEach(n => {
+        ctx.beginPath();
+        ctx.fillStyle = n.type === 'mentor' ? '#32ffe2' : '#11d3ff';
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+        ctx.fill();
+      });
+    }
+
+    const adoptionData = {
+      all: [15,28,46,63,71,82,88,91,94,97],
+      mentor: [12,25,40,58,72,84,90,93,95,97],
+      explorer: [18,32,50,65,73,80,86,90,93,95],
+      synthesist: [10,22,38,55,68,78,85,90,94,96],
+      guardian: [14,27,45,59,66,74,80,86,90,92]
+    };
+
+    function drawAdoptionCurve(key = 'all') {
+      const canvas = document.getElementById('adoptionCurves');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle = '#11d3ff';
+      ctx.lineWidth = 2;
+      const data = adoptionData[key];
+      ctx.beginPath();
+      data.forEach((v,i) => {
+        const x = (i/(data.length-1)) * (w-20) + 10;
+        const y = h - (v/100) * (h-20) - 10;
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = '#32ffe2';
+      data.forEach((v,i) => {
+        const x = (i/(data.length-1)) * (w-20) + 10;
+        const y = h - (v/100) * (h-20) - 10;
+        ctx.beginPath();
+        ctx.arc(x,y,4,0,Math.PI*2);
+        ctx.fill();
+      });
+      ctx.fillText(`Archetype: ${key}`, 12, 16);
+    }
+
+    function drawViralityHeatmap() {
+      const canvas = document.getElementById('viralityHeatmap');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const rows = 8, cols = 10;
+      const cellW = w/cols, cellH = h/rows;
+      for (let r=0; r<rows; r++) {
+        for (let c=0; c<cols; c++) {
+          const v = Math.random();
+          const color = `rgba(17, 211, 255, ${0.2 + v*0.8})`;
+          ctx.fillStyle = color;
+          ctx.fillRect(c*cellW, r*cellH, cellW-2, cellH-2);
+        }
+      }
+    }
+
+    function drawDepthDistribution() {
+      const canvas = document.getElementById('depthDistribution');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const bars = [18,24,26,22,17,13,9,6,3,2];
+      const barW = w / bars.length;
+      bars.forEach((v,i) => {
+        const height = (v/26) * (h-30);
+        ctx.fillStyle = 'rgba(50,255,226,0.8)';
+        ctx.fillRect(i*barW + 6, h - height - 12, barW - 12, height);
+      });
+      ctx.fillStyle = '#32ffe2';
+      ctx.fillText('Depth layers 1 → 10', 10, 16);
+    }
+
+    function drawVelocityTimeline() {
+      const canvas = document.getElementById('velocityTimeline');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const points = [0.6,0.62,0.63,0.65,0.66,0.72,0.77,0.8,0.82,0.83];
+      ctx.beginPath();
+      ctx.strokeStyle = '#11d3ff';
+      points.forEach((v,i) => {
+        const x = (i/(points.length-1))*(w-20)+10;
+        const y = h - v*(h-20) - 10;
+        if (!i) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = '#32ffe2';
+      ctx.fillRect(w*0.55, 0, 2, h);
+      ctx.fillText('+34% uplift marker', w*0.55 + 6, 16);
+    }
+
+    function renderFlowMatrix() {
+      const worlds = ['W1','W3','W5','W7'];
+      const table = document.getElementById('flowMatrix');
+      table.innerHTML = '';
+      const header = document.createElement('tr');
+      header.innerHTML = '<th></th>' + worlds.map(w => `<th>${w}</th>`).join('');
+      table.appendChild(header);
+      worlds.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<th>${row}</th>` + worlds.map(col => {
+          const strength = Math.random();
+          const bg = `rgba(17,211,255,${0.15 + strength*0.7})`;
+          return `<td style="background:${bg}">${(strength*100).toFixed(0)}%</td>`;
+        }).join('');
+        table.appendChild(tr);
+      });
+    }
+
+    function drawSurvivalCurve() {
+      const canvas = document.getElementById('survivalCurve');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      const pts = [100,95,90,84,79,73,68,60,54,48];
+      ctx.beginPath();
+      ctx.strokeStyle = '#32ffe2';
+      pts.forEach((v,i) => {
+        const x = (i/(pts.length-1))*(w-20)+10;
+        const y = h - (v/100)*(h-20) - 10;
+        if (!i) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = '#11d3ff';
+      ctx.fillText('Cascade survival over days', 10, 16);
+    }
+
+    function drawViralityTracker() {
+      const canvas = document.getElementById('viralityTracker');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height;
+      ctx.clearRect(0,0,w,h);
+      ctx.beginPath();
+      ctx.strokeStyle = '#11d3ff';
+      const points = Array.from({ length: 30 }, () => 0.4 + Math.random()*0.6);
+      points.forEach((v,i) => {
+        const x = (i/(points.length-1))*(w-20)+10;
+        const y = h - v*(h-20) - 10;
+        if (!i) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+      ctx.fillStyle = '#32ffe2';
+      ctx.fillText('Virality tracker', 10, 16);
+    }
+
+    function animateVirality() {
+      drawViralityTracker();
+      setTimeout(animateVirality, 3000);
+    }
+    animateVirality();
+
+    document.getElementById('velocityRange').addEventListener('input', e => {
+      const pct = Number(e.target.value);
+      const marker = document.getElementById('velocityTimeline');
+      marker.style.opacity = 0.8 + (pct/200);
+    });
+
+    document.getElementById('adoptionSelector').addEventListener('change', e => {
+      drawAdoptionCurve(e.target.value);
+    });
+
+    renderBrowser('void-signal');
+    drawCascadeTree('void-signal');
+    drawInfluenceNetwork();
+    drawAdoptionCurve('all');
+    drawViralityHeatmap();
+    drawDepthDistribution();
+    drawVelocityTimeline();
+    renderFlowMatrix();
+    drawSurvivalCurve();
+
+    // Audio channel: soft cascade hum
+    let audioCtx, oscillator, gainNode;
+    const audioToggle = document.getElementById('audioToggle');
+    const audioStatus = document.getElementById('audioStatus');
+    let audioActive = false;
+
+    function startAudio() {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      oscillator = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 222;
+      gainNode.gain.value = 0.0001;
+      oscillator.connect(gainNode).connect(audioCtx.destination);
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.02, audioCtx.currentTime + 1);
+      audioStatus.textContent = 'Cascade hum playing';
+      audioActive = true;
+    }
+
+    function stopAudio() {
+      if (!audioCtx || !oscillator || !gainNode) return;
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+      setTimeout(() => oscillator.stop(), 600);
+      audioStatus.textContent = 'Audio idle';
+      audioActive = false;
+    }
+
+    audioToggle.addEventListener('click', () => {
+      if (audioActive) {
+        stopAudio();
+        audioToggle.textContent = 'Play cascade hum';
+      } else {
+        startAudio();
+        audioToggle.textContent = 'Stop cascade hum';
+      }
+    });
+  </script>
+</body>
+</html>

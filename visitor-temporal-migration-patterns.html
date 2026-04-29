@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Temporal Migration Patterns - Automation Observatory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.08), transparent 35%), linear-gradient(135deg, #0a0e27 0%, #111630 50%, #1a1f3a 100%);
+      color: #d7fbe8;
+      min-height: 100vh;
+      padding: 30px 20px 60px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.35;
+    }
+    .container {
+      position: relative;
+      z-index: 5;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .header {
+      border: 2px solid #00ff88;
+      padding: 30px;
+      margin-bottom: 30px;
+      border-radius: 10px;
+      background: rgba(10, 14, 39, 0.75);
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.15);
+    }
+    .header h1 {
+      font-size: 2.6em;
+      color: #00ff88;
+      margin-bottom: 10px;
+      text-shadow: 0 0 18px rgba(0, 255, 136, 0.6);
+    }
+    .header p {
+      color: #c8f7ff;
+      line-height: 1.6;
+      font-size: 1.05em;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 16px;
+      color: #00ff88;
+      text-decoration: none;
+      border: 1px solid #00ff88;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+    .back-link:hover { background: rgba(0,255,136,0.15); text-shadow: 0 0 10px #00ff88; }
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .stat {
+      border: 1px solid #00ff88;
+      background: rgba(0,255,136,0.05);
+      padding: 14px;
+      border-radius: 8px;
+    }
+    .stat .label { color: #c8f7ff; font-size: 0.85em; letter-spacing: 0.5px; }
+    .stat .value { color: #d7fbe8; font-size: 1.5em; font-weight: bold; margin-top: 6px; }
+    .section {
+      border: 2px solid #00ff88;
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+      background: rgba(10, 14, 39, 0.7);
+      box-shadow: 0 0 18px rgba(0,255,136,0.1);
+    }
+    .section h2 {
+      color: #00ff88;
+      margin-bottom: 14px;
+      font-size: 1.6em;
+      text-shadow: 0 0 10px rgba(0,255,136,0.5);
+    }
+    .section p { color: #c8f7ff; margin-bottom: 12px; line-height: 1.5; }
+    .controls {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      align-items: center;
+    }
+    button, select {
+      background: rgba(0,255,136,0.2);
+      border: 1px solid #00ff88;
+      color: #00ff88;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      transition: all 0.3s ease;
+    }
+    button:hover, select:hover { background: rgba(0,255,136,0.35); box-shadow: 0 0 10px rgba(0,255,136,0.4); }
+    input[type="range"] {
+      width: 240px;
+      accent-color: #00ff88;
+    }
+    .timeline-readout {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .pill {
+      border: 1px solid #00ff88;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: rgba(0,255,136,0.1);
+      color: #c8f7ff;
+      font-size: 0.9em;
+    }
+    .heat-browser {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .heat-day-label {
+      color: #c8f7ff;
+      font-size: 0.9em;
+      padding-top: 2px;
+    }
+    .heat-row {
+      display: grid;
+      grid-template-columns: repeat(24, minmax(14px, 1fr));
+      gap: 4px;
+    }
+    .heat-cell {
+      height: 18px;
+      border-radius: 3px;
+      background: rgba(0,255,136,0.08);
+      box-shadow: 0 0 6px rgba(0,255,136,0.15);
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .heat-cell:hover { transform: scale(1.1); }
+    .heat-legend {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 10px;
+      color: #c8f7ff;
+      font-size: 0.9em;
+    }
+    .legend-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 30px);
+      gap: 4px;
+    }
+    .legend-bar span {
+      height: 12px;
+      border-radius: 2px;
+      background: rgba(0,255,136,0.15);
+    }
+    .gauge {
+      position: relative;
+      width: 180px;
+      height: 90px;
+      border-radius: 180px 180px 0 0;
+      overflow: hidden;
+      background: linear-gradient(90deg, rgba(0,255,136,0.05), rgba(0,255,136,0.3));
+      border: 1px solid #00ff88;
+      margin-top: 10px;
+    }
+    .gauge::after {
+      content: "";
+      position: absolute;
+      bottom: -60px;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 50% 100%, rgba(0,255,136,0.2), transparent 65%);
+      pointer-events: none;
+    }
+    .needle {
+      position: absolute;
+      width: 4px;
+      height: 90px;
+      background: #d7fbe8;
+      left: 50%;
+      bottom: 0;
+      transform-origin: bottom center;
+      box-shadow: 0 0 10px rgba(0,255,136,0.6);
+    }
+    .gauge-label {
+      margin-top: 8px;
+      color: #c8f7ff;
+      font-size: 0.9em;
+    }
+    .archetype-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+    .archetype-card {
+      border: 1px solid #00ff88;
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(0,255,136,0.05);
+    }
+    .archetype-card h3 { color: #d7fbe8; margin-bottom: 6px; }
+    .archetype-card .share { color: #00ff88; margin-bottom: 8px; }
+    .bar-track {
+      background: rgba(0,255,136,0.1);
+      border: 1px solid rgba(0,255,136,0.3);
+      border-radius: 4px;
+      height: 12px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00ff88, #d7fbe8);
+      width: 20%;
+      transition: width 0.3s ease;
+    }
+    .trend-chart {
+      width: 100%;
+      height: 200px;
+      border: 1px solid #00ff88;
+      border-radius: 8px;
+      background: rgba(0,255,136,0.04);
+    }
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .matrix-card {
+      border: 1px solid #00ff88;
+      padding: 12px;
+      border-radius: 8px;
+      background: rgba(0,255,136,0.05);
+    }
+    .matrix-card h4 { color: #d7fbe8; margin-bottom: 6px; font-size: 1em; }
+    .matrix-bar {
+      height: 10px;
+      border-radius: 4px;
+      background: rgba(0,255,136,0.1);
+      overflow: hidden;
+      margin: 4px 0;
+      border: 1px solid rgba(0,255,136,0.3);
+    }
+    .matrix-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(0,255,136,0.8), #d7fbe8);
+    }
+    .audio-status {
+      color: #c8f7ff;
+      font-size: 0.9em;
+    }
+    .circadian-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .mini-chart {
+      border: 1px solid #00ff88;
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(0,255,136,0.05);
+    }
+    .mini-bars {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .mini-bars div {
+      height: 50px;
+      background: linear-gradient(180deg, rgba(0,255,136,0.7), rgba(0,255,136,0.15));
+      border-radius: 4px;
+      position: relative;
+    }
+    .mini-bars div span {
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      right: 0;
+      font-size: 0.7em;
+      color: #0a0e27;
+      text-align: center;
+      opacity: 0.8;
+    }
+    @media (max-width: 700px) {
+      .heat-browser { grid-template-columns: 1fr; }
+      .heat-row { grid-template-columns: repeat(12, minmax(14px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="container">
+    <a href="index.html" class="back-link">← Back to Observatory</a>
+    <div class="header">
+      <h1>Visitor Temporal Migration Patterns</h1>
+      <p>Page 96 • Tracking visitor movement through time across worlds: temporal visit sequences, day-part rhythms, cross-world migration timing, seasonal cycles, and circadian coherence.</p>
+      <div class="stat-grid">
+        <div class="stat"><div class="label">Sessions Tracked</div><div class="value">2,847</div><div class="label">across 365 days</div></div>
+        <div class="stat"><div class="label">Avg Session</div><div class="value">18.4 min</div><div class="label">migration-aware</div></div>
+        <div class="stat"><div class="label">Peak Window</div><div class="value">44%</div><div class="label">4pm – midnight</div></div>
+        <div class="stat"><div class="label">Migration Velocity</div><div class="value">0.67</div><div class="label">worlds / hour</div></div>
+        <div class="stat"><div class="label">Temporal Coherence</div><div class="value">0.78</div><div class="label">alignment score</div></div>
+        <div class="stat"><div class="label">Archetypes</div><div class="value">7</div><div class="label">temporal personas</div></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Temporal Timeline</h2>
+      <p>Adjust the temporal slider to inspect hour-specific rhythms: intensity, migration velocity, temporal coherence, and archetype dominance.</p>
+      <div class="controls">
+        <label>Hour selector <input type="range" id="hourSlider" min="0" max="23" value="18"></label>
+        <button id="audioToggle">Play Temporal Tone</button>
+        <span class="audio-status" id="audioStatus">Audio: idle</span>
+      </div>
+      <div class="timeline-readout">
+        <div class="pill" id="hourLabel">18:00</div>
+        <div class="pill" id="intensityLabel">Load: --</div>
+        <div class="pill" id="velocityLabel">Velocity: 0.67 w/h</div>
+        <div class="pill" id="coherenceLabel">Coherence: 0.78</div>
+        <div class="pill" id="archetypeLead">Lead Archetype: Evening Explorers</div>
+      </div>
+      <div style="display:flex; gap:24px; flex-wrap: wrap; align-items: center; margin-top: 16px;">
+        <div>
+          <div class="gauge">
+            <div class="needle" id="velocityNeedle"></div>
+          </div>
+          <div class="gauge-label">Migration velocity gauge</div>
+        </div>
+        <div>
+          <div class="gauge">
+            <div class="needle" id="coherenceNeedle"></div>
+          </div>
+          <div class="gauge-label">Temporal coherence gauge</div>
+        </div>
+        <div style="flex:1; min-width: 280px;">
+          <p style="color:#c8f7ff; margin-bottom:8px;">Archetype timeline</p>
+          <div id="archetypeTimeline" class="archetype-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Heat Wave Browser</h2>
+      <p>Day/hour matrices reveal heat waves of visitation. Scrub weeks to see seasonal cycles and cross-world shifts.</p>
+      <div class="controls">
+        <label>World <select id="heatWorld"><option>Arclight</option><option>Brink</option><option>Cinder</option><option>Drift</option></select></label>
+        <label>Week <input type="range" id="weekSlider" min="1" max="52" value="34"></label>
+        <span class="pill" id="weekLabel">Week 34</span>
+      </div>
+      <div class="heat-browser" id="heatBrowser"></div>
+      <div class="heat-legend">
+        <span>Low</span>
+        <div class="legend-bar">
+          <span style="background: rgba(0,255,136,0.05);"></span>
+          <span style="background: rgba(0,255,136,0.12);"></span>
+          <span style="background: rgba(0,255,136,0.22);"></span>
+          <span style="background: rgba(0,255,136,0.35);"></span>
+          <span style="background: rgba(0,255,136,0.55);"></span>
+        </div>
+        <span>Surge</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Temporal Archetype Profiles</h2>
+      <p>Seven archetypes compose the circadian mosaic: Night Owls 22%, Evening Explorers 30%, Afternoon Wanderers 18%, Lunch Break Visitors 12%, Dawn Seekers 8%, Midnight Architects 6%, All-Day Dwellers 4%.</p>
+      <div class="archetype-grid" id="archetypeProfiles"></div>
+    </div>
+
+    <div class="section">
+      <h2>Migration Velocity Trends</h2>
+      <p>Velocity oscillates with world-to-world jumps, averaging 0.67 worlds/hour. Peaks align with 4pm–midnight surges and archetype transitions.</p>
+      <canvas id="velocityTrend" class="trend-chart"></canvas>
+    </div>
+
+    <div class="section">
+      <h2>Cross-World Temporal Dependency</h2>
+      <p>Temporal adjacency between worlds: how often visits to one world lead to another within the same hour window.</p>
+      <div class="matrix" id="dependencyMatrix"></div>
+    </div>
+
+    <div class="section">
+      <h2>Circadian Patterns by World</h2>
+      <p>World-specific day-part rhythms show localized peaks but preserve whole-ecosystem coherence.</p>
+      <div class="circadian-grid" id="circadianGrid"></div>
+    </div>
+  </div>
+
+  <script>
+    const dayNames = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const baseHourWeights = [0.08,0.07,0.05,0.05,0.06,0.1,0.14,0.18,0.22,0.25,0.26,0.28,0.32,0.38,0.44,0.52,0.6,0.68,0.74,0.8,0.86,0.9,0.82,0.65];
+    const archetypes = [
+      { name: "Night Owls", share: 0.22, peaks: [22,23,0,1,2] },
+      { name: "Evening Explorers", share: 0.30, peaks: [17,18,19,20,21] },
+      { name: "Afternoon Wanderers", share: 0.18, peaks: [13,14,15,16] },
+      { name: "Lunch Break Visitors", share: 0.12, peaks: [11,12,13] },
+      { name: "Dawn Seekers", share: 0.08, peaks: [5,6,7] },
+      { name: "Midnight Architects", share: 0.06, peaks: [0,1,2,3] },
+      { name: "All-Day Dwellers", share: 0.04, peaks: [0,6,12,18] }
+    ];
+
+    const archetypeColors = ["#00ff88","#7cf7d1","#c8f7ff","#9cf0b6","#7de8ff","#8fffd4","#dafef0"];
+
+    let audioCtx, oscillator, gainNode, audioPlaying = false;
+
+    const hourSlider = document.getElementById('hourSlider');
+    const hourLabel = document.getElementById('hourLabel');
+    const intensityLabel = document.getElementById('intensityLabel');
+    const velocityLabel = document.getElementById('velocityLabel');
+    const coherenceLabel = document.getElementById('coherenceLabel');
+    const archetypeLead = document.getElementById('archetypeLead');
+    const velocityNeedle = document.getElementById('velocityNeedle');
+    const coherenceNeedle = document.getElementById('coherenceNeedle');
+    const archetypeTimeline = document.getElementById('archetypeTimeline');
+    const heatBrowser = document.getElementById('heatBrowser');
+    const heatWorld = document.getElementById('heatWorld');
+    const weekSlider = document.getElementById('weekSlider');
+    const weekLabel = document.getElementById('weekLabel');
+    const archetypeProfiles = document.getElementById('archetypeProfiles');
+    const velocityTrend = document.getElementById('velocityTrend');
+    const dependencyMatrix = document.getElementById('dependencyMatrix');
+    const circadianGrid = document.getElementById('circadianGrid');
+    const audioToggle = document.getElementById('audioToggle');
+    const audioStatus = document.getElementById('audioStatus');
+
+    const baseSum = baseHourWeights.reduce((a,b)=>a+b,0);
+
+    function formatHour(h) {
+      return `${String(h).padStart(2,'0')}:00`;
+    }
+
+    function updateTimeline(hour) {
+      const weight = baseHourWeights[hour];
+      const loadShare = ((weight / baseSum) * 100).toFixed(1);
+      const velocity = (0.67 * (0.9 + weight * 0.25)).toFixed(2);
+      const coherence = Math.min(0.95, (0.78 + (weight - 0.3) * 0.15)).toFixed(2);
+
+      hourLabel.textContent = `${formatHour(hour)}`;
+      intensityLabel.textContent = `Load: ${loadShare}%`;
+      velocityLabel.textContent = `Velocity: ${velocity} w/h`;
+      coherenceLabel.textContent = `Coherence: ${coherence}`;
+
+      velocityNeedle.style.transform = `translateX(-50%) rotate(${mapRange(weight, 0.05, 0.9, -80, 80)}deg)`;
+      coherenceNeedle.style.transform = `translateX(-50%) rotate(${mapRange(coherence, 0.6, 0.95, -80, 80)}deg)`;
+
+      const arc = getArchetypeHourShares(hour);
+      renderArchetypeTimeline(arc);
+      archetypeLead.textContent = `Lead Archetype: ${arc[0].name}`;
+    }
+
+    function renderArchetypeTimeline(ordered) {
+      archetypeTimeline.innerHTML = '';
+      ordered.forEach((a,i) => {
+        const card = document.createElement('div');
+        card.className = 'archetype-card';
+        card.innerHTML = `
+          <h3>${a.name}</h3>
+          <div class="share">${(a.value*100).toFixed(1)}% of hour mix</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100, a.value*140)}%; background: linear-gradient(90deg, ${archetypeColors[i%archetypeColors.length]}, #d7fbe8);"></div></div>
+        `;
+        archetypeTimeline.appendChild(card);
+      });
+    }
+
+    function getArchetypeHourShares(hour) {
+      const scored = archetypes.map(a => {
+        const boost = a.peaks.includes(hour) ? 1.2 : (Math.abs(a.peaks[0] - hour) <= 2 ? 0.2 : 0);
+        return { name: a.name, value: a.share * (1 + boost) };
+      });
+      const total = scored.reduce((a,b)=>a+b.value,0);
+      return scored.map(s => ({...s, value: s.value/total})).sort((a,b)=>b.value - a.value);
+    }
+
+    function renderArchetypeProfiles() {
+      archetypeProfiles.innerHTML = '';
+      archetypes.forEach((a,i) => {
+        const card = document.createElement('div');
+        card.className = 'archetype-card';
+        card.innerHTML = `
+          <h3>${a.name}</h3>
+          <div class="share">${(a.share*100).toFixed(0)}% cohort</div>
+          <p style="color:#c8f7ff; margin-bottom:6px;">Peak hours: ${a.peaks.map(h=>formatHour(h)).join(', ')}</p>
+          <div class="bar-track"><div class="bar-fill" style="width:${a.share*100}%; background: linear-gradient(90deg, ${archetypeColors[i]}, #d7fbe8);"></div></div>
+        `;
+        archetypeProfiles.appendChild(card);
+      });
+    }
+
+    function renderHeat() {
+      const selectedWorld = heatWorld.value;
+      const week = parseInt(weekSlider.value, 10);
+      weekLabel.textContent = `Week ${week}`;
+      heatBrowser.innerHTML = '';
+      dayNames.forEach((day, idx) => {
+        const label = document.createElement('div');
+        label.className = 'heat-day-label';
+        label.textContent = day;
+        const row = document.createElement('div');
+        row.className = 'heat-row';
+        const baseDayDrift = Math.sin((week + idx) * 0.35) * 0.08;
+        baseHourWeights.forEach((weight, hr) => {
+          const worldMod = (selectedWorld.charCodeAt(0) % 10) * 0.0015;
+          const hourMod = Math.sin((hr + idx) * 0.6) * 0.12;
+          const val = clamp(weight + baseDayDrift + hourMod + worldMod, 0.04, 1);
+          const cell = document.createElement('div');
+          cell.className = 'heat-cell';
+          const intensity = val / 0.9;
+          cell.style.background = `rgba(0,255,136,${0.1 + intensity * 0.55})`;
+          row.appendChild(cell);
+        });
+        heatBrowser.appendChild(label);
+        heatBrowser.appendChild(row);
+      });
+    }
+
+    function drawVelocityTrend() {
+      const ctx = velocityTrend.getContext('2d');
+      const w = velocityTrend.width = velocityTrend.clientWidth;
+      const h = velocityTrend.height = velocityTrend.clientHeight;
+      ctx.clearRect(0,0,w,h);
+      ctx.strokeStyle = 'rgba(0,255,136,0.4)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(30, h-30);
+      ctx.lineTo(w-10, h-30);
+      ctx.moveTo(30, h-30);
+      ctx.lineTo(30, 10);
+      ctx.stroke();
+      ctx.strokeStyle = '#00ff88';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      baseHourWeights.forEach((wgt,i) => {
+        const x = mapRange(i, 0, 23, 30, w-10);
+        const vel = 0.67 * (0.9 + wgt * 0.25);
+        const y = mapRange(vel, 0.5, 1.1, h-30, 20);
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+    }
+
+    function renderDependencies() {
+      const worlds = ["Arclight","Brink","Cinder","Drift"];
+      dependencyMatrix.innerHTML = '';
+      worlds.forEach((wA, idx) => {
+        worlds.forEach((wB, jdx) => {
+          if (wA === wB) return;
+          const card = document.createElement('div');
+          card.className = 'matrix-card';
+          const weight = 0.2 + ((idx + jdx + 1) % 4) * 0.12;
+          card.innerHTML = `
+            <h4>${wA} → ${wB}</h4>
+            <div class="matrix-bar"><span style="width:${weight*100}%;"></span></div>
+            <p style="color:#c8f7ff; font-size:0.9em;">Temporal dependency ${(weight*100).toFixed(0)}% within 1h</p>
+          `;
+          dependencyMatrix.appendChild(card);
+        });
+      });
+    }
+
+    function renderCircadian() {
+      const worlds = [
+        { name:"Arclight", parts:{ Dawn:0.18, Midday:0.28, Evening:0.36, Night:0.18 } },
+        { name:"Brink", parts:{ Dawn:0.14, Midday:0.24, Evening:0.40, Night:0.22 } },
+        { name:"Cinder", parts:{ Dawn:0.22, Midday:0.26, Evening:0.30, Night:0.22 } },
+        { name:"Drift", parts:{ Dawn:0.16, Midday:0.30, Evening:0.34, Night:0.20 } }
+      ];
+      circadianGrid.innerHTML = '';
+      worlds.forEach(w => {
+        const card = document.createElement('div');
+        card.className = 'mini-chart';
+        const bars = Object.entries(w.parts).map(([k,v]) => `<div style="height:${50 + v*80}px"><span>${k}</span></div>`).join('');
+        card.innerHTML = `<h4 style="color:#d7fbe8;">${w.name}</h4><div class="mini-bars">${bars}</div>`;
+        circadianGrid.appendChild(card);
+      });
+    }
+
+    function mapRange(v, inMin, inMax, outMin, outMax) {
+      const clamped = Math.max(inMin, Math.min(inMax, v));
+      return outMin + (clamped - inMin) * (outMax - outMin) / (inMax - inMin);
+    }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function initParticles() {
+      const canvas = document.getElementById('particles');
+      const ctx = canvas.getContext('2d');
+      let w, h;
+      const particles = Array.from({length: 120}, () => ({
+        x: Math.random(), y: Math.random(), size: Math.random()*2+1, speed: Math.random()*0.0006+0.0003
+      }));
+      function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+      function draw() {
+        ctx.clearRect(0,0,w,h);
+        particles.forEach(p => {
+          p.y += p.speed; if(p.y > 1) p.y = 0;
+          p.x += Math.sin(p.y*10) * 0.0005;
+          ctx.fillStyle = 'rgba(0,255,136,0.6)';
+          ctx.fillRect(p.x*w, p.y*h, p.size, p.size);
+        });
+        requestAnimationFrame(draw);
+      }
+      resize(); window.addEventListener('resize', resize); draw();
+    }
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      oscillator = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 80;
+      gainNode.gain.value = 0.0001;
+      oscillator.connect(gainNode).connect(audioCtx.destination);
+      oscillator.start();
+    }
+
+    function toggleAudio() {
+      initAudio();
+      if (!audioPlaying) {
+        gainNode.gain.exponentialRampToValueAtTime(0.02, audioCtx.currentTime + 0.2);
+        audioStatus.textContent = 'Audio: playing temporal tone';
+        audioToggle.textContent = 'Pause Temporal Tone';
+      } else {
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.2);
+        audioStatus.textContent = 'Audio: muted';
+        audioToggle.textContent = 'Play Temporal Tone';
+      }
+      audioPlaying = !audioPlaying;
+    }
+
+    hourSlider.addEventListener('input', e => updateTimeline(parseInt(e.target.value,10)));
+    weekSlider.addEventListener('input', renderHeat);
+    heatWorld.addEventListener('change', renderHeat);
+    audioToggle.addEventListener('click', toggleAudio);
+
+    renderArchetypeProfiles();
+    renderHeat();
+    drawVelocityTrend();
+    renderDependencies();
+    renderCircadian();
+    updateTimeline(parseInt(hourSlider.value,10));
+    initParticles();
+  </script>
+</body>
+</html>

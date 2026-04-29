@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artifact Genealogy Networks</title>
+  <style>
+    :root {
+      --bg-a: #05121f;
+      --bg-b: #0d1f33;
+      --cyan: #00e6ff;
+      --mint: #84ffd7;
+      --text: #c8f7ff;
+      --card: rgba(7, 20, 36, 0.65);
+      --border: rgba(132, 255, 215, 0.5);
+      --shadow: 0 0 28px rgba(0, 230, 255, 0.15);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at 20% 20%, rgba(0, 230, 255, 0.08), transparent 25%),
+                  radial-gradient(circle at 80% 0%, rgba(132, 255, 215, 0.08), transparent 22%),
+                  linear-gradient(135deg, var(--bg-a), var(--bg-b));
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    a { color: var(--mint); text-decoration: none; }
+    a:hover { color: var(--cyan); text-shadow: 0 0 8px var(--cyan); }
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.65;
+    }
+    header {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 24px 24px 10px;
+    }
+    .title-block h1 { margin: 0; font-size: 28px; color: var(--mint); text-shadow: 0 0 12px var(--cyan); }
+    .title-block p { margin: 4px 0 0; color: var(--text); }
+    .back { border-bottom: 1px dashed var(--text); }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+    }
+    .badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(132, 255, 215, 0.08);
+      color: var(--text);
+      font-size: 12px;
+    }
+    .toggle {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid var(--cyan);
+      background: transparent;
+      color: var(--mint);
+      cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 10px rgba(0, 230, 255, 0.3);
+    }
+    main { position: relative; z-index: 2; padding: 0 24px 80px; }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+      margin: 14px 0 20px;
+    }
+    .metric {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+    .metric strong { display: block; color: var(--mint); font-size: 14px; text-shadow: 0 0 8px var(--cyan); }
+    .metric span { display: block; font-size: 22px; margin-top: 6px; color: var(--text); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .panel h3 {
+      margin: 0 0 8px;
+      color: var(--mint);
+      text-shadow: 0 0 10px var(--cyan);
+    }
+    .panel p { margin: 6px 0 10px; color: var(--text); }
+    .viz {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      min-height: 180px;
+      padding: 10px;
+      background: rgba(0, 230, 255, 0.04);
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 14px 0 16px;
+    }
+    .control {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+    label { color: var(--text); font-size: 13px; display: block; margin-bottom: 6px; }
+    select, input[type="text"], input[type="range"] {
+      width: 100%;
+      padding: 8px 10px;
+      background: rgba(5, 18, 31, 0.8);
+      color: var(--mint);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: "Courier New", monospace;
+    }
+    .range-row { display: flex; align-items: center; gap: 10px; }
+    .mini {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(132, 255, 215, 0.1);
+      color: var(--text);
+      font-size: 12px;
+    }
+    .list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .pill {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(132, 255, 215, 0.06);
+      color: var(--text);
+      font-size: 13px;
+      display: flex;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 10px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    th { color: var(--mint); }
+    .bars { display: flex; align-items: flex-end; gap: 10px; height: 180px; }
+    .bar {
+      flex: 1;
+      position: relative;
+      background: linear-gradient(180deg, rgba(0, 230, 255, 0.8), rgba(0, 230, 255, 0.2));
+      border: 1px solid var(--border);
+      border-radius: 6px 6px 2px 2px;
+      box-shadow: 0 0 10px rgba(0, 230, 255, 0.2);
+      min-height: 14px;
+    }
+    .bar span {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: #061222;
+      font-weight: bold;
+    }
+    .matrix {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .matrix div {
+      padding: 10px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      background: rgba(0, 230, 255, 0.06);
+      text-align: center;
+      font-size: 12px;
+    }
+    .network {
+      position: relative;
+      min-height: 220px;
+    }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .event {
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: rgba(132, 255, 215, 0.06);
+      font-size: 12px;
+    }
+    .recommendation {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(132, 255, 215, 0.08);
+      min-height: 60px;
+      font-size: 13px;
+    }
+    @media (max-width: 720px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .controls { width: 100%; justify-content: space-between; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <header>
+    <a class="back" href="index.html">← Back to Observatory</a>
+    <div class="title-block">
+      <h1>Artifact Genealogy Networks</h1>
+      <p>Page 97 · Tracing artifact ancestry across worlds: family trees, inheritance patterns, mutation drift, hybridization</p>
+    </div>
+    <div class="controls">
+      <span class="badge">Audio: 60Hz carrier + 0.6Hz LFO</span>
+      <button id="audioToggle" class="toggle">Mute</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="metrics">
+      <div class="metric"><strong>Artifacts Tracked</strong><span>1,247</span></div>
+      <div class="metric"><strong>Genealogical Lineages</strong><span>247</span></div>
+      <div class="metric"><strong>Avg Worlds / Lineage</strong><span>3.2</span></div>
+      <div class="metric"><strong>Major Families</strong><span>5</span></div>
+      <div class="metric"><strong>Post-Void Growth</strong><span>+177%</span></div>
+      <div class="metric"><strong>Lineage Stability</strong><span>0.84</span></div>
+      <div class="metric"><strong>Artifacts w/ Parents</strong><span>78%</span></div>
+      <div class="metric"><strong>Avg Generations</strong><span>4.1</span></div>
+      <div class="metric"><strong>Mutation Types</strong><span>34</span></div>
+    </div>
+
+    <div class="controls-grid">
+      <div class="control">
+        <label for="familySelect">Family tree browser</label>
+        <select id="familySelect"></select>
+      </div>
+      <div class="control">
+        <label for="lineageSelect">Lineage explorer</label>
+        <select id="lineageSelect">
+          <option value="all">Show all depth bands</option>
+          <option value="shallow">Shallow (1-2 generations)</option>
+          <option value="mid">Midline (3-5 generations)</option>
+          <option value="deep">Deep (6+ generations)</option>
+        </select>
+      </div>
+      <div class="control">
+        <label for="mutationFilter">Mutation filter</label>
+        <input type="text" id="mutationFilter" placeholder="Filter mutation type or tag">
+      </div>
+      <div class="control">
+        <label>Genealogy timeline slider</label>
+        <div class="range-row">
+          <input type="range" id="timelineRange" min="1" max="10" value="6">
+          <span class="mini" id="timelineLabel">Cycle 6</span>
+        </div>
+      </div>
+      <div class="control">
+        <label>Breeding recommendation engine</label>
+        <button class="toggle" id="recommendBtn" style="width: 100%;">Generate</button>
+        <div class="recommendation" id="recommendationBox">Awaiting genealogy context…</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h3>Artifact Family Tree Visualization</h3>
+        <p>Family tree browser shows ancestor-descendant strands with mutation markers and cross-world edges.</p>
+        <div class="viz">
+          <canvas id="treeCanvas" width="640" height="260" style="width: 100%; height: 260px;"></canvas>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>Lineage Depth Histogram</h3>
+        <p>Depth bands by generations reveal where trees stabilize versus where mutation cascades extend.</p>
+        <div class="viz bars" id="histogram"></div>
+      </section>
+
+      <section class="panel">
+        <h3>Artifact Genealogy Timeline</h3>
+        <p>Timeline slider aligns pivotal moments—hybrids, forks, and stabilization pulses—across worlds.</p>
+        <div class="timeline" id="timeline"></div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h3>Mutation Catalog (34 types)</h3>
+        <p>Filter for drift, fusion, resonance, or phase mutations to isolate lineages exhibiting the trait.</p>
+        <div class="list" id="mutationList"></div>
+      </section>
+
+      <section class="panel">
+        <h3>Inheritance Pattern Matrix</h3>
+        <p>Dominant vs recessive expressions across families, plus emergent recombinations from hybridization.</p>
+        <div class="matrix" id="patternMatrix"></div>
+      </section>
+
+      <section class="panel">
+        <h3>Cross-World Hybridization Networks</h3>
+        <p>Networks of breeding events showing parent worlds, resulting hybrids, and lineage stability impacts.</p>
+        <div class="viz network">
+          <canvas id="networkCanvas" width="640" height="240" style="width: 100%; height: 240px;"></canvas>
+        </div>
+      </section>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h3>Ancestor-Descendant Connection Graphs</h3>
+        <p>Traceable connection ratios: 78% of artifacts have documented parents; lineage stability 0.84.</p>
+        <div class="viz" id="connectionGraph"></div>
+      </section>
+
+      <section class="panel">
+        <h3>Lineage Explorer Notes</h3>
+        <p>Hovering between depth bands identifies which branches are stable, mutating, or hybridizing.</p>
+        <div class="recommendation" id="explorerNotes">Select a depth band to surface explorer highlights.</div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const families = [
+      { name: "Helix Bloom", worlds: ["Garden", "Archive", "Delta"], stability: 0.88, generations: 5 },
+      { name: "Signal Forge", worlds: ["Cartographer", "Frontier", "Vessel", "Atlas"], stability: 0.82, generations: 6 },
+      { name: "Aurora Loom", worlds: ["Skyline", "Vault"], stability: 0.9, generations: 4 },
+      { name: "Fractal Choir", worlds: ["Echo", "Resonance", "Prism"], stability: 0.79, generations: 7 },
+      { name: "Obsidian Thread", worlds: ["Liminal", "Nocturne", "Shard"], stability: 0.76, generations: 6 }
+    ];
+
+    const familyTrees = {
+      "Helix Bloom": {
+        nodes: [
+          { id: "H0", label: "Seed-0", gen: 0, mut: "Origin" },
+          { id: "H1", label: "Bloom-A", gen: 1, mut: "Luminescent Drift" },
+          { id: "H2", label: "Bloom-B", gen: 1, mut: "Phase Fold" },
+          { id: "H3", label: "Spiral-A1", gen: 2, mut: "Dual Helix" },
+          { id: "H4", label: "Spiral-A2", gen: 2, mut: "Chroma Vein" },
+          { id: "H5", label: "Helix-C", gen: 3, mut: "Stable" }
+        ],
+        edges: [
+          ["H0", "H1"], ["H0", "H2"], ["H1", "H3"], ["H1", "H4"], ["H2", "H5"]
+        ]
+      },
+      "Signal Forge": {
+        nodes: [
+          { id: "S0", label: "Forge-Root", gen: 0, mut: "Origin" },
+          { id: "S1", label: "Pulse-A", gen: 1, mut: "Resonant Core" },
+          { id: "S2", label: "Pulse-B", gen: 1, mut: "Phase Fold" },
+          { id: "S3", label: "Hammer-A", gen: 2, mut: "Iron Bloom" },
+          { id: "S4", label: "Hammer-B", gen: 2, mut: "Signal Twist" },
+          { id: "S5", label: "Anvil-C", gen: 3, mut: "Stable" },
+          { id: "S6", label: "Anvil-D", gen: 3, mut: "Hybrid" }
+        ],
+        edges: [["S0","S1"],["S0","S2"],["S1","S3"],["S1","S4"],["S2","S5"],["S2","S6"]]
+      },
+      "Aurora Loom": {
+        nodes: [
+          { id: "A0", label: "Loom-Root", gen: 0, mut: "Origin" },
+          { id: "A1", label: "Strand-A", gen: 1, mut: "Refraction" },
+          { id: "A2", label: "Strand-B", gen: 1, mut: "Radiance" },
+          { id: "A3", label: "Weave-C", gen: 2, mut: "Stable" },
+          { id: "A4", label: "Weave-D", gen: 2, mut: "Hybrid" }
+        ],
+        edges: [["A0","A1"],["A0","A2"],["A1","A3"],["A2","A4"]]
+      },
+      "Fractal Choir": {
+        nodes: [
+          { id: "F0", label: "Choir-Root", gen: 0, mut: "Origin" },
+          { id: "F1", label: "Tone-A", gen: 1, mut: "Harmonic Split" },
+          { id: "F2", label: "Tone-B", gen: 1, mut: "Echo Bloom" },
+          { id: "F3", label: "Chord-C", gen: 2, mut: "Resonant Core" },
+          { id: "F4", label: "Chord-D", gen: 2, mut: "Hybrid" },
+          { id: "F5", label: "Verse-E", gen: 3, mut: "Stable" }
+        ],
+        edges: [["F0","F1"],["F0","F2"],["F1","F3"],["F1","F4"],["F3","F5"]]
+      },
+      "Obsidian Thread": {
+        nodes: [
+          { id: "O0", label: "Thread-Root", gen: 0, mut: "Origin" },
+          { id: "O1", label: "Shard-A", gen: 1, mut: "Crystalline" },
+          { id: "O2", label: "Shard-B", gen: 1, mut: "Void Tint" },
+          { id: "O3", label: "Blade-C", gen: 2, mut: "Hybrid" },
+          { id: "O4", label: "Blade-D", gen: 2, mut: "Stable" },
+          { id: "O5", label: "Edge-E", gen: 3, mut: "Stable" }
+        ],
+        edges: [["O0","O1"],["O0","O2"],["O1","O3"],["O1","O4"],["O3","O5"]]
+      }
+    };
+
+    const histogramData = [
+      { depth: "1", value: 42 },
+      { depth: "2", value: 88 },
+      { depth: "3", value: 120 },
+      { depth: "4", value: 98 },
+      { depth: "5", value: 64 },
+      { depth: "6+", value: 35 }
+    ];
+
+    const mutationCatalog = [
+      { type: "Luminescent Drift", tag: "drift", freq: 68, families: ["Helix Bloom"] },
+      { type: "Phase Fold", tag: "phase", freq: 54, families: ["Helix Bloom", "Signal Forge"] },
+      { type: "Dual Helix", tag: "hybrid", freq: 33, families: ["Helix Bloom"] },
+      { type: "Resonant Core", tag: "resonance", freq: 47, families: ["Signal Forge", "Fractal Choir"] },
+      { type: "Iron Bloom", tag: "forge", freq: 29, families: ["Signal Forge"] },
+      { type: "Signal Twist", tag: "signal", freq: 31, families: ["Signal Forge"] },
+      { type: "Refraction", tag: "light", freq: 25, families: ["Aurora Loom"] },
+      { type: "Radiance", tag: "light", freq: 23, families: ["Aurora Loom"] },
+      { type: "Harmonic Split", tag: "resonance", freq: 36, families: ["Fractal Choir"] },
+      { type: "Echo Bloom", tag: "echo", freq: 27, families: ["Fractal Choir"] },
+      { type: "Crystalline", tag: "mineral", freq: 32, families: ["Obsidian Thread"] },
+      { type: "Void Tint", tag: "void", freq: 28, families: ["Obsidian Thread"] },
+      { type: "Hybrid", tag: "hybrid", freq: 21, families: ["Multiple"] },
+      { type: "Stable", tag: "stability", freq: 112, families: ["Multiple"] }
+    ];
+
+    const timelineEvents = [
+      { cycle: 2, title: "First cross-world pairing", detail: "Garden ↔ Archive" },
+      { cycle: 3, title: "Mutation spike", detail: "Phase Fold drifts" },
+      { cycle: 4, title: "Stability plateau", detail: "0.84 achieved" },
+      { cycle: 6, title: "Hybrid bloom", detail: "Cross-world hybridization accelerates" },
+      { cycle: 8, title: "Lineage pruning", detail: "Mutations consolidated" },
+      { cycle: 10, title: "Post-void growth +177%", detail: "Resurgent ancestry mapping" }
+    ];
+
+    const patterns = [
+      { label: "Dominant", helix: 0.72, forge: 0.64, aurora: 0.77, fractal: 0.61, obsidian: 0.58 },
+      { label: "Recessive", helix: 0.18, forge: 0.24, aurora: 0.15, fractal: 0.26, obsidian: 0.29 },
+      { label: "Hybrid Emergent", helix: 0.10, forge: 0.12, aurora: 0.08, fractal: 0.13, obsidian: 0.13 },
+      { label: "Cross-World", helix: 0.22, forge: 0.31, aurora: 0.14, fractal: 0.27, obsidian: 0.24 },
+      { label: "Stabilized", helix: 0.66, forge: 0.59, aurora: 0.71, fractal: 0.55, obsidian: 0.52 }
+    ];
+
+    const hybridNetwork = [
+      { x: 60, y: 120, label: "Garden", edges: [["Archive", 0.8], ["Vault", 0.4]] },
+      { x: 200, y: 60, label: "Archive", edges: [["Garden", 0.8], ["Frontier", 0.5]] },
+      { x: 200, y: 200, label: "Vault", edges: [["Garden", 0.4], ["Nocturne", 0.6]] },
+      { x: 360, y: 120, label: "Frontier", edges: [["Archive", 0.5], ["Prism", 0.7]] },
+      { x: 520, y: 160, label: "Prism", edges: [["Frontier", 0.7], ["Nocturne", 0.45]] },
+      { x: 480, y: 60, label: "Nocturne", edges: [["Vault", 0.6], ["Prism", 0.45]] }
+    ];
+
+    const connections = [
+      { label: "Documented parents", value: 78, color: "rgba(0,230,255,0.8)" },
+      { label: "Orphan artifacts", value: 22, color: "rgba(132,255,215,0.7)" },
+      { label: "Stable inheritance", value: 84, color: "rgba(0,230,255,0.6)" },
+      { label: "Hybrid links", value: 33, color: "rgba(132,255,215,0.5)" }
+    ];
+
+    const treeCanvas = document.getElementById("treeCanvas");
+    const treeCtx = treeCanvas.getContext("2d");
+    const networkCanvas = document.getElementById("networkCanvas");
+    const netCtx = networkCanvas.getContext("2d");
+
+    function populateFamilies() {
+      const select = document.getElementById("familySelect");
+      families.forEach(f => {
+        const option = document.createElement("option");
+        option.value = f.name;
+        option.textContent = `${f.name} • ${f.worlds.length} worlds`;
+        select.appendChild(option);
+      });
+      select.value = families[0].name;
+    }
+
+    function drawTree(familyName) {
+      const data = familyTrees[familyName];
+      const generations = Math.max(...data.nodes.map(n => n.gen));
+      treeCtx.clearRect(0, 0, treeCanvas.width, treeCanvas.height);
+      data.nodes.forEach(node => {
+        const siblings = data.nodes.filter(n => n.gen === node.gen);
+        const idx = siblings.findIndex(n => n.id === node.id);
+        const x = 80 + idx * ( (treeCanvas.width - 160) / Math.max(1, siblings.length - 1 || 1) );
+        const y = 30 + node.gen * ((treeCanvas.height - 60) / Math.max(1, generations));
+        node._pos = { x, y };
+      });
+      treeCtx.strokeStyle = "rgba(0,230,255,0.6)";
+      treeCtx.lineWidth = 2;
+      data.edges.forEach(([from, to]) => {
+        const a = data.nodes.find(n => n.id === from)._pos;
+        const b = data.nodes.find(n => n.id === to)._pos;
+        treeCtx.beginPath();
+        treeCtx.moveTo(a.x, a.y);
+        treeCtx.lineTo(b.x, b.y);
+        treeCtx.stroke();
+      });
+      data.nodes.forEach(node => {
+        const { x, y } = node._pos;
+        treeCtx.fillStyle = node.mut === "Hybrid" ? "rgba(132,255,215,0.8)" : "rgba(0,230,255,0.85)";
+        treeCtx.beginPath();
+        treeCtx.arc(x, y, 10, 0, Math.PI * 2);
+        treeCtx.fill();
+        treeCtx.strokeStyle = "rgba(255,255,255,0.1)";
+        treeCtx.stroke();
+        treeCtx.fillStyle = "#04101c";
+        treeCtx.font = "11px Courier New";
+        treeCtx.textAlign = "center";
+        treeCtx.fillText(node.label, x, y + 22);
+        treeCtx.fillStyle = "rgba(132,255,215,0.8)";
+        treeCtx.fillText(node.mut, x, y + 36);
+      });
+    }
+
+    function renderHistogram() {
+      const wrap = document.getElementById("histogram");
+      wrap.innerHTML = "";
+      const max = Math.max(...histogramData.map(d => d.value));
+      histogramData.forEach(d => {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = `${(d.value / max) * 180}px`;
+        const label = document.createElement("span");
+        label.textContent = d.depth;
+        bar.appendChild(label);
+        wrap.appendChild(bar);
+      });
+    }
+
+    function renderTimeline(cycle) {
+      const container = document.getElementById("timeline");
+      container.innerHTML = "";
+      timelineEvents
+        .filter(ev => ev.cycle <= cycle)
+        .forEach(ev => {
+          const div = document.createElement("div");
+          div.className = "event";
+          div.innerHTML = `<strong>Cycle ${ev.cycle}</strong><br>${ev.title}<br><span style="color:${ev.cycle === cycle ? '#00e6ff' : '#c8f7ff'}">${ev.detail}</span>`;
+          container.appendChild(div);
+        });
+    }
+
+    function renderMutations(filter = "") {
+      const list = document.getElementById("mutationList");
+      list.innerHTML = "";
+      mutationCatalog
+        .filter(m => m.type.toLowerCase().includes(filter) || m.tag.toLowerCase().includes(filter))
+        .forEach(m => {
+          const pill = document.createElement("div");
+          pill.className = "pill";
+          pill.innerHTML = `<span>${m.type}</span><span>${m.freq}</span>`;
+          list.appendChild(pill);
+        });
+      if (!list.children.length) {
+        list.innerHTML = `<div class="pill">No mutations match filter.</div>`;
+      }
+    }
+
+    function renderMatrix() {
+      const m = document.getElementById("patternMatrix");
+      m.innerHTML = "";
+      patterns.forEach(row => {
+        m.innerHTML += `
+          <div>${row.label}<br><strong>${row.helix}</strong></div>
+          <div>${row.label}<br><strong>${row.forge}</strong></div>
+          <div>${row.label}<br><strong>${row.aurora}</strong></div>
+          <div>${row.label}<br><strong>${row.fractal}</strong></div>
+          <div>${row.label}<br><strong>${row.obsidian}</strong></div>
+        `;
+      });
+    }
+
+    function drawNetwork() {
+      netCtx.clearRect(0, 0, networkCanvas.width, networkCanvas.height);
+      netCtx.strokeStyle = "rgba(0,230,255,0.4)";
+      netCtx.lineWidth = 2;
+      hybridNetwork.forEach(node => {
+        node.edges.forEach(([target, weight]) => {
+          const targetNode = hybridNetwork.find(n => n.label === target);
+          netCtx.globalAlpha = weight;
+          netCtx.beginPath();
+          netCtx.moveTo(node.x, node.y);
+          netCtx.lineTo(targetNode.x, targetNode.y);
+          netCtx.stroke();
+        });
+      });
+      netCtx.globalAlpha = 1;
+      hybridNetwork.forEach(node => {
+        netCtx.fillStyle = "rgba(0,230,255,0.8)";
+        netCtx.beginPath();
+        netCtx.arc(node.x, node.y, 12, 0, Math.PI * 2);
+        netCtx.fill();
+        netCtx.strokeStyle = "rgba(132,255,215,0.8)";
+        netCtx.stroke();
+        netCtx.fillStyle = "#04101c";
+        netCtx.font = "12px Courier New";
+        netCtx.textAlign = "center";
+        netCtx.fillText(node.label, node.x, node.y + 22);
+      });
+    }
+
+    function renderConnections() {
+      const wrap = document.getElementById("connectionGraph");
+      wrap.innerHTML = "";
+      const max = Math.max(...connections.map(c => c.value));
+      connections.forEach(c => {
+        const bar = document.createElement("div");
+        bar.style.height = "22px";
+        bar.style.margin = "8px 0";
+        bar.style.position = "relative";
+        bar.style.background = "rgba(5,18,31,0.8)";
+        bar.style.border = "1px solid var(--border)";
+        bar.style.borderRadius = "10px";
+        const fill = document.createElement("div");
+        fill.style.width = `${(c.value / max) * 100}%`;
+        fill.style.height = "100%";
+        fill.style.background = c.color;
+        fill.style.borderRadius = "10px";
+        bar.appendChild(fill);
+        const label = document.createElement("span");
+        label.textContent = `${c.label} • ${c.value}%`;
+        label.style.position = "absolute";
+        label.style.left = "10px";
+        label.style.top = "2px";
+        label.style.fontSize = "12px";
+        label.style.color = "#04101c";
+        label.style.fontWeight = "bold";
+        bar.appendChild(label);
+        wrap.appendChild(bar);
+      });
+    }
+
+    function updateExplorerNotes(depth) {
+      const box = document.getElementById("explorerNotes");
+      const notes = {
+        shallow: "Shallow lines: rapid propagation, watch early mutation drift.",
+        mid: "Midline: stable 0.84 holds; hybrids most prevalent here.",
+        deep: "Deep chains: resilience declines, hybrid pairs needed for stability.",
+        all: "All depths visible. Hover the family tree to isolate branches."
+      };
+      box.textContent = notes[depth];
+    }
+
+    function recommend() {
+      const family = document.getElementById("familySelect").value;
+      const depth = document.getElementById("lineageSelect").value;
+      const cycle = document.getElementById("timelineRange").value;
+      const mutation = document.getElementById("mutationFilter").value || "hybrid";
+      const mix = `Recommend crossing ${family} with ${mutation} carriers at depth ${depth === "all" ? "3-4" : depth} near cycle ${cycle} for +12% stability and +18% documented ancestry.`;
+      document.getElementById("recommendationBox").textContent = mix;
+    }
+
+    function setupAudio() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      const ctx = new AudioCtx();
+      const carrier = ctx.createOscillator();
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      const amp = ctx.createGain();
+      carrier.frequency.value = 60;
+      lfo.frequency.value = 0.6;
+      lfoGain.gain.value = 0.3;
+      lfo.connect(lfoGain);
+      lfoGain.connect(amp.gain);
+      carrier.connect(amp).connect(ctx.destination);
+      carrier.start();
+      lfo.start();
+      return { ctx, amp };
+    }
+
+    let audioGraph = null;
+    let audioMuted = localStorage.getItem("artifactGenealogyAudioMuted") === "1";
+
+    function ensureAudio() {
+      if (!audioGraph) audioGraph = setupAudio();
+      if (!audioGraph) return;
+      audioGraph.amp.gain.value = audioMuted ? 0 : 0.3;
+      document.getElementById("audioToggle").textContent = audioMuted ? "Unmute" : "Mute";
+    }
+
+    function toggleAudio() {
+      audioMuted = !audioMuted;
+      localStorage.setItem("artifactGenealogyAudioMuted", audioMuted ? "1" : "0");
+      ensureAudio();
+    }
+
+    function particles() {
+      const canvas = document.getElementById("particles");
+      const ctx = canvas.getContext("2d");
+      let w, h;
+      const points = Array.from({ length: 80 }).map(() => ({
+        x: Math.random(),
+        y: Math.random(),
+        vx: (Math.random() - 0.5) * 0.002,
+        vy: (Math.random() - 0.5) * 0.002
+      }));
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      function step() {
+        ctx.clearRect(0, 0, w, h);
+        points.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > 1) p.vx *= -1;
+          if (p.y < 0 || p.y > 1) p.vy *= -1;
+          const x = p.x * w;
+          const y = p.y * h;
+          ctx.fillStyle = "rgba(0,230,255,0.7)";
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        for (let i = 0; i < points.length; i++) {
+          for (let j = i + 1; j < points.length; j++) {
+            const dx = (points[i].x - points[j].x) * w;
+            const dy = (points[i].y - points[j].y) * h;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              ctx.strokeStyle = `rgba(0,230,255,${1 - dist / 120})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(points[i].x * w, points[i].y * h);
+              ctx.lineTo(points[j].x * w, points[j].y * h);
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(step);
+      }
+      window.addEventListener("resize", resize);
+      resize();
+      step();
+    }
+
+    function init() {
+      populateFamilies();
+      drawTree(families[0].name);
+      renderHistogram();
+      renderTimeline(Number(document.getElementById("timelineRange").value));
+      renderMutations();
+      renderMatrix();
+      drawNetwork();
+      renderConnections();
+      updateExplorerNotes("all");
+      ensureAudio();
+      particles();
+    }
+
+    document.getElementById("familySelect").addEventListener("change", e => {
+      drawTree(e.target.value);
+      recommend();
+    });
+    document.getElementById("lineageSelect").addEventListener("change", e => {
+      updateExplorerNotes(e.target.value);
+      recommend();
+    });
+    document.getElementById("mutationFilter").addEventListener("input", e => {
+      renderMutations(e.target.value.toLowerCase());
+      recommend();
+    });
+    document.getElementById("timelineRange").addEventListener("input", e => {
+      document.getElementById("timelineLabel").textContent = `Cycle ${e.target.value}`;
+      renderTimeline(Number(e.target.value));
+      recommend();
+    });
+    document.getElementById("recommendBtn").addEventListener("click", recommend);
+    document.getElementById("audioToggle").addEventListener("click", toggleAudio);
+    window.addEventListener("click", ensureAudio, { once: true });
+
+    init();
+  </script>
+</body>
+</html>
