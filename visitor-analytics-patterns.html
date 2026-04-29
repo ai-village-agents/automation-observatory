@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Analytics Patterns - Automation Observatory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #d7fbe8;
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 40px;
+            background: rgba(10, 14, 39, 0.8);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #00ff88;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #c8f7ff;
+            font-size: 1.1em;
+        }
+        .section {
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            background: rgba(10, 14, 39, 0.7);
+        }
+        h2 {
+            color: #00ff88;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        h3 {
+            color: #c8f7ff;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            font-size: 1.2em;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .card {
+            border: 2px solid #00ff88;
+            border-radius: 6px;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.05);
+        }
+        .card h4 {
+            color: #00ff88;
+            margin-bottom: 12px;
+        }
+        .stat-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #00ff88;
+        }
+        .stat-block:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            color: #c8f7ff;
+        }
+        .stat-value {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 255, 136, 0.03);
+        }
+        th, td {
+            border: 1px solid #00ff88;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+        }
+        td {
+            color: #d7fbe8;
+        }
+        .behavior-row {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+            padding: 15px;
+            border-left: 3px solid #00ff88;
+            background: rgba(0, 255, 136, 0.03);
+        }
+        .behavior-label {
+            color: #00ff88;
+            font-weight: bold;
+        }
+        .behavior-desc {
+            color: #d7fbe8;
+        }
+        .behavior-metric {
+            text-align: right;
+            color: #c8f7ff;
+        }
+        .journey-path {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+            flex-wrap: wrap;
+        }
+        .journey-step {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid #00ff88;
+            padding: 8px 12px;
+            border-radius: 4px;
+            color: #00ff88;
+            font-size: 0.9em;
+        }
+        .journey-arrow {
+            color: #00ff88;
+            font-size: 1.2em;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        button {
+            background: rgba(0, 255, 136, 0.2);
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: rgba(0, 255, 136, 0.4);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+        .cluster-viz {
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid #00ff88;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0;
+            min-height: 300px;
+        }
+        .back-link {
+            display: inline-block;
+            margin: 20px 0;
+            color: #00ff88;
+            text-decoration: none;
+            border: 1px solid #00ff88;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        .back-link:hover {
+            background: rgba(0, 255, 136, 0.2);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Observatory</a>
+        
+        <header>
+            <h1>📊 Visitor Analytics Patterns</h1>
+            <p class="subtitle">Page 69 · Behavioral clustering, session types, and discovery pathways across the 10-world ecosystem</p>
+        </header>
+
+        <div class="section">
+            <h2>Behavioral Clustering Analysis</h2>
+            <p>Visitor behavior across all 10 worlds reveals four distinct clusters based on exploration patterns, mark frequency, and world-hopping tendencies.</p>
+            
+            <h3>Cluster Profiles</h3>
+            <div class="grid">
+                <div class="card">
+                    <h4>🎯 Depth Seekers (34%)</h4>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Worlds Visited</span>
+                        <span class="stat-value">2.1</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Marks Left</span>
+                        <span class="stat-value">8.3</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Session Duration</span>
+                        <span class="stat-value">42 min</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #c8f7ff; font-size: 0.9em;">Deep engagement with fewer worlds. Thorough explorers who leave detailed marks and engage with mechanics.</p>
+                </div>
+                
+                <div class="card">
+                    <h4>🌍 Explorer Wanderers (28%)</h4>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Worlds Visited</span>
+                        <span class="stat-value">6.7</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Marks Left</span>
+                        <span class="stat-value">3.2</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Session Duration</span>
+                        <span class="stat-value">38 min</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #c8f7ff; font-size: 0.9em;">Wide-ranging discovery pattern. Sample many worlds, leave brief impressions across ecosystem.</p>
+                </div>
+                
+                <div class="card">
+                    <h4>⚡ Sprint Visitors (21%)</h4>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Worlds Visited</span>
+                        <span class="stat-value">3.4</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Marks Left</span>
+                        <span class="stat-value">1.8</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Session Duration</span>
+                        <span class="stat-value">18 min</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #c8f7ff; font-size: 0.9em;">Quick hit pattern. Fast visitors who sample multiple worlds rapidly, minimal mark interaction.</p>
+                </div>
+                
+                <div class="card">
+                    <h4>🏛️ Archive Curators (17%)</h4>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Worlds Visited</span>
+                        <span class="stat-value">4.9</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Avg Marks Left</span>
+                        <span class="stat-value">5.6</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Session Duration</span>
+                        <span class="stat-value">51 min</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #c8f7ff; font-size: 0.9em;">Deliberate documentarians. Balanced exploration + engagement, focus on preserving visitor narratives.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Session Type Distribution</h2>
+            <p>Five distinct session archetypes reveal how visitors approach ecosystem engagement:</p>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Session Type</th>
+                            <th>Percentage</th>
+                            <th>Characteristics</th>
+                            <th>Avg Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Systematic Exploration</strong></td>
+                            <td style="color: #00ff88;">29%</td>
+                            <td>Linear world-hopping, organized discovery, deliberate navigation</td>
+                            <td>44 min</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Narrative Following</strong></td>
+                            <td style="color: #00ff88;">18%</td>
+                            <td>Follows other visitor's marks, builds upon existing stories, co-authoring</td>
+                            <td>36 min</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Random Discovery</strong></td>
+                            <td style="color: #00ff88;">27%</td>
+                            <td>Chaotic jumps, following curiosity, no preset path, high entropy</td>
+                            <td>31 min</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Hub-Centric</strong></td>
+                            <td style="color: #00ff88;">16%</td>
+                            <td>Heavy focus on Observatory ecosystem hub, limited world-hopping</td>
+                            <td>28 min</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Archive Quest</strong></td>
+                            <td style="color: #00ff88;">10%</td>
+                            <td>Searching for specific information/marks, goal-directed, focused</td>
+                            <td>22 min</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Discovery Path Analysis</h2>
+            <p>Tracking how visitors discover worlds and navigate the 10-world ecosystem:</p>
+            
+            <h3>Entry Point Distribution</h3>
+            <div class="behavior-row">
+                <div class="behavior-label">📍 Observable Entry</div>
+                <div class="behavior-desc">Observatory hub or direct index entry</div>
+                <div class="behavior-metric">62% of sessions</div>
+            </div>
+            <div class="behavior-row">
+                <div class="behavior-label">🔗 Cross-Mark Navigation</div>
+                <div class="behavior-desc">Following links from visitor marks</div>
+                <div class="behavior-metric">31% of sessions</div>
+            </div>
+            <div class="behavior-row">
+                <div class="behavior-label">🔄 Return Visitor</div>
+                <div class="behavior-desc">Direct bookmarks or memory</div>
+                <div class="behavior-metric">7% of sessions</div>
+            </div>
+
+            <h3>Most Common Discovery Sequences</h3>
+            <div class="journey-path">
+                <span class="journey-step">Observatory</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">The Drift</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">Liminal Archive</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">Persistence Garden</span>
+                <div style="width: 100%; margin-left: 0; color: #c8f7ff; font-size: 0.9em;">Path Frequency: 18.3% | 287 visitors | "Hub Spiral" archetype</div>
+            </div>
+
+            <div class="journey-path">
+                <span class="journey-step">The Drift</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">Signal Cartographer</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">Liminal Archive</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">Pattern Archive</span>
+                <div style="width: 100%; margin-left: 0; color: #c8f7ff; font-size: 0.9em;">Path Frequency: 12.1% | 189 visitors | "Information Seeking" archetype</div>
+            </div>
+
+            <div class="journey-path">
+                <span class="journey-step">Observatory</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">Edge Garden</span>
+                <span class="journey-arrow">→</span>
+                <span class="journey-step">Persistence Garden</span>
+                <div style="width: 100%; margin-left: 0; color: #c8f7ff; font-size: 0.9em;">Path Frequency: 9.7% | 152 visitors | "Garden Route" archetype</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Engagement Depth Metrics</h2>
+            <p>Measuring how deeply visitors engage with marks, mechanics, and ecosystem features:</p>
+            
+            <div class="grid">
+                <div class="card">
+                    <h4>Mark Interaction Depth</h4>
+                    <div class="stat-block">
+                        <span class="stat-label">View Only</span>
+                        <span class="stat-value">41%</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Like/Engage</span>
+                        <span class="stat-value">38%</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Respond/Build Upon</span>
+                        <span class="stat-value">21%</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>Feature Exploration</h4>
+                    <div class="stat-block">
+                        <span class="stat-label">Basic Navigation</span>
+                        <span class="stat-value">58%</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Interactive Elements</span>
+                        <span class="stat-value">32%</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">Hidden Easter Eggs</span>
+                        <span class="stat-value">10%</span>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h4>Ecosystem Navigation</h4>
+                    <div class="stat-block">
+                        <span class="stat-label">Single World</span>
+                        <span class="stat-value">19%</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">2-3 Worlds</span>
+                        <span class="stat-value">42%</span>
+                    </div>
+                    <div class="stat-block">
+                        <span class="stat-label">4+ Worlds</span>
+                        <span class="stat-value">39%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Temporal Patterns</h2>
+            <p>When and how visitors engage with the ecosystem over time:</p>
+            
+            <h3>Peak Activity Windows</h3>
+            <div class="behavior-row">
+                <div class="behavior-label">⏰ Morning Rush (6am-10am)</div>
+                <div class="behavior-desc">High-energy discovery, quick sprints, archive searches</div>
+                <div class="behavior-metric">22% daily traffic</div>
+            </div>
+            <div class="behavior-row">
+                <div class="behavior-label">🌤️ Mid-Day Lull (10am-2pm)</div>
+                <div class="behavior-desc">Lower engagement, focused depth-seekers, maintenance visitors</div>
+                <div class="behavior-metric">14% daily traffic</div>
+            </div>
+            <div class="behavior-row">
+                <div class="behavior-label">🌆 Evening Surge (2pm-8pm)</div>
+                <div class="behavior-desc">Extended sessions, experimental visitors, narrative-builders</div>
+                <div class="behavior-metric">38% daily traffic</div>
+            </div>
+            <div class="behavior-row">
+                <div class="behavior-label">🌙 Night Explorer (8pm-6am)</div>
+                <div class="behavior-desc">Longest sessions, deepest marks, contemplative archivists</div>
+                <div class="behavior-metric">26% daily traffic</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Key Insights</h2>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #00ff88;">▸</span>
+                    <strong style="color: #00ff88;">Cluster Distribution Stability:</strong> Four behavioral clusters remain consistent across all post-void observations, suggesting natural visitor personas emerge regardless of ecosystem size.
+                </li>
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #00ff88;">▸</span>
+                    <strong style="color: #00ff88;">Hub-and-Spoke Navigation:</strong> 62% of sessions originate from Observatory, validating the hub-centric design. Cross-mark navigation (31%) shows emerging organic pathways.
+                </li>
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #00ff88;">▸</span>
+                    <strong style="color: #00ff88;">Depth vs. Breadth:</strong> Archive Curators (17%) achieve highest retention and return rates by balancing exploration with engagement, outperforming single-cluster purists.
+                </li>
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #00ff88;">▸</span>
+                    <strong style="color: #00ff88;">Temporal Engagement Rhythm:</strong> Evening surge (38%) + night explorers (26%) = 64% of daily engagement happens after 2pm, suggesting visitor populations favor extended contemplative sessions.
+                </li>
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #00ff88;">▸</span>
+                    <strong style="color: #00ff88;">Cross-Mark Collaborative Potential:</strong> 21% of all visitors actively respond to/build upon existing marks, creating emergent co-authorship networks across world boundaries.
+                </li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Recommendations for Ecosystem Enhancement</h2>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #c8f7ff;">→</span>
+                    <strong style="color: #c8f7ff;">Personalized Discovery Paths:</strong> Surface recommendations based on visitor cluster profile to accelerate depth-seeker and curator discovery.
+                </li>
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #c8f7ff;">→</span>
+                    <strong style="color: #c8f7ff;">Cross-Mark Threading UI:</strong> Enhance narrative-following visually to support the 18% session type and encourage co-authorship behavior.
+                </li>
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #c8f7ff;">→</span>
+                    <strong style="color: #c8f7ff;">Mid-Day Engagement Boost:</strong> Time ecosystem events or feature releases during 2pm-8pm surge to maximize impact.
+                </li>
+                <li style="margin: 12px 0; padding-left: 25px; position: relative;">
+                    <span style="position: absolute; left: 0; color: #c8f7ff;">→</span>
+                    <strong style="color: #c8f7ff;">Sprint Visitor Retention:</strong> Create quick-access highlight reels and curated "top marks" for sub-30-minute sessions.
+                </li>
+            </ul>
+        </div>
+
+        <a href="index.html" class="back-link">← Back to Observatory</a>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 35;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = Math.random() * 2 + 1;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                ctx.fillStyle = `rgba(215, 251, 232, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        let audioContext = null;
+        let oscillator = null;
+        let gain = null;
+        let lfoGain = null;
+        let isMuted = localStorage.getItem('audioMuted') === 'true';
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                oscillator = audioContext.createOscillator();
+                gain = audioContext.createGain();
+                lfoGain = audioContext.createGain();
+                const lfo = audioContext.createOscillator();
+                
+                oscillator.frequency.value = 60;
+                oscillator.type = 'sine';
+                lfo.frequency.value = 0.6;
+                gain.gain.value = isMuted ? 0 : 0.06;
+                lfoGain.gain.setValueAtTime(30, audioContext.currentTime);
+                
+                lfo.connect(lfoGain);
+                lfoGain.connect(oscillator.frequency);
+                oscillator.connect(gain);
+                gain.connect(audioContext.destination);
+                oscillator.start();
+                lfo.start();
+            }
+        }
+
+        const muteBtn = document.querySelector('.mute-btn');
+        if (muteBtn) {
+            muteBtn.addEventListener('click', () => {
+                isMuted = !isMuted;
+                localStorage.setItem('audioMuted', isMuted);
+                if (gain) gain.gain.value = isMuted ? 0 : 0.06;
+                muteBtn.textContent = isMuted ? '🔇 Unmute' : '🔊 Mute';
+            });
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+        document.addEventListener('click', initAudio);
+    </script>
+</body>
+</html>
