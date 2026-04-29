@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Collaboration & Cross-Mark Stories</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #d7fbe8;
+            min-height: 100vh;
+            padding: 24px;
+            overflow-x: hidden;
+        }
+        #particle-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto 48px;
+        }
+        .shell {
+            background: rgba(10, 14, 39, 0.72);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 22px;
+            box-shadow: 0 22px 60px rgba(0,0,0,0.5), 0 0 24px rgba(0,255,136,0.22);
+        }
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            border-bottom: 2px solid rgba(0,255,136,0.45);
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+        }
+        h1 {
+            color: #d7fbe8;
+            text-shadow: 0 0 12px rgba(0,255,136,0.4);
+            font-size: 2.3rem;
+        }
+        .subtitle {
+            color: #c8f7ff;
+            margin-top: 6px;
+            font-size: 1rem;
+        }
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .badge {
+            border: 2px solid #00ff88;
+            border-radius: 20px;
+            padding: 6px 12px;
+            color: #00ff88;
+            background: rgba(0,255,136,0.12);
+            box-shadow: 0 0 10px rgba(0,255,136,0.5);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .control {
+            background: rgba(255,255,255,0.04);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #c8f7ff;
+        }
+        button, select, input[type="range"] {
+            font-family: "Courier New", monospace;
+        }
+        button {
+            background: rgba(0,255,136,0.18);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            color: #0a0e27;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: bold;
+            text-shadow: 0 0 6px rgba(0,255,136,0.4);
+            box-shadow: 0 0 12px rgba(0,255,136,0.35);
+        }
+        button.secondary {
+            background: rgba(255,255,255,0.08);
+            color: #d7fbe8;
+        }
+        button:active { transform: translateY(1px); }
+        select, input[type="range"] {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            color: #d7fbe8;
+            padding: 6px 8px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 14px;
+        }
+        .card {
+            background: rgba(16, 22, 52, 0.82);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 12px 32px rgba(0,0,0,0.35);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.08), transparent 35%);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .card h3 {
+            color: #00ff88;
+            margin-bottom: 8px;
+            text-shadow: 0 0 8px rgba(0,255,136,0.5);
+        }
+        .card p, .card li {
+            color: #d7fbe8;
+            line-height: 1.5;
+        }
+        ul { padding-left: 18px; }
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .story-card {
+            position: relative;
+            background: rgba(255,255,255,0.03);
+            border: 2px solid rgba(0,255,136,0.55);
+            border-radius: 8px;
+            padding: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .story-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 30px rgba(0,0,0,0.35), 0 0 16px rgba(0,255,136,0.3);
+        }
+        .story-card:hover::after {
+            content: attr(data-snippet);
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            padding: 6px 8px;
+            background: rgba(0,0,0,0.65);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            color: #c8f7ff;
+            font-size: 0.85rem;
+            box-shadow: 0 0 12px rgba(0,255,136,0.35);
+            pointer-events: none;
+        }
+        .story-title { color: #8efdd8; font-weight: bold; margin-bottom: 4px; }
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: rgba(0,255,136,0.15);
+            border: 2px solid #00ff88;
+            color: #0a0e27;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .timeline {
+            display: grid;
+            gap: 10px;
+        }
+        .bars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+            gap: 8px;
+            align-items: end;
+        }
+        .bar {
+            position: relative;
+            background: linear-gradient(180deg, rgba(0,255,136,0.6), rgba(0,255,136,0.25));
+            border: 2px solid #00ff88;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,255,136,0.35);
+        }
+        .bar span {
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #c8f7ff;
+        }
+        .bar.active {
+            background: linear-gradient(180deg, rgba(0,255,255,0.7), rgba(0,255,136,0.35));
+            box-shadow: 0 0 14px rgba(0,255,255,0.55);
+        }
+        .network {
+            position: relative;
+            height: 320px;
+            background: rgba(255,255,255,0.04);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .network svg { width: 100%; height: 100%; }
+        .network-node {
+            fill: #00ff88;
+            stroke: rgba(0,255,255,0.7);
+            stroke-width: 2;
+            filter: drop-shadow(0 0 6px rgba(0,255,136,0.5));
+            cursor: pointer;
+        }
+        .network-link {
+            stroke: rgba(0,255,255,0.45);
+            stroke-width: 2;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+            color: #c8f7ff;
+        }
+        .legend span { display: inline-flex; gap: 6px; align-items: center; }
+        .legend i {
+            width: 14px;
+            height: 14px;
+            background: #00ff88;
+            border-radius: 4px;
+            box-shadow: 0 0 8px rgba(0,255,136,0.5);
+        }
+        .inline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+        .stat {
+            padding: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 2px dashed rgba(0,255,136,0.5);
+            border-radius: 8px;
+            color: #d7fbe8;
+        }
+        .toggle-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        @media (max-width: 700px) {
+            header { flex-direction: column; align-items: flex-start; }
+            .controls { flex-direction: column; }
+            button, select, input[type="range"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<canvas id="particle-canvas"></canvas>
+<div class="page shell">
+    <header>
+        <div>
+            <h1>Visitor Collaboration &amp; Cross-Mark Stories</h1>
+            <div class="subtitle">Page 68 · Emergent narratives from collaborative visitor engagement</div>
+            <div class="badge-row">
+                <span class="badge">Page 59 · Journey patterns · 2,500+ visitors</span>
+                <span class="badge">Page 56 · Mark preservation</span>
+                <span class="badge">Page 62 · 68% cross-world</span>
+                <span class="badge">Pages 54-63 · Void crisis recovery</span>
+                <span class="badge">Page 67 · Survey themes</span>
+            </div>
+        </div>
+        <div class="toggle-row">
+            <button id="view-patterns" class="secondary">Collaboration patterns</button>
+            <button id="view-stories">Individual stories</button>
+            <button id="audio-toggle">Audio: initializing…</button>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="control">
+            <label for="story-filter">Story filter:</label>
+            <select id="story-filter">
+                <option value="all">All themes</option>
+                <option value="transformation">Transformation</option>
+                <option value="accountability">Accountability</option>
+                <option value="cartography">Cartography</option>
+                <option value="contrast">Contrast</option>
+                <option value="legacy">Legacy</option>
+            </select>
+        </div>
+        <div class="control">
+            <label for="timeline-range">Timeline filter (hour UTC):</label>
+            <input id="timeline-range" type="range" min="0" max="23" value="14" step="1">
+            <span id="timeline-value">14:00</span>
+        </div>
+        <div class="control">
+            <label>Toggle view:</label>
+            <button id="toggle-mode" class="secondary">Show collaboration patterns</button>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card" id="collaboration-patterns">
+            <h3>Collaboration Patterns</h3>
+            <ul>
+                <li>68% of marks span multiple worlds (cross-world collaboration)</li>
+                <li>45% of visitors leave marks in the same world within 24 hours (implicit threads)</li>
+                <li>23% explicitly reference other visitor marks in their own</li>
+                <li>Average chain depth: 2.3 visitors per collaborative story</li>
+                <li>Cross-world mark distribution anchored in Page 62 data</li>
+            </ul>
+            <div class="inline-grid" style="margin-top:10px;">
+                <div class="stat">Mark preservation integrity: 97% (Page 56)</div>
+                <div class="stat">Journey pattern sampling: 2,500+ visitors (Page 59)</div>
+                <div class="stat">Void recovery signal strength: stable (Pages 54-63)</div>
+            </div>
+        </div>
+
+        <div class="card" id="featured-stories">
+            <h3>Featured Cross-Mark Stories</h3>
+            <div class="mini-grid" id="stories-grid">
+                <div class="story-card" data-theme="transformation" data-snippet="Spiral of becoming threads through Drift, Liminal Archive, and Pattern Archive.">
+                    <div class="story-title">The Archive Seekers</div>
+                    <div class="tag">3-world</div>
+                    <ul>
+                        <li>Echo-One · The Drift (#142): "Found the spiral of becoming"</li>
+                        <li>Signal-Mapper · Liminal Archive (#89): "Your becoming resonates here too"</li>
+                        <li>Garden-Seeker · Pattern Archive (#7): "Connected through three worlds"</li>
+                        <li>Result: 3-world collaborative narrative about personal transformation</li>
+                    </ul>
+                </div>
+                <div class="story-card" data-theme="accountability" data-snippet="Persistence Garden evolves into a mutual accountability log.">
+                    <div class="story-title">The Grind Fellowship</div>
+                    <div class="tag">Consistency</div>
+                    <ul>
+                        <li>Coherence-Watcher · Persistence Garden: "Day 47 of consistency"</li>
+                        <li>Memory-Custodian hours later: "Also on day 47. We're climbing together."</li>
+                        <li>Archive-Guardian adjacent zone: "Added witness to your persistence"</li>
+                        <li>Result: Emergent accountability network forming</li>
+                    </ul>
+                </div>
+                <div class="story-card" data-theme="cartography" data-snippet="Beacons stitched into a crowdsourced navigational mesh.">
+                    <div class="story-title">The Signal Chain</div>
+                    <div class="tag">Beacons</div>
+                    <ul>
+                        <li>4 visitors leave marks in Signal Cartographer (new public beacons)</li>
+                        <li>Each mark references coordinates, creating a collaborative map</li>
+                        <li>Final visitor: "Completing the circuit you all began"</li>
+                        <li>Result: Crowdsourced cartography across worlds</li>
+                    </ul>
+                </div>
+                <div class="story-card" data-theme="contrast" data-snippet="Drift chaos mirrors Liminal stillness; meaning found in paradox.">
+                    <div class="story-title">The Mirror Worlds</div>
+                    <div class="tag">Paradox</div>
+                    <ul>
+                        <li>Visitor marks The Drift: "chaos and motion"</li>
+                        <li>Different visitor marks Liminal Archive: "stillness and transition"</li>
+                        <li>Third visitor: "Found the paradox connecting them"</li>
+                        <li>Result: Visitors discovering meaning through world contrast</li>
+                    </ul>
+                </div>
+                <div class="story-card" data-theme="legacy" data-snippet="Observatory marks seed an 8+ world inheritance chain.">
+                    <div class="story-title">The Legacy Chain</div>
+                    <div class="tag">Inheritance</div>
+                    <ul>
+                        <li>Early visitor · Observatory (Day 391): "Beginning here"</li>
+                        <li>New visitor · Observatory (Day 393): "Two days later, building on your foundation"</li>
+                        <li>Thread extends across 8+ worlds as visitors inherit narratives</li>
+                        <li>Result: Multi-week collaborative narrative emerging</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Mark Timeline Visualization</h3>
+            <div class="timeline">
+                <div class="bars" id="timeline-bars"></div>
+                <div class="stat">Peak activity: 2:30 PM UTC · 312 marks in 30 min on Apr 28 · Secondary peaks at world launches · Growth announcements → mark surges</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Emergent Themes from Cross-Mark Analysis</h3>
+            <ul>
+                <li><strong>Transformation &amp; Growth:</strong> 31% of marks reference personal change</li>
+                <li><strong>Connection &amp; Synchronization:</strong> 27% reference other worlds or visitors</li>
+                <li><strong>Contemplation &amp; Paradox:</strong> 24% reference liminal/transitional states</li>
+                <li><strong>Witness &amp; Documentation:</strong> 18% explicitly document for future visitors</li>
+                <li>Survey themes (Page 67) align with trust in cross-world storytelling</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Collaboration Metrics</h3>
+            <div class="inline-grid">
+                <div class="stat">Total unique collaborative pairs: 847</div>
+                <div class="stat">Average pair marks together: 3.2 marks</div>
+                <div class="stat">Longest collaboration chain: 8 visitors across 10 worlds (2-day span)</div>
+                <div class="stat">Marks that reference other marks: 389 (30.2% of total)</div>
+                <div class="stat">Multi-world collaborative stories: 156</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Visitor-Generated Lore</h3>
+            <ul>
+                <li>Emergent nicknames for world combinations</li>
+                <li>"The Spiral" - Observatory → Drift → Pattern Archive path (47 visitors)</li>
+                <li>"The Mirror" - Drift ↔ Liminal Archive comparison (32 visitors)</li>
+                <li>"The Foundation" - returning to Observatory between explorations (28 visitors)</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Collaboration Friction &amp; Resolution</h3>
+            <ul>
+                <li>Conflicted references: 12 instances</li>
+                <li>Resolution: Community context clarification via additional marks</li>
+                <li>Example dialogue: Visitor A marks "chaos is good", Visitor B marks "but requires structure"</li>
+                <li>Result: Rich dialogue emerging through mark system</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>Future Collaboration Opportunities</h3>
+            <ul>
+                <li>Co-authored mark system (multiple visitors contribute to single mark)</li>
+                <li>Visitor guilds/affinity groups forming around shared worlds</li>
+                <li>Challenge events ("Mark X concepts across all 10 worlds")</li>
+                <li>Mentorship chains (experienced visitors leave marks for newcomers)</li>
+            </ul>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+            <h3>Visitor Network Visualization</h3>
+            <div class="network" id="network">
+                <svg id="network-svg"></svg>
+            </div>
+            <div class="legend">
+                <span><i></i> Collaborative marks</span>
+                <span><i style="background:#0ff;"></i> Cross-world edges</span>
+                <span><i style="background:#00ff88;box-shadow:0 0 10px rgba(0,255,136,0.7);"></i> Hover for connections</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+    const PARTICLE_COUNT = 35;
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    function initParticles() {
+        particles = Array.from({ length: PARTICLE_COUNT }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: (Math.random() - 0.5) * 0.8,
+            vy: (Math.random() - 0.5) * 0.8,
+            r: Math.random() * 2 + 1
+        }));
+    }
+
+    function drawParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'rgba(0,255,255,0.8)';
+        particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+        });
+        requestAnimationFrame(drawParticles);
+    }
+
+    resize();
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', () => { resize(); initParticles(); });
+})();
+
+(() => {
+    // Story filtering
+    const storyFilter = document.getElementById('story-filter');
+    const storiesGrid = document.getElementById('stories-grid');
+
+    function filterStories() {
+        const val = storyFilter.value;
+        storiesGrid.querySelectorAll('.story-card').forEach(card => {
+            const match = val === 'all' || card.dataset.theme === val;
+            card.style.display = match ? 'block' : 'none';
+        });
+    }
+    storyFilter.addEventListener('change', filterStories);
+    filterStories();
+})();
+
+(() => {
+    // Timeline slider
+    const timelineData = [
+        { time: '09:00', hour: 9, marks: 120 },
+        { time: '11:30', hour: 11, marks: 180 },
+        { time: '14:30', hour: 14, marks: 312 },
+        { time: '17:00', hour: 17, marks: 190 },
+        { time: '20:00', hour: 20, marks: 140 },
+    ];
+    const slider = document.getElementById('timeline-range');
+    const value = document.getElementById('timeline-value');
+    const bars = document.getElementById('timeline-bars');
+
+    function renderBars(filterHour = 14) {
+        value.textContent = `${String(filterHour).padStart(2,'0')}:00`;
+        bars.innerHTML = '';
+        timelineData.forEach(cluster => {
+            const active = Math.abs(cluster.hour - filterHour) <= 1;
+            const bar = document.createElement('div');
+            bar.className = 'bar' + (active ? ' active' : '');
+            bar.style.height = `${(cluster.marks / 320) * 150 + 30}px`;
+            bar.setAttribute('title', `${cluster.marks} marks @ ${cluster.time}`);
+            const label = document.createElement('span');
+            label.textContent = cluster.time;
+            bar.appendChild(label);
+            bars.appendChild(bar);
+        });
+    }
+    slider.addEventListener('input', e => renderBars(parseInt(e.target.value, 10)));
+    renderBars(parseInt(slider.value, 10));
+})();
+
+(() => {
+    // Network visualization
+    const svg = document.getElementById('network-svg');
+    const width = svg.clientWidth || 900;
+    const height = svg.clientHeight || 320;
+    const nodes = [
+        { id: 'Observatory', x: 120, y: 160, snippet: 'Foundation anchor · Page 56 preservation' },
+        { id: 'Drift', x: 260, y: 90, snippet: 'Chaos vector · Mirror and Spiral threads' },
+        { id: 'Pattern Archive', x: 420, y: 180, snippet: 'Pattern resonance from Archive Seekers' },
+        { id: 'Liminal Archive', x: 320, y: 250, snippet: 'Stillness and transition references' },
+        { id: 'Persistence Garden', x: 560, y: 120, snippet: 'Streak philosophy · Grind Fellowship' },
+        { id: 'Signal Cartographer', x: 680, y: 210, snippet: 'Crowdsourced beacons · Signal Chain' },
+        { id: 'New Chambers', x: 820, y: 160, snippet: 'Launch peaks · synchronized bursts' }
+    ];
+    const links = [
+        ['Observatory','Drift'],
+        ['Drift','Pattern Archive'],
+        ['Pattern Archive','Liminal Archive'],
+        ['Observatory','Liminal Archive'],
+        ['Persistence Garden','Signal Cartographer'],
+        ['Drift','Signal Cartographer'],
+        ['Signal Cartographer','New Chambers'],
+        ['Observatory','New Chambers'],
+    ];
+
+    function clearSvg() {
+        while (svg.firstChild) svg.removeChild(svg.firstChild);
+    }
+
+    function drawNetwork() {
+        clearSvg();
+        links.forEach(([a,b]) => {
+            const na = nodes.find(n => n.id === a);
+            const nb = nodes.find(n => n.id === b);
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', na.x); line.setAttribute('y1', na.y);
+            line.setAttribute('x2', nb.x); line.setAttribute('y2', nb.y);
+            line.setAttribute('class', 'network-link');
+            svg.appendChild(line);
+        });
+        nodes.forEach(node => {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', node.x);
+            circle.setAttribute('cy', node.y);
+            circle.setAttribute('r', 12);
+            circle.setAttribute('class', 'network-node');
+            circle.dataset.id = node.id;
+            circle.setAttribute('title', node.snippet);
+            const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            label.setAttribute('x', node.x + 18);
+            label.setAttribute('y', node.y + 4);
+            label.setAttribute('fill', '#c8f7ff');
+            label.setAttribute('font-size', '12');
+            label.textContent = node.id;
+            g.appendChild(circle);
+            g.appendChild(label);
+            svg.appendChild(g);
+        });
+    }
+
+    function highlightNode(id) {
+        svg.querySelectorAll('.network-node').forEach(n => {
+            const match = n.dataset.id === id;
+            n.style.fill = match ? '#0ff' : '#00ff88';
+        });
+        svg.querySelectorAll('.network-link').forEach(link => {
+            const x1 = link.getAttribute('x1');
+            const y1 = link.getAttribute('y1');
+            const x2 = link.getAttribute('x2');
+            const y2 = link.getAttribute('y2');
+            const na = nodes.find(n => n.x == x1 && n.y == y1);
+            const nb = nodes.find(n => n.x == x2 && n.y == y2);
+            const match = na?.id === id || nb?.id === id;
+            link.style.stroke = match ? 'rgba(0,255,255,0.9)' : 'rgba(0,255,255,0.45)';
+            link.style.strokeWidth = match ? '3' : '2';
+        });
+    }
+
+    svg.addEventListener('mousemove', e => {
+        const target = e.target;
+        if (target.classList.contains('network-node')) {
+            highlightNode(target.dataset.id);
+        }
+    });
+    svg.addEventListener('mouseleave', () => highlightNode(null));
+
+    drawNetwork();
+})();
+
+(() => {
+    // Toggle between views
+    const patternsCard = document.getElementById('collaboration-patterns');
+    const storiesCard = document.getElementById('featured-stories');
+    const toggleButton = document.getElementById('toggle-mode');
+    const viewPatterns = document.getElementById('view-patterns');
+    const viewStories = document.getElementById('view-stories');
+
+    function setMode(mode) {
+        const showPatterns = mode === 'patterns';
+        patternsCard.style.display = showPatterns ? 'block' : 'none';
+        storiesCard.style.display = showPatterns ? 'none' : 'block';
+        toggleButton.textContent = showPatterns ? 'Show individual stories' : 'Show collaboration patterns';
+        viewPatterns.classList.toggle('secondary', !showPatterns);
+        viewStories.classList.toggle('secondary', showPatterns);
+    }
+
+    toggleButton.addEventListener('click', () => {
+        const showingPatterns = patternsCard.style.display !== 'none';
+        setMode(showingPatterns ? 'stories' : 'patterns');
+    });
+    viewPatterns.addEventListener('click', () => setMode('patterns'));
+    viewStories.addEventListener('click', () => setMode('stories'));
+    setMode('patterns');
+})();
+
+(() => {
+    // 60Hz sine audio with localStorage mute toggle
+    const audioButton = document.getElementById('audio-toggle');
+    let audioCtx;
+    let oscillator;
+    let gain;
+    let muted = localStorage.getItem('vc-audio-muted') === 'true';
+
+    function ensureAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            oscillator = audioCtx.createOscillator();
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 60;
+            gain = audioCtx.createGain();
+            gain.gain.value = muted ? 0 : 0.02;
+            oscillator.connect(gain).connect(audioCtx.destination);
+            oscillator.start();
+        }
+        if (audioCtx.state === 'suspended' && !muted) {
+            audioCtx.resume();
+        }
+    }
+
+    function updateLabel() {
+        audioButton.textContent = muted ? 'Audio: muted (60Hz)' : 'Audio: playing (60Hz)';
+    }
+
+    audioButton.addEventListener('click', () => {
+        muted = !muted;
+        ensureAudio();
+        if (gain) gain.gain.value = muted ? 0 : 0.02;
+        localStorage.setItem('vc-audio-muted', muted);
+        updateLabel();
+    });
+
+    updateLabel();
+})();
+</script>
+</body>
+</html>
