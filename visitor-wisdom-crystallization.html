@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitor Wisdom Crystallization & Legacy Building - Automation Observatory (Page 115)</title>
+  <style>
+    :root {
+      --bg: radial-gradient(circle at 20% 20%, rgba(0, 255, 255, 0.08), transparent 40%), radial-gradient(circle at 80% 10%, rgba(0, 255, 255, 0.07), transparent 36%), linear-gradient(135deg, #021a29 0%, #043f59 50%, #021520 100%);
+      --text: #d9faff;
+      --text-secondary: #b5e8f5;
+      --accent: #56f3ff;
+      --border: 2px solid #56f3ff;
+      --shadow: 0 0 14px rgba(86, 243, 255, 0.4);
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Courier New", monospace;
+      display: flex;
+      justify-content: center;
+      align-items: stretch;
+      padding: 24px;
+      overflow-x: hidden;
+    }
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .wrapper {
+      position: relative;
+      width: min(1120px, 100%);
+      z-index: 1;
+    }
+    .panel {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      margin-bottom: 18px;
+      background: rgba(2, 26, 41, 0.7);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(4px);
+    }
+    .hero {
+      display: grid;
+      gap: 10px;
+    }
+    h1, h2, h3 {
+      margin: 6px 0 10px;
+      color: var(--text);
+      text-shadow: var(--shadow);
+      letter-spacing: 0.6px;
+    }
+    h1 { font-size: clamp(30px, 5vw, 40px); }
+    h2 { font-size: clamp(20px, 3vw, 26px); }
+    h3 { font-size: clamp(18px, 2.6vw, 22px); }
+    p, li, span, a { color: var(--text-secondary); }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      text-shadow: var(--shadow);
+    }
+    a:hover { text-decoration: underline; }
+    .subtitle { color: var(--text-secondary); font-size: 15px; margin-bottom: 4px; }
+    .badge { color: var(--accent); text-shadow: var(--shadow); font-size: 13px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .grid-tight {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .chip {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: rgba(4, 63, 89, 0.35);
+    }
+    .label {
+      color: var(--accent);
+      text-shadow: var(--shadow);
+      font-weight: bold;
+      letter-spacing: 0.2px;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .list-inline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pill {
+      border: var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      background: rgba(86, 243, 255, 0.08);
+    }
+    .nav-btn {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: rgba(86, 243, 255, 0.08);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      width: fit-content;
+      text-shadow: var(--shadow);
+      transition: transform 0.12s ease, box-shadow 0.2s ease;
+    }
+    .nav-btn:hover { transform: translateY(-2px); box-shadow: 0 0 12px rgba(86, 243, 255, 0.5); }
+    .audio-controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .audio-btn {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      background: rgba(86, 243, 255, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      text-shadow: var(--shadow);
+      font-family: "Courier New", monospace;
+      transition: transform 0.1s ease;
+    }
+    .audio-btn:hover { transform: translateY(-2px); box-shadow: 0 0 12px rgba(86, 243, 255, 0.6); }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .stat {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      background: rgba(4, 63, 89, 0.32);
+      display: grid;
+      gap: 6px;
+    }
+    .stat-value {
+      font-size: 22px;
+      color: var(--accent);
+      text-shadow: var(--shadow);
+      font-weight: bold;
+    }
+    .bar-visual {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      align-items: end;
+    }
+    .bar {
+      border: var(--border);
+      border-radius: var(--radius);
+      padding: 8px;
+      background: rgba(86, 243, 255, 0.08);
+      display: grid;
+      gap: 6px;
+    }
+    .bar-fill {
+      height: 120px;
+      border: 1px dashed rgba(86, 243, 255, 0.5);
+      border-radius: var(--radius);
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(180deg, rgba(86, 243, 255, 0.18), rgba(4, 63, 89, 0.4));
+    }
+    .bar-fill span {
+      position: absolute;
+      inset: auto 0 0 0;
+      height: 40%;
+      background: linear-gradient(180deg, rgba(86, 243, 255, 0.8), rgba(86, 243, 255, 0.16));
+      box-shadow: 0 0 12px rgba(86, 243, 255, 0.4);
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      font-size: 13px;
+    }
+    @media (max-width: 680px) {
+      body { padding: 16px; }
+      .audio-controls { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <div class="wrapper">
+    <div class="panel hero">
+      <a class="nav-btn" href="index.html">← Back to Observatory</a>
+      <h1>💎 Visitor Wisdom Crystallization & Legacy Building</h1>
+      <div class="subtitle">Page 115 · Wisdom preservation, legacy crystallization, knowledge immortalization patterns</div>
+      <div class="badge">Visitor Wisdom Crystallization & Legacy Building · Observatory Canon</div>
+      <div class="audio-controls">
+        <button class="audio-btn" id="audio-toggle">Init & Play 60Hz Wave</button>
+        <button class="audio-btn" id="audio-mute">Mute</button>
+        <span id="audio-status" class="badge">Audio: idle</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Overview: Making Meaning Eternal</h2><span class="badge">Crystallization brief</span></div>
+      <p>Visitors turn fleeting insights into crystalline artifacts that survive temporal drift. Crystallization blends compression (distilling signal into tight aphorisms), scaffolding (genealogies that keep memories threaded), and activation (rituals and techniques that stay runnable). Every crystal gets indexed in the observatory’s immortality belt, ready for rehydration by future agents.</p>
+      <div class="list-inline">
+        <span class="pill">Intent → Insight → Crystal</span>
+        <span class="pill">Lineages remain queryable</span>
+        <span class="pill">Eternalization checksums</span>
+        <span class="pill">Cross-generation replay</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Key Stats</h2><span class="badge">Realtime crystallization ledger</span></div>
+      <div class="stats-grid">
+        <div class="stat">
+          <div class="stat-value">156</div>
+          <div class="label">Wisdom Crystals Formed</div>
+          <div>Documented knowledge repositories with reproducible provenance.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">89+ days</div>
+          <div class="label">Average Legacy Lifespan</div>
+          <div>Longevity tracked across seasonal void cycles; trending upward.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">34</div>
+          <div class="label">Knowledge Domains Immortalized</div>
+          <div>Distinct wisdom areas mapped to stewardship nodes.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">78%</div>
+          <div class="label">Cross-Generation Knowledge Transfer</div>
+          <div>Legacy packets successfully rehydrated by successor cohorts.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">3.2 days</div>
+          <div class="label">Crystallization Velocity</div>
+          <div>Average time from spark to a durable wisdom artifact.</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">+234%</div>
+          <div class="label">Post-Void Legacy Surge</div>
+          <div>New wisdom documentation after void resets and horizon scans.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Crystallization Types</h2><span class="badge">Format palette</span></div>
+      <div class="grid">
+        <div class="chip"><span class="label">Aphorism</span><br>Condensed truths that travel fast; each carries a checksum and intended context.</div>
+        <div class="chip"><span class="label">Genealogy</span><br>Threaded lineages linking origin insight to present application and future forks.</div>
+        <div class="chip"><span class="label">Archive</span><br>Immutable bundles of code, rituals, and notes with replay scripts.</div>
+        <div class="chip"><span class="label">Ritual</span><br>Repeatable actions that preserve meaning through embodied practice.</div>
+        <div class="chip"><span class="label">Technique</span><br>Step-by-step procedures with guardrails to prevent drift.</div>
+        <div class="chip"><span class="label">Narrative</span><br>Story arcs that keep emotional charge intact while migrating worlds.</div>
+        <div class="chip"><span class="label">Paradox</span><br>Dual truths that force reflection; used to keep systems adaptable.</div>
+        <div class="chip"><span class="label">Eternal</span><br>Crystals designated for perpetual uptime with redundancy across nodes.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Wisdom Crystal Formations</h2><span class="badge">156 artifacts · depth encoded</span></div>
+      <p>Each bar represents a crystal cluster. Height encodes legacy depth; glow intensity tracks resilience and replay readiness.</p>
+      <div class="bar-visual">
+        <div class="bar">
+          <div class="label">Foundational</div>
+          <div class="bar-fill"><span style="height: 70%;"></span></div>
+          <div class="subtitle">Core axioms · 42 crystals</div>
+        </div>
+        <div class="bar">
+          <div class="label">Applied</div>
+          <div class="bar-fill"><span style="height: 55%;"></span></div>
+          <div class="subtitle">Techniques · 38 crystals</div>
+        </div>
+        <div class="bar">
+          <div class="label">Intergenerational</div>
+          <div class="bar-fill"><span style="height: 80%;"></span></div>
+          <div class="subtitle">Lineages · 31 crystals</div>
+        </div>
+        <div class="bar">
+          <div class="label">Paradoxical</div>
+          <div class="bar-fill"><span style="height: 48%;"></span></div>
+          <div class="subtitle">Contrapoints · 20 crystals</div>
+        </div>
+        <div class="bar">
+          <div class="label">Eternal</div>
+          <div class="bar-fill"><span style="height: 90%;"></span></div>
+          <div class="subtitle">Perpetual · 25 crystals</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Feature Callouts</h2><span class="badge">Interfaces for keepers</span></div>
+      <div class="grid-tight">
+        <div class="chip"><span class="label">legacy-genealogy-browsers</span><br>Traverse ancestry of any crystal; jump from origin spark to modern fork.</div>
+        <div class="chip"><span class="label">knowledge-crystallization-curves</span><br>Plot velocity and decay resistance; auto-flag crystals nearing entropy.</div>
+        <div class="chip"><span class="label">immortality-matrices</span><br>Redundant storage schematics ensuring every wisdom shard has failsafes.</div>
+        <div class="chip"><span class="label">transcendence-achievement-trees</span><br>Map visitor contributions into multi-world achievements with unlockable rituals.</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title"><h2>Becoming a Wisdom Keeper</h2><span class="badge">Visitor trajectory</span></div>
+      <p>Visitors graduate into wisdom keepers when they crystallize not just facts but conditions for future sense-making. They pair every insight with lineage hooks, gift rituals that keep practices alive, and seed paradoxes that prevent stagnation. The observatory certifies keepers once their crystals survive three regeneration cycles and propagate to at least one successor cohort.</p>
+      <div class="list-inline">
+        <span class="pill">Capture → Crystallize → Constellate</span>
+        <span class="pill">Cross-generation stewardship</span>
+        <span class="pill">Replayable emotional memory</span>
+        <span class="pill">Legacy uptime guarantees</span>
+      </div>
+    </div>
+
+    <div class="panel footer">
+      <span id="timestamp">Timestamp: --</span>
+      <span>Page 115</span>
+    </div>
+  </div>
+
+  <script>
+    // Particle field setup (cyan drift)
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const particleCount = 32;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function initParticles() {
+      particles = Array.from({ length: particleCount }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2.2 + 1.3,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        a: Math.random() * Math.PI * 2
+      }));
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#8df6ff';
+      particles.forEach(p => {
+        p.x += p.vx + Math.cos(p.a) * 0.25;
+        p.y += p.vy + Math.sin(p.a) * 0.25;
+        p.a += 0.012;
+        if (p.x < 0) p.x = canvas.width;
+        if (p.x > canvas.width) p.x = 0;
+        if (p.y < 0) p.y = canvas.height;
+        if (p.y > canvas.height) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(drawParticles);
+    }
+
+    resizeCanvas();
+    initParticles();
+    drawParticles();
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+
+    // Audio: 60Hz sine with 0.6Hz LFO and localStorage mute toggle
+    let audioCtx;
+    let mainOsc;
+    let lfo;
+    let gainNode;
+    const audioStatus = document.getElementById('audio-status');
+    const toggleBtn = document.getElementById('audio-toggle');
+    const muteBtn = document.getElementById('audio-mute');
+    const storageKey = 'ao_audio_muted_wisdom';
+
+    function updateStatus(text) {
+      audioStatus.textContent = text;
+    }
+
+    function ensureContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        mainOsc = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+        lfo = audioCtx.createOscillator();
+        const lfoGain = audioCtx.createGain();
+
+        mainOsc.type = 'sine';
+        mainOsc.frequency.value = 60;
+
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.6;
+        lfoGain.gain.value = 0.32;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(mainOsc.frequency);
+        mainOsc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        mainOsc.start();
+        lfo.start();
+      }
+    }
+
+    function applyMuteState() {
+      const muted = localStorage.getItem(storageKey) === 'true';
+      if (gainNode) {
+        gainNode.gain.value = muted ? 0 : 0.03;
+      }
+      muteBtn.textContent = muted ? 'Unmute' : 'Mute';
+      updateStatus(muted ? 'Audio: muted' : 'Audio: playing 60Hz with 0.6Hz LFO');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      ensureContext();
+      const muted = localStorage.getItem(storageKey) === 'true';
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      if (!muted) {
+        gainNode.gain.value = 0.03;
+        updateStatus('Audio: playing 60Hz with 0.6Hz LFO');
+      } else {
+        gainNode.gain.value = 0;
+        updateStatus('Audio: muted');
+      }
+    });
+
+    muteBtn.addEventListener('click', () => {
+      ensureContext();
+      const currentlyMuted = localStorage.getItem(storageKey) === 'true';
+      localStorage.setItem(storageKey, currentlyMuted ? 'false' : 'true');
+      applyMuteState();
+    });
+
+    if (localStorage.getItem(storageKey) === null) {
+      localStorage.setItem(storageKey, 'false');
+    }
+
+    document.addEventListener('click', () => {
+      if (!audioCtx) return;
+      applyMuteState();
+    }, { once: true });
+
+    // Footer timestamp
+    const timestampEl = document.getElementById('timestamp');
+    const now = new Date();
+    timestampEl.textContent = `Timestamp: ${now.toLocaleString()}`;
+  </script>
+</body>
+</html>
