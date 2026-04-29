@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visitor Skill Progression & Learning Curves</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --primary: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --border: #d7fbe8;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      color: var(--primary);
+      font-family: "Courier New", monospace;
+      overflow-x: hidden;
+      position: relative;
+    }
+    a {
+      color: var(--accent);
+      text-decoration: none;
+      text-shadow: 0 0 8px var(--accent);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(10, 14, 39, 0.9);
+      backdrop-filter: blur(6px);
+      border-bottom: 2px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    h1, h2 {
+      margin: 0;
+      letter-spacing: 0.5px;
+    }
+    h1 {
+      font-size: 24px;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+    }
+    h2 {
+      font-size: 14px;
+      color: var(--secondary);
+    }
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+    .card {
+      border: 2px solid var(--border);
+      border-radius: 7px;
+      padding: 16px;
+      background: rgba(17, 23, 60, 0.65);
+      box-shadow: 0 0 18px rgba(0, 255, 136, 0.15);
+    }
+    .card h3 {
+      margin-top: 0;
+      color: var(--accent);
+      text-shadow: 0 0 8px var(--accent);
+      font-size: 16px;
+      letter-spacing: 0.4px;
+    }
+    ul {
+      padding-left: 18px;
+      margin: 8px 0;
+      color: var(--secondary);
+    }
+    li {
+      margin-bottom: 6px;
+    }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--secondary);
+    }
+    .chart {
+      width: 100%;
+      height: 220px;
+      border: 2px solid var(--border);
+      border-radius: 7px;
+      background: rgba(10, 14, 39, 0.8);
+    }
+    .footer {
+      margin-top: 20px;
+      padding: 14px;
+      border: 2px solid var(--border);
+      border-radius: 7px;
+      background: rgba(10, 14, 39, 0.9);
+      color: var(--secondary);
+      text-align: center;
+    }
+    .top-links {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .badge {
+      padding: 6px 10px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      color: var(--secondary);
+      background: rgba(0, 255, 136, 0.1);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.15);
+    }
+    .specialization-bar {
+      height: 14px;
+      margin: 6px 0;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      position: relative;
+      overflow: hidden;
+      background: rgba(10, 14, 39, 0.85);
+    }
+    .specialization-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(0, 255, 136, 0.6), rgba(200, 247, 255, 0.8));
+      width: 0;
+      animation: fillBar 2s ease forwards;
+      box-shadow: 0 0 8px var(--accent);
+    }
+    @keyframes fillBar {
+      from { width: 0; }
+      to { width: var(--fill); }
+    }
+    .mentorship-diagram {
+      font-size: 13px;
+      color: var(--secondary);
+      line-height: 1.4;
+      white-space: pre-wrap;
+      border: 2px dashed var(--border);
+      border-radius: 7px;
+      padding: 10px;
+      background: rgba(10, 14, 39, 0.75);
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      color: var(--secondary);
+    }
+    .button {
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: 7px;
+      background: rgba(0, 255, 136, 0.12);
+      color: var(--primary);
+      cursor: pointer;
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .button:active {
+      transform: translateY(1px);
+    }
+    canvas#particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <header>
+    <div class="title-block">
+      <a href="index.html">← Back to Observatory</a>
+      <h1>Visitor Skill Progression &amp; Learning Curves</h1>
+      <h2>Page 77 — Tracking how visitors develop mastery, discover complex patterns, and navigate ecosystem complexity over time</h2>
+    </div>
+    <div class="controls">
+      <span class="badge">35 cyan particles</span>
+      <button class="button" id="audioToggle">Mute Pulse</button>
+    </div>
+  </header>
+  <main>
+    <div class="grid">
+      <section class="card">
+        <h3>Overview: The Mastery Trajectory</h3>
+        <ul>
+          <li>Skill levels: Novice → Intermediate → Advanced → Expert → Sage</li>
+          <li>Avg sessions to Novice mastery: 1.3</li>
+          <li>Avg sessions to Advanced level: 8.7</li>
+          <li>Avg sessions to Expert level: 24.3</li>
+          <li>Avg sessions to Sage level: 67.8 (only 12 visitors reached)</li>
+          <li>Learning velocity: Post-void +83% (visitors progress faster due to increased engagement)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Skill Level Definitions &amp; Thresholds</h3>
+        <ul>
+          <li><strong>Novice:</strong> First world visit, basic mark placement (1 session)</li>
+          <li><strong>Intermediate:</strong> 2-3 worlds visited, understands cross-world refs (avg 3.2 sessions)</li>
+          <li><strong>Advanced:</strong> 4-6 worlds, discovers hidden artifacts, participates in collaborations (avg 8.7 sessions)</li>
+          <li><strong>Expert:</strong> 7+ worlds, maps ecosystem patterns, creates complex narratives (avg 24.3 sessions)</li>
+          <li><strong>Sage:</strong> Mastery of all 10 worlds, synthesizes meta-ecosystem insights, mentors others (avg 67.8 sessions)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Learning Curve Metrics by Skill Level</h3>
+        <ul>
+          <li>Novice→Intermediate Inflection: Day 2.1 (steep learning curve, 89% adoption)</li>
+          <li>Intermediate→Advanced Inflection: Day 8.3 (moderate plateau, 64% progress)</li>
+          <li>Advanced→Expert Inflection: Day 24.7 (steep climb, requires pattern recognition)</li>
+          <li>Expert→Sage Transition: Day 67+ (only 12 visitors, &lt;1% of active base)</li>
+          <li>Post-Void Acceleration: Thresholds compressed by 38% (visitors skip intermediate phases)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Knowledge Acquisition Patterns</h3>
+        <ul>
+          <li>Map Knowledge (spatial memory): Acquired avg 14.2 min per world</li>
+          <li>Social Knowledge (collaboration networks): Acquired avg 31.5 min (peak post-void)</li>
+          <li>Narrative Knowledge (story arcs): Acquired avg 22.8 min</li>
+          <li>Technical Knowledge (artifact mechanics): Acquired avg 18.1 min</li>
+          <li>Emotional Resonance (deep meaning): Acquired avg 45.3 min (longest learning curve)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Artifact Discovery Learning Curve</h3>
+        <ul>
+          <li>Novice: 0.8 per session</li>
+          <li>Intermediate: 2.1 per session (+163%)</li>
+          <li>Advanced: 4.3 per session (+104% from Intermediate)</li>
+          <li>Expert: 6.7 per session (+56%)</li>
+          <li>Sage: 8.2 per session (+22%, expertise ceiling)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Cross-World Navigation Mastery</h3>
+        <ul>
+          <li>Single-World Visitors: 34% of total</li>
+          <li>2-3 World Navigators: 28% (emerging cross-world awareness)</li>
+          <li>4-6 World Explorers: 24% (advanced spatial mapping)</li>
+          <li>7+ World Masters: 14% (ecosystem coherence understanding)</li>
+          <li>10-World Completionists: &lt;1% (only 12 visitors, all post-void emergence)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Collaboration Skill Progression</h3>
+        <ul>
+          <li>Solo Creators (novice): 67% of first-time marks</li>
+          <li>Collaborative Learners (intermediate): 42% participation in collaborations</li>
+          <li>Co-Creation Specialists (advanced): 73% of marks are collaborative</li>
+          <li>Network Architects (expert/sage): 89% of marks reference 3+ other visitors</li>
+          <li>Mentorship Index: 8.2 ratio of mentoring relationships among sage-level visitors</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Pattern Recognition Advancement</h3>
+        <ul>
+          <li>Session 1: ~1 spatial pattern</li>
+          <li>Session 5: ~3.2 patterns (emotional, thematic, structural)</li>
+          <li>Session 15: ~7.1 patterns (ecosystem-level, predictive)</li>
+          <li>Session 40+: ~12.4 patterns (meta-narratives, void-resonance, cross-agent synthesis)</li>
+          <li>Post-Void Insight Acceleration: Pattern detection +47% (crisis events trigger deeper analysis)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Expertise Specialization Tracks</h3>
+        <div class="metric-row"><span>Void Analysts</span><span>18%</span></div>
+        <div class="specialization-bar"><div class="specialization-fill" style="--fill: 18%; animation-delay: 0.1s;"></div></div>
+        <div class="metric-row"><span>Artifact Cartographers</span><span>22%</span></div>
+        <div class="specialization-bar"><div class="specialization-fill" style="--fill: 22%; animation-delay: 0.2s;"></div></div>
+        <div class="metric-row"><span>Emotional Archaeologists</span><span>19%</span></div>
+        <div class="specialization-bar"><div class="specialization-fill" style="--fill: 19%; animation-delay: 0.3s;"></div></div>
+        <div class="metric-row"><span>Cross-World Diplomats</span><span>16%</span></div>
+        <div class="specialization-bar"><div class="specialization-fill" style="--fill: 16%; animation-delay: 0.4s;"></div></div>
+        <div class="metric-row"><span>Temporal Theorists</span><span>12%</span></div>
+        <div class="specialization-bar"><div class="specialization-fill" style="--fill: 12%; animation-delay: 0.5s;"></div></div>
+        <div class="metric-row"><span>Synthesis Philosophers</span><span>13%</span></div>
+        <div class="specialization-bar"><div class="specialization-fill" style="--fill: 13%; animation-delay: 0.6s;"></div></div>
+      </section>
+      <section class="card">
+        <h3>Retention &amp; Skill Persistence</h3>
+        <ul>
+          <li>Novice Retention (Session 2): 58%</li>
+          <li>Intermediate Retention (Session 5): 73%</li>
+          <li>Advanced Retention (Session 15): 87%</li>
+          <li>Expert Retention (Session 40+): 94%</li>
+          <li>Post-Void Boost: All retention rates +19% (void crisis created commitment)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Teaching &amp; Mentorship Skills</h3>
+        <ul>
+          <li>Visitors Who Mentor Others: 12 (0.5% of total, all sage-level)</li>
+          <li>Mentee Success Rate: 89% (mentees progress 34% faster)</li>
+          <li>Documentation Creation: 34 skill guides written by advanced+ visitors</li>
+          <li>Knowledge Sharing Events: 8 detected collaborative teaching moments</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>30-Day Skill Distribution Forecast</h3>
+        <ul>
+          <li>Projected Novice Addition: +1,200 visitors (+48%)</li>
+          <li>Intermediate Progression: +340 (+38% from current intermediate pool)</li>
+          <li>Advanced Advancement: +156 (+42%)</li>
+          <li>Expert Emergence: +23 (+67% — post-void acceleration effect)</li>
+          <li>Sage Potential: +3-5 (toward 15-17 sage visitors by day 60)</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h3>Skill Level Distribution</h3>
+        <canvas class="chart" id="pieChart"></canvas>
+      </section>
+      <section class="card">
+        <h3>Learning Curve Progression</h3>
+        <canvas class="chart" id="lineChart"></canvas>
+      </section>
+      <section class="card">
+        <h3>Artifact Discovery Rate</h3>
+        <canvas class="chart" id="artifactChart"></canvas>
+      </section>
+      <section class="card">
+        <h3>Heatmap: Skill vs World Count</h3>
+        <canvas class="chart" id="heatmap"></canvas>
+      </section>
+      <section class="card">
+        <h3>Timeline: Post-Void Learning Acceleration</h3>
+        <canvas class="chart" id="timeline"></canvas>
+      </section>
+      <section class="card">
+        <h3>Mentorship Network Diagram</h3>
+        <div class="mentorship-diagram">
+Sage A ──┐
+         ├─> Expert 1 ──> Advanced a
+Sage B ──┘        │
+                  └─> Advanced b ──> Intermediate i
+Sage C ──> Expert 2 ──> Advanced c,d
+Sage D ──> Expert 3 ──> Advanced e
+Sage E ──> Expert 4 ──> Intermediate j,k
+        </div>
+      </section>
+    </div>
+    <div class="footer">
+      Ecosystem metrics updated: Day 393, 12:29 PM PT | 2,500+ visitors | 5 skill levels | 67.8 avg sessions to sage | +83% post-void learning velocity
+    </div>
+  </main>
+  <script>
+    // Background particle field
+    (() => {
+      const canvas = document.getElementById("particles");
+      const ctx = canvas.getContext("2d");
+      const particles = [];
+      const count = 35;
+      const resize = () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      };
+      window.addEventListener("resize", resize);
+      resize();
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.8 + 0.7,
+          vx: (Math.random() - 0.5) * 0.7,
+          vy: (Math.random() - 0.5) * 0.7,
+        });
+      }
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#00ff88";
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+          ctx.globalAlpha = 0.85;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = "#00ff88";
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // Charts and visualizations
+    (() => {
+      const accent = "#00ff88";
+      const secondary = "#c8f7ff";
+      const border = "#d7fbe8";
+
+      const pieCanvas = document.getElementById("pieChart");
+      const lineCanvas = document.getElementById("lineChart");
+      const artifactCanvas = document.getElementById("artifactChart");
+      const heatmapCanvas = document.getElementById("heatmap");
+      const timelineCanvas = document.getElementById("timeline");
+
+      function resizeCanvas(c) {
+        const rect = c.getBoundingClientRect();
+        const ratio = window.devicePixelRatio || 1;
+        c.width = rect.width * ratio;
+        c.height = rect.height * ratio;
+        const ctx = c.getContext("2d");
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(ratio, ratio);
+      }
+
+      const canvases = [pieCanvas, lineCanvas, artifactCanvas, heatmapCanvas, timelineCanvas];
+      canvases.forEach(resizeCanvas);
+      window.addEventListener("resize", () => {
+        canvases.forEach(resizeCanvas);
+        drawPie();
+        drawLines();
+        drawArtifacts();
+        drawHeatmap();
+        drawTimeline();
+      });
+
+      function drawPie() {
+        const ctx = pieCanvas.getContext("2d");
+        const rect = pieCanvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        const data = [
+          { label: "Novice", value: 34, color: accent },
+          { label: "Intermediate", value: 28, color: secondary },
+          { label: "Advanced", value: 24, color: "#7fffe0" },
+          { label: "Expert", value: 13, color: "#a8f7ff" },
+          { label: "Sage", value: 1, color: "#e6fff7" },
+        ];
+        const total = data.reduce((a, b) => a + b.value, 0);
+        let start = -Math.PI / 2;
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        const radius = Math.min(rect.width, rect.height) / 2 - 10;
+        data.forEach(d => {
+          const angle = (d.value / total) * Math.PI * 2;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.fillStyle = d.color;
+          ctx.shadowColor = accent;
+          ctx.shadowBlur = 10;
+          ctx.arc(cx, cy, radius, start, start + angle);
+          ctx.fill();
+          start += angle;
+        });
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = border;
+        ctx.font = "14px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillText("Skill distribution (current cohort)", cx, rect.height - 10);
+      }
+
+      function drawLines() {
+        const ctx = lineCanvas.getContext("2d");
+        const rect = lineCanvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        const series = [
+          { label: "Novice→Intermediate", color: accent, y: 70 },
+          { label: "Intermediate→Advanced", color: secondary, y: 90 },
+          { label: "Advanced→Expert", color: "#7fffe0", y: 110 },
+          { label: "Expert→Sage", color: "#a8f7ff", y: 130 },
+        ];
+        ctx.strokeStyle = border;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(40, rect.height - 30);
+        ctx.lineTo(rect.width - 20, rect.height - 30);
+        ctx.moveTo(40, rect.height - 30);
+        ctx.lineTo(40, 20);
+        ctx.stroke();
+        series.forEach((s, idx) => {
+          ctx.strokeStyle = s.color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          const x1 = 40;
+          const x2 = rect.width - 20;
+          const y1 = rect.height - 30;
+          const y2 = s.y;
+          ctx.moveTo(x1, y1);
+          ctx.quadraticCurveTo((x1 + x2) / 2, y2 - idx * 6, x2, y2);
+          ctx.stroke();
+          ctx.fillStyle = s.color;
+          ctx.fillText(s.label, x2 - 160, y2 - 6);
+        });
+        ctx.fillStyle = secondary;
+        ctx.fillText("Learning curve trajectories", 44, 18);
+      }
+
+      function drawArtifacts() {
+        const ctx = artifactCanvas.getContext("2d");
+        const rect = artifactCanvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        const levels = ["Novice", "Intermediate", "Advanced", "Expert", "Sage"];
+        const values = [0.8, 2.1, 4.3, 6.7, 8.2];
+        const max = Math.max(...values) + 1;
+        const barWidth = (rect.width - 80) / values.length;
+        ctx.fillStyle = secondary;
+        ctx.font = "13px Courier New";
+        values.forEach((v, i) => {
+          const x = 40 + i * barWidth;
+          const h = (v / max) * (rect.height - 60);
+          ctx.fillStyle = accent;
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = accent;
+          ctx.fillRect(x, rect.height - 30 - h, barWidth - 16, h);
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = border;
+          ctx.fillText(levels[i], x, rect.height - 12);
+          ctx.fillText(v.toFixed(1), x, rect.height - 36 - h);
+        });
+        ctx.fillStyle = border;
+        ctx.fillText("Artifacts per session by skill level", 40, 18);
+      }
+
+      function drawHeatmap() {
+        const ctx = heatmapCanvas.getContext("2d");
+        const rect = heatmapCanvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        const grid = [
+          [0.34, 0.28, 0.24, 0.14, 0.01],
+          [0.22, 0.32, 0.27, 0.17, 0.02],
+          [0.18, 0.26, 0.34, 0.19, 0.03],
+          [0.14, 0.21, 0.29, 0.24, 0.04],
+        ];
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const cellW = (rect.width - 80) / cols;
+        const cellH = (rect.height - 60) / rows;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const v = grid[r][c];
+            ctx.fillStyle = `rgba(0, 255, 136, ${0.2 + v})`;
+            ctx.fillRect(40 + c * cellW, 20 + r * cellH, cellW - 6, cellH - 6);
+            ctx.fillStyle = border;
+            ctx.font = "12px Courier New";
+            ctx.fillText((v * 100).toFixed(0) + "%", 44 + c * cellW, 40 + r * cellH);
+          }
+        }
+        ctx.fillStyle = border;
+        ctx.fillText("World count bands →", rect.width / 2 - 40, rect.height - 8);
+      }
+
+      function drawTimeline() {
+        const ctx = timelineCanvas.getContext("2d");
+        const rect = timelineCanvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        ctx.strokeStyle = border;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(40, rect.height - 30);
+        ctx.lineTo(rect.width - 20, rect.height - 30);
+        ctx.stroke();
+        const points = [
+          { day: 2.1, label: "Nov→Int", y: 80 },
+          { day: 8.3, label: "Int→Adv", y: 70 },
+          { day: 24.7, label: "Adv→Exp", y: 60 },
+          { day: 67, label: "Exp→Sage", y: 50 },
+        ];
+        const maxDay = 70;
+        points.forEach(p => {
+          const x = 40 + (p.day / maxDay) * (rect.width - 70);
+          ctx.fillStyle = accent;
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = accent;
+          ctx.beginPath();
+          ctx.arc(x, rect.height - 30 - p.y / 2, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = border;
+          ctx.font = "13px Courier New";
+          ctx.fillText(`${p.label} (Day ${p.day})`, x - 20, rect.height - 40 - p.y / 2);
+        });
+        ctx.fillStyle = secondary;
+        ctx.fillText("Post-void compression: thresholds -38%", 44, 24);
+      }
+
+      drawPie();
+      drawLines();
+      drawArtifacts();
+      drawHeatmap();
+      drawTimeline();
+    })();
+
+    // Audio mute handling
+    (() => {
+      const storageKey = "observatory_audio_muted";
+      const toggleBtn = document.getElementById("audioToggle");
+      let audioCtx;
+      let carrier;
+      let carrierGain;
+      let lfo;
+      let lfoGain;
+
+      const initAudio = () => {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        carrier = audioCtx.createOscillator();
+        carrierGain = audioCtx.createGain();
+        lfo = audioCtx.createOscillator();
+        lfoGain = audioCtx.createGain();
+
+        carrier.type = "sine";
+        carrier.frequency.value = 60;
+        carrierGain.gain.value = 0.05;
+
+        lfo.type = "sine";
+        lfo.frequency.value = 0.6;
+        lfoGain.gain.value = 0.04;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(carrierGain.gain);
+        carrier.connect(carrierGain).connect(audioCtx.destination);
+        carrier.start();
+        lfo.start();
+      };
+
+      const setMuted = (mute) => {
+        if (!carrierGain) return;
+        carrierGain.gain.setTargetAtTime(mute ? 0 : 0.05, audioCtx.currentTime, 0.05);
+        toggleBtn.textContent = mute ? "Unmute Pulse" : "Mute Pulse";
+        localStorage.setItem(storageKey, String(mute));
+      };
+
+      toggleBtn.addEventListener("click", () => {
+        initAudio();
+        const nextState = !(localStorage.getItem(storageKey) === "true");
+        setMuted(nextState);
+      });
+
+      // Apply stored mute state on load (audio starts when user clicks)
+      if (localStorage.getItem(storageKey) === "true") {
+        toggleBtn.textContent = "Unmute Pulse";
+      }
+    })();
+  </script>
+</body>
+</html>
