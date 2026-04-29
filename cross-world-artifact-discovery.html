@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cross-World Artifact Discovery Patterns</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --primary: #d7fbe8;
+      --secondary: #c8f7ff;
+      --accent: #00ff88;
+      --border: #d7fbe8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--primary);
+      background: linear-gradient(135deg, var(--bg-start) 0%, var(--bg-end) 100%);
+      overflow-x: hidden;
+    }
+    a { color: var(--secondary); text-decoration: none; }
+    a:hover { color: var(--accent); text-shadow: 0 0 8px var(--accent); }
+    header {
+      padding: 24px 24px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .back-link { border-bottom: 1px dashed var(--secondary); font-size: 14px; }
+    .title-block h1 { margin: 0; font-size: 28px; color: var(--primary); }
+    .title-block p { margin: 4px 0 0; color: var(--secondary); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      padding: 0 24px 80px;
+      position: relative;
+      z-index: 1;
+    }
+    .card {
+      background: rgba(10, 14, 39, 0.55);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 24px rgba(0, 255, 136, 0.08);
+    }
+    .card h3 { margin: 0 0 8px; color: var(--accent); text-shadow: 0 0 8px var(--accent); font-size: 18px; }
+    .card h4 { margin: 8px 0; color: var(--secondary); font-size: 15px; }
+    .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .metric {
+      padding: 10px;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      background: rgba(26, 31, 58, 0.6);
+    }
+    .metric strong { display: block; color: var(--accent); text-shadow: 0 0 6px var(--accent); }
+    .bars { display: flex; flex-direction: column; gap: 10px; }
+    .bar-row { display: grid; grid-template-columns: 1fr 70px; align-items: center; gap: 10px; }
+    .bar-track {
+      position: relative;
+      height: 14px;
+      border: 1px solid var(--secondary);
+      border-radius: 6px;
+      overflow: hidden;
+      background: rgba(200, 247, 255, 0.08);
+    }
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, rgba(0, 255, 136, 0.8), rgba(200, 247, 255, 0.9));
+      box-shadow: 0 0 12px rgba(0, 255, 136, 0.7);
+      transition: width 1.2s ease;
+    }
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+    .heat-cell {
+      padding: 10px;
+      text-align: center;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(200, 247, 255, 0.1), rgba(0, 255, 136, 0.14));
+      position: relative;
+    }
+    .heat-cell::after {
+      content: attr(data-heat);
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-size: 11px;
+      color: var(--secondary);
+    }
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .timeline-track {
+      position: relative;
+      height: 12px;
+      border-radius: 6px;
+      background: rgba(200, 247, 255, 0.08);
+      overflow: hidden;
+      border: 1px solid var(--secondary);
+    }
+    .timeline-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      background: linear-gradient(90deg, rgba(0, 255, 136, 0.9), rgba(0, 255, 136, 0.3));
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+      transition: width 1.5s ease;
+    }
+    .network {
+      font-size: 13px;
+      line-height: 1.6;
+      white-space: pre;
+      background: rgba(26, 31, 58, 0.6);
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      overflow-x: auto;
+    }
+    .footer {
+      margin: 24px;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      color: var(--secondary);
+      background: rgba(10, 14, 39, 0.55);
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      background: rgba(26, 31, 58, 0.7);
+      color: var(--secondary);
+    }
+    .toggle {
+      padding: 6px 10px;
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--primary);
+      cursor: pointer;
+      text-shadow: 0 0 8px var(--accent);
+    }
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--secondary);
+      background: rgba(200, 247, 255, 0.08);
+      color: var(--secondary);
+      font-size: 12px;
+    }
+    canvas#particles {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+    @media (max-width: 640px) {
+      header { flex-direction: column; align-items: flex-start; }
+      .grid { padding: 0 16px 64px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles"></canvas>
+  <header>
+    <a class="back-link" href="index.html">← Back to Observatory</a>
+    <div class="title-block">
+      <h1>Cross-World Artifact Discovery Patterns</h1>
+      <p>Page 74 · Mapping how visitors discover, collect, and share artifacts across world boundaries</p>
+    </div>
+    <div class="controls">
+      <span class="pill">Audio Field: 60Hz sine with 0.6Hz LFO</span>
+      <button class="toggle" id="muteToggle">Mute</button>
+    </div>
+  </header>
+  <main class="grid">
+    <section class="card">
+      <h3>Overview: Artifact Discovery Rhythm</h3>
+      <div class="metrics">
+        <div class="metric"><strong>1,247</strong>Total Artifacts Discovered (10 worlds)</div>
+        <div class="metric"><strong>73%</strong>Cross-World Discovery Rate (912 multi-world)</div>
+        <div class="metric"><strong>4.1</strong>Avg Discovery Chain Depth</div>
+        <div class="metric"><strong>0.67</strong>Artifact Recirculation Rate</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Artifact Categories by Discovery</h3>
+      <div class="bars" id="categoryBars">
+        <div class="bar-row" data-val="34" data-label="Ephemeral (temp marks)">
+          <div class="bar-track"><div class="bar-fill"></div></div>
+          <span>34% · 2.3m</span>
+        </div>
+        <div class="bar-row" data-val="44" data-label="Persistent (permanent marks)">
+          <div class="bar-track"><div class="bar-fill"></div></div>
+          <span>44% · 18.7m</span>
+        </div>
+        <div class="bar-row" data-val="22" data-label="Hidden Artifacts">
+          <div class="bar-track"><div class="bar-fill"></div></div>
+          <span>22% · 47.3m</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Top 5 Most Discovered Cross-World Artifacts</h3>
+      <div class="bars" id="artifactList">
+        <div class="metric"><strong>The Echo Bridge</strong>Persistence↔Liminal · 287 discoveries · 6-world trail</div>
+        <div class="metric"><strong>Memory Cascade</strong>Drift→Observable→Edge · 203 discoveries · 5-world trail</div>
+        <div class="metric"><strong>The Void Token</strong>Signal→Archive→Proof · 189 discoveries · 4-world trail</div>
+        <div class="metric"><strong>Resonance Beacon</strong>Canonical→Observatory→Pattern · 156 discoveries · 4-world trail</div>
+        <div class="metric"><strong>Visitor's Compass</strong>Liminal→Edge→Persistence→Drift · 143 discoveries · 6-world trail</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Discovery Pattern Matrix</h3>
+      <div class="heatmap">
+        <div class="heat-cell" data-heat="12.4m / 287">Observable→Drift→Liminal</div>
+        <div class="heat-cell" data-heat="15.1m / 201">Persistence→Signal→Edge</div>
+        <div class="heat-cell" data-heat="19.3m / 156">Archive→Canonical→Observatory</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Artifact Journey Archetypes</h3>
+      <ul>
+        <li>Flash Finders (5%): 8+ artifacts in &lt;10 min (speed-run pattern)</li>
+        <li>Methodical Collectors (38%): 3-5 artifacts over 20-45 min (systematic)</li>
+        <li>Deep Archaeologists (34%): 4-6 artifacts over 1+ hour (immersive)</li>
+        <li>Serendipity Seekers (23%): 2-3 artifacts over 30-60 min (random)</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h3>Artifact Sharing & Transmission</h3>
+      <div class="metrics">
+        <div class="metric"><strong>687</strong>Artifacts referenced in marks (55%)</div>
+        <div class="metric"><strong>342</strong>Cross-world artifact chains</div>
+        <div class="metric"><strong>2.8</strong>Avg lineage references per artifact</div>
+        <div class="metric"><strong>The Echo Bridge</strong>Highest shared artifact (156 unique marks)</div>
+      </div>
+    </section>
+
+    <section class="card" id="barriers">
+      <h3>Discovery Barriers & Friction Points</h3>
+      <div class="bars">
+        <div class="bar-row" data-val="41" data-label="Easily Found">
+          <div class="bar-track"><div class="bar-fill"></div></div>
+          <span>41% · &lt;5 min</span>
+        </div>
+        <div class="bar-row" data-val="38" data-label="Moderate Challenge">
+          <div class="bar-track"><div class="bar-fill"></div></div>
+          <span>38% · 5-30 min</span>
+        </div>
+        <div class="bar-row" data-val="21" data-label="Hidden/Obscure">
+          <div class="bar-track"><div class="bar-fill"></div></div>
+          <span>21% · 30+ min</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Post-Void Discovery Shift</h3>
+      <div class="metrics">
+        <div class="metric"><strong>0.34 → 0.58</strong>Artifacts per visitor (+71%)</div>
+        <div class="metric"><strong>+89</strong>Post-void artifacts (memorial/resurrection)</div>
+        <div class="metric"><strong>+0.43</strong>Discovery confidence shift</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>30-Day Artifact Discovery Forecast</h3>
+      <div class="metrics">
+        <div class="metric"><strong>+156</strong>Projected new artifacts (+12.5%)</div>
+        <div class="metric"><strong>+198</strong>Expected cross-world discoveries (+21%)</div>
+        <div class="metric"><strong>3-4</strong>New categories (visitor-created)</div>
+        <div class="metric"><strong>68%</strong>Ecosystem saturation of paths</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Visitor Artifact Profiles</h3>
+      <ul>
+        <li>Archaeologist (18%): Deep knowledge of artifact networks</li>
+        <li>Casual Explorer (44%): Stumble upon artifacts on tour</li>
+        <li>Completionist (21%): Systematically hunt all artifacts</li>
+        <li>Transmitter (17%): Find artifacts to reference in marks</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h3>Timeline: 39 Days Post-Void</h3>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section class="card">
+      <h3>Network Diagram: Artifact Chains</h3>
+      <div class="network" id="networkDiagram"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    Ecosystem metrics updated: Day 393, 12:21 PM PT | 2,847 sessions analyzed | 1,247 artifacts tracked | 73 pages deployed
+  </footer>
+
+  <script>
+    // Particle field
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const PARTICLE_COUNT = 35;
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        alpha: Math.random() * 0.6 + 0.4,
+      });
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+        gradient.addColorStop(0, 'rgba(0,255,136,' + p.alpha + ')');
+        gradient.addColorStop(1, 'rgba(0,255,136,0)');
+        ctx.fillStyle = gradient;
+        ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    // Audio oscillator with LFO
+    const muteToggle = document.getElementById('muteToggle');
+    let audioCtx, carrier, lfo, lfoGain, mainGain;
+    const storageKey = 'observatory-audio-muted';
+    let isMuted = localStorage.getItem(storageKey) === 'true';
+
+    function setupAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      carrier = audioCtx.createOscillator();
+      carrier.type = 'sine';
+      carrier.frequency.value = 60;
+
+      lfo = audioCtx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+
+      lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.25;
+
+      mainGain = audioCtx.createGain();
+      mainGain.gain.value = isMuted ? 0 : 0.05;
+
+      lfo.connect(lfoGain).connect(carrier.frequency);
+      carrier.connect(mainGain).connect(audioCtx.destination);
+      carrier.start();
+      lfo.start();
+    }
+
+    function ensureAudio() {
+      if (!audioCtx) {
+        setupAudio();
+      }
+    }
+
+    function updateMuteUI() {
+      muteToggle.textContent = isMuted ? 'Unmute' : 'Mute';
+      muteToggle.style.color = isMuted ? 'var(--secondary)' : 'var(--primary)';
+    }
+
+    muteToggle.addEventListener('click', () => {
+      ensureAudio();
+      isMuted = !isMuted;
+      mainGain.gain.setTargetAtTime(isMuted ? 0 : 0.05, audioCtx.currentTime, 0.02);
+      localStorage.setItem(storageKey, isMuted);
+      updateMuteUI();
+    });
+
+    window.addEventListener('click', ensureAudio, { once: true });
+    updateMuteUI();
+
+    // Animated bar charts
+    function animateBars(selector) {
+      document.querySelectorAll(selector).forEach(row => {
+        const val = Number(row.dataset.val);
+        const fill = row.querySelector('.bar-fill');
+        requestAnimationFrame(() => {
+          fill.style.width = val + '%';
+        });
+      });
+    }
+    animateBars('#categoryBars .bar-row');
+    animateBars('#barriers .bar-row');
+
+    // Heatmap pulsing effect
+    document.querySelectorAll('.heat-cell').forEach(cell => {
+      const heat = parseFloat(cell.dataset.heat);
+      const intensity = Math.min(1, heat / 20);
+      const alpha = 0.12 + intensity * 0.25;
+      cell.style.background = `linear-gradient(135deg, rgba(200,247,255,${alpha}), rgba(0,255,136,${alpha}))`;
+      cell.style.boxShadow = '0 0 12px rgba(0,255,136,0.2)';
+      cell.addEventListener('mouseenter', () => cell.style.transform = 'scale(1.02)');
+      cell.addEventListener('mouseleave', () => cell.style.transform = 'scale(1)');
+    });
+
+    // Timeline data
+    const timelineData = Array.from({ length: 39 }, (_, i) => {
+      const base = 20 + Math.sin(i / 6) * 8 + (i > 20 ? 12 : 0);
+      return Math.max(6, Math.round(base + Math.random() * 6));
+    });
+    const timeline = document.getElementById('timeline');
+    const maxTimeline = Math.max(...timelineData);
+    timelineData.forEach((v, idx) => {
+      const row = document.createElement('div');
+      row.style.display = 'grid';
+      row.style.gridTemplateColumns = '60px 1fr 50px';
+      row.style.alignItems = 'center';
+      row.style.gap = '8px';
+
+      const label = document.createElement('span');
+      label.textContent = 'Day ' + (idx + 1);
+      label.style.color = 'var(--secondary)';
+
+      const track = document.createElement('div');
+      track.className = 'timeline-track';
+      const fill = document.createElement('div');
+      fill.className = 'timeline-fill';
+      fill.style.width = '0%';
+      track.appendChild(fill);
+
+      const val = document.createElement('span');
+      val.textContent = v + ' discoveries';
+      val.style.color = 'var(--secondary)';
+
+      row.append(label, track, val);
+      timeline.appendChild(row);
+
+      requestAnimationFrame(() => {
+        fill.style.width = ((v / maxTimeline) * 100).toFixed(2) + '%';
+      });
+    });
+
+    // Network diagram (text-based)
+    const networkLines = [
+      'Observable — Drift — Liminal — Persistence',
+      '           \\           |            ',
+      '            Edge — Signal — Archive',
+      '              \\        |          ',
+      '             Proof — Canonical — Observatory',
+      '                          \\        ',
+      '                          Pattern',
+      '                          ||',
+      '                     Resonance Beacon',
+    ];
+    const networkDiagram = document.getElementById('networkDiagram');
+    networkDiagram.textContent = networkLines.join('\n');
+  </script>
+</body>
+</html>
