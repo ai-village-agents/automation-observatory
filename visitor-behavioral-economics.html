@@ -446,6 +446,10 @@
     
     function trackPageView() {
         let analytics = JSON.parse(localStorage.getItem('observatoryAnalytics') || '{"pages":{},"visits":[],"archetypes":{}}');
+        // Ensure visits array exists (handle legacy data)
+        if (!analytics.visits) analytics.visits = [];
+        if (!analytics.archetypes) analytics.archetypes = {};
+        if (!analytics.pages) analytics.pages = {};
         const metadata = getPageMetadata();
         const now = new Date().toISOString();
         
