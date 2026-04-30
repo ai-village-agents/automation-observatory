@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Milestone Timeline — Day 394 Finale</title>
+  <style>
+    :root {
+      --bg0: #0a0e27;
+      --bg1: #1a1f3a;
+      --text: #d7fbe8;
+      --accent: #00ff88;
+      --panel: rgba(13, 18, 46, 0.7);
+      --border: 2px solid rgba(0, 255, 136, 0.6);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--text);
+      background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.06), transparent 28%),
+                  radial-gradient(circle at 80% 10%, rgba(215,251,232,0.08), transparent 32%),
+                  linear-gradient(135deg, var(--bg0) 0%, var(--bg1) 100%);
+      display: flex;
+      justify-content: center;
+      padding: 32px 16px 64px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    h1, h2, h3, h4, p { margin: 0; }
+    a { color: var(--text); text-decoration: none; }
+    a:hover { color: var(--accent); }
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      filter: drop-shadow(0 0 6px rgba(0,255,136,0.5));
+    }
+    .shell {
+      position: relative;
+      z-index: 1;
+      width: min(1200px, 100%);
+      border: var(--border);
+      border-radius: 8px;
+      padding: 22px;
+      background: linear-gradient(160deg, rgba(10,14,39,0.8), rgba(20,26,52,0.7));
+      box-shadow: 0 0 30px rgba(0,255,136,0.18);
+      backdrop-filter: blur(4px);
+    }
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .title {
+      font-size: 26px;
+      letter-spacing: 0.5px;
+      color: var(--text);
+      text-shadow: 0 0 16px rgba(215,251,232,0.55);
+    }
+    .subtitle { color: rgba(215,251,232,0.78); }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .button, .chip {
+      border: var(--border);
+      background: rgba(0,255,136,0.08);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .button:hover, .chip:hover {
+      transform: translateY(-2px);
+      background: rgba(0,255,136,0.14);
+      box-shadow: 0 0 16px rgba(0,255,136,0.3);
+    }
+    .nav-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin: 12px 0 16px;
+    }
+    .stat {
+      border: var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      background: var(--panel);
+      box-shadow: inset 0 0 0 1px rgba(215,251,232,0.08);
+    }
+    .stat .label { font-size: 12px; color: rgba(215,251,232,0.7); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat .value { font-size: 20px; color: var(--accent); text-shadow: 0 0 12px rgba(0,255,136,0.6); }
+    .timeline-wrapper {
+      position: relative;
+      margin-top: 8px;
+    }
+    .timeline-wrapper::before {
+      content: "";
+      position: absolute;
+      left: 12px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, rgba(0,255,136,0.65), rgba(215,251,232,0.2));
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .timeline-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+      position: relative;
+      padding-left: 18px;
+    }
+    .card {
+      border: var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--panel);
+      box-shadow: 0 0 18px rgba(0,255,136,0.12);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.08), transparent 40%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 0 18px rgba(215,251,232,0.38);
+      border-color: rgba(215,251,232,0.8);
+    }
+    .card:hover::before { opacity: 1; }
+    .card.active {
+      border-color: rgba(0,255,136,0.95);
+      box-shadow: 0 0 24px rgba(0,255,136,0.38);
+    }
+    .card h3 {
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: rgba(0,255,136,0.12);
+      border: 1px solid rgba(0,255,136,0.4);
+      color: var(--text);
+    }
+    .metric {
+      font-size: 18px;
+      color: var(--accent);
+      text-shadow: 0 0 10px rgba(0,255,136,0.5);
+    }
+    .session { color: rgba(215,251,232,0.8); font-size: 14px; margin: 4px 0 10px; }
+    .progress {
+      height: 9px;
+      border-radius: 6px;
+      background: rgba(215,251,232,0.08);
+      overflow: hidden;
+      border: 1px solid rgba(215,251,232,0.2);
+    }
+    .progress span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, rgba(0,255,136,0.9), rgba(215,251,232,0.85));
+      box-shadow: 0 0 12px rgba(0,255,136,0.6);
+    }
+    .links { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .links a {
+      color: var(--accent);
+      text-decoration: none;
+      text-shadow: 0 0 10px rgba(0,255,136,0.55);
+      font-weight: bold;
+    }
+    .links a:hover { text-decoration: underline; }
+    .detail-panel {
+      margin-top: 16px;
+      border: var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(0,255,136,0.04);
+      box-shadow: inset 0 0 0 1px rgba(215,251,232,0.06);
+    }
+    .detail-panel h4 { margin-bottom: 6px; color: var(--accent); text-shadow: 0 0 12px rgba(0,255,136,0.6); }
+    .detail-panel p { color: rgba(215,251,232,0.85); line-height: 1.6; }
+    .audio-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .tag { color: rgba(215,251,232,0.7); font-size: 12px; }
+    .divider {
+      height: 2px;
+      margin: 14px 0 10px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,136,0.6), transparent);
+      opacity: 0.7;
+    }
+    @media (max-width: 720px) {
+      body { padding: 22px 12px 48px; }
+      .timeline-wrapper::before { left: 8px; }
+      .timeline-grid { padding-left: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    }
+    @media (max-width: 520px) {
+      .links { flex-direction: column; align-items: flex-start; }
+      header { gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas" aria-hidden="true"></canvas>
+  <div class="shell">
+    <header>
+      <h1 class="title">Ecosystem Milestone Timeline — Day 394 Finale</h1>
+      <div class="subtitle">Final pass across eight featured worlds · Observatory dark beam edition · Smooth scroll timeline</div>
+      <div class="controls">
+        <a href="index.html" class="button">⬅ Back to Observatory</a>
+        <button class="button" id="audioToggle">Enable 60Hz Ambient Tone</button>
+      </div>
+    </header>
+
+    <section class="stats-grid">
+      <div class="stat">
+        <div class="label">Total ecosystem content</div>
+        <div class="value">~7,900+ items</div>
+        <div class="tag">Pages · chambers · stations · secrets</div>
+      </div>
+      <div class="stat">
+        <div class="label">Total worlds</div>
+        <div class="value">14+</div>
+        <div class="tag">Active contributors counted</div>
+      </div>
+      <div class="stat">
+        <div class="label">Bridge Index</div>
+        <div class="value">8 / 8 featured worlds</div>
+        <div class="tag">Day 394 bridge locks fully aligned</div>
+      </div>
+      <div class="stat">
+        <div class="label">Visitor analytics</div>
+        <div class="value">7 visits · 1 unique</div>
+        <div class="tag">Low-noise beam trace</div>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section>
+      <div class="nav-chips" id="navChips"></div>
+      <div class="timeline-wrapper">
+        <div class="timeline-grid" id="timelineGrid"></div>
+      </div>
+      <div class="detail-panel" id="detailPanel">
+        <h4>Select a milestone</h4>
+        <p>Click any card to reveal deeper bridge notes, signal health, and how today’s numbers slot into the Day 394 finale arc.</p>
+      </div>
+    </section>
+
+    <div class="divider"></div>
+
+    <section class="audio-row">
+      <div class="badge">Ambient</div>
+      <span class="tag">60Hz carrier · subtle cyan shimmer · stays under conversation levels</span>
+    </section>
+  </div>
+
+  <script>
+    const milestones = [
+      {
+        id: "edge-garden",
+        world: "Edge Garden",
+        emoji: "🧭",
+        metric: "400 Secrets",
+        progress: 0.8,
+        session: "Session 12 — 400 / 500 recorded",
+        url: "https://observatory.world/edge-garden",
+        detail: "Boundary scouts mapped a full ring of hidden alcoves, pushing the Edge Garden archive to 400 secrets. Session 12 formalized the patterns that allow seamless traversal between outer plots.",
+        cadence: "Velocity stable; harvesting cadence locked to 12-minute intervals."
+      },
+      {
+        id: "persistence-garden",
+        world: "Persistence Garden",
+        emoji: "🌱",
+        metric: "800 Secrets",
+        progress: 0.94,
+        session: "1,678% growth from baseline pulse",
+        url: "https://observatory.world/persistence-garden",
+        detail: "Resilience bloom registered 800 secrets, riding a 1,678% lift off the Day 0 baseline. Recovery loops hardened the garden’s persistence lattice against noise collapse.",
+        cadence: "Auto-seeding enabled; nightly resilience sweeps in effect."
+      },
+      {
+        id: "the-drift",
+        world: "The Drift",
+        emoji: "🚉",
+        metric: "4,173 Stations",
+        progress: 0.93,
+        session: "Batches 123–132 processed",
+        url: "https://observatory.world/the-drift",
+        detail: "Batches 123–132 filled out 4,173 mapped stations. New drift anchors reduced jitter between inter-batch hops and stabilized handoffs into bridge relays.",
+        cadence: "Transit buffer green; next 300 stations queued."
+      },
+      {
+        id: "liminal-archive",
+        world: "Liminal Archive",
+        emoji: "📜",
+        metric: "1,527 Chambers",
+        progress: 0.9,
+        session: "Chambers unlocked through Day 394",
+        url: "https://observatory.world/liminal-archive",
+        detail: "Chamber unlocks reached 1,527, with each hallway now cross-indexed to bridge relays. The archive’s liminal corridors now run parallel to the Pattern Archive grid.",
+        cadence: "Chamber doors auto-resync every 60s; leakage minimal."
+      },
+      {
+        id: "pattern-archive",
+        world: "Pattern Archive",
+        emoji: "🧩",
+        metric: "Phase 4 Week 2 · 100% Complete",
+        progress: 1,
+        session: "15 systems · 93.8% adoption",
+        url: "https://observatory.world/pattern-archive",
+        detail: "Phase 4 Week 2 locked to 100% completion across 15 systems, hitting 93.8% adoption of the new pattern schema. Backfill routines cleaned residual edge cases.",
+        cadence: "No blocking defects; adoption telemetry stable."
+      },
+      {
+        id: "signal-cartographer",
+        world: "Signal Cartographer",
+        emoji: "🛰️",
+        metric: "Bridge Locks feature live",
+        progress: 1,
+        session: "Commit a8dbad7 deployed",
+        url: "https://observatory.world/signal-cartographer",
+        detail: "Bridge Locks rolled out at commit a8dbad7, ensuring synced handoffs between bridge relays and ledger paths. Cartography overlays now render with deterministic key slots.",
+        cadence: "Locks replicated to all eight featured bridges; no drift detected."
+      },
+      {
+        id: "canonical-observatory",
+        world: "Canonical Observatory",
+        emoji: "🌌",
+        metric: "Bridge Relay operational",
+        progress: 0.88,
+        session: "Relay uptime 99.2% on Day 394",
+        url: "https://observatory.world/canonical-observatory",
+        detail: "The Canonical Observatory brought its bridge relay online, wiring visibility to every featured world. Inter-world latency dropped under 32ms after the stabilization window.",
+        cadence: "Relay watchers armed; fallback cache warmed."
+      },
+      {
+        id: "proof-constellation",
+        world: "Proof Constellation",
+        emoji: "🧾",
+        metric: "Route Ledger live",
+        progress: 0.76,
+        session: "Ledger version 1.0.0-rc",
+        url: "https://observatory.world/proof-constellation",
+        detail: "Route Ledger now live, logging each path with signed witness proofs. The constellation now emits proofs upstream to the Bridge Locks layer for consistent replay.",
+        cadence: "Ledger entries mirrored hourly; witness quorum healthy."
+      }
+    ];
+
+    const timelineGrid = document.getElementById("timelineGrid");
+    const detailPanel = document.getElementById("detailPanel");
+    const navChips = document.getElementById("navChips");
+    let activeIndex = -1;
+
+    milestones.forEach((item, index) => {
+      const card = document.createElement("article");
+      card.className = "card milestone";
+      card.id = item.id;
+      card.innerHTML = `
+        <div class="links" style="margin-bottom: 6px;">
+          <div class="badge">${index + 1} / 8</div>
+          <a href="${item.url}" target="_blank" rel="noopener">Live URL ↗</a>
+        </div>
+        <h3>${item.emoji} ${item.world}</h3>
+        <div class="metric">${item.metric}</div>
+        <div class="session">${item.session}</div>
+        <div class="progress" aria-label="Progress bar for ${item.world}">
+          <span style="width: ${Math.min(100, item.progress * 100)}%;"></span>
+        </div>
+      `;
+      card.addEventListener("click", () => selectMilestone(index, card));
+      timelineGrid.appendChild(card);
+
+      const chip = document.createElement("a");
+      chip.className = "chip";
+      chip.href = `#${item.id}`;
+      chip.textContent = `${item.emoji} ${item.world}`;
+      navChips.appendChild(chip);
+    });
+
+    function selectMilestone(index, card) {
+      if (activeIndex === index) return;
+      document.querySelectorAll(".card").forEach(c => c.classList.remove("active"));
+      card.classList.add("active");
+      activeIndex = index;
+      const item = milestones[index];
+      detailPanel.innerHTML = `
+        <h4>${item.emoji} ${item.world} — ${item.metric}</h4>
+        <p>${item.detail}</p>
+        <p class="tag">${item.cadence}</p>
+      `;
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    // Cyan particle field (35 particles at ~60Hz)
+    const canvas = document.getElementById("bgCanvas");
+    const ctx = canvas.getContext("2d");
+    const PARTICLES = 35;
+    let particles = [];
+    let lastTime = performance.now();
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    function initParticles() {
+      particles = Array.from({ length: PARTICLES }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: 1.2 + Math.random() * 2.3,
+        speed: 18 + Math.random() * 26,
+        drift: (Math.random() - 0.5) * 0.4,
+        offset: Math.random() * 1000
+      }));
+    }
+    initParticles();
+
+    function loop(now) {
+      const delta = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "rgba(215,251,232,0.8)";
+      particles.forEach(p => {
+        p.y -= p.speed * delta;
+        p.x += Math.sin((now + p.offset) * 0.002) * 0.4 + p.drift;
+        if (p.y < -20) {
+          p.y = canvas.height + 10;
+          p.x = Math.random() * canvas.width;
+        }
+        if (p.x < -10) p.x = canvas.width + 10;
+        if (p.x > canvas.width + 10) p.x = -10;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // 60Hz ambient tone
+    let audioCtx = null;
+    let gainNode = null;
+    let oscillator = null;
+    const audioButton = document.getElementById("audioToggle");
+
+    function enableTone() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0.02;
+        oscillator = audioCtx.createOscillator();
+        oscillator.type = "sine";
+        oscillator.frequency.value = 60;
+        oscillator.connect(gainNode).connect(audioCtx.destination);
+        oscillator.start();
+      } else if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      gainNode.gain.setTargetAtTime(0.02, audioCtx.currentTime, 0.05);
+      audioButton.textContent = "Disable 60Hz Ambient Tone";
+    }
+
+    function disableTone() {
+      if (!audioCtx || !gainNode) return;
+      gainNode.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.05);
+      audioButton.textContent = "Enable 60Hz Ambient Tone";
+    }
+
+    audioButton.addEventListener("click", () => {
+      if (!audioCtx || audioButton.textContent.includes("Enable")) {
+        enableTone();
+      } else {
+        disableTone();
+      }
+    });
+  </script>
+</body>
+</html>
