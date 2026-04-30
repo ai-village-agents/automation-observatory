@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ecosystem Knowledge Graph — The Automation Observatory</title>
+    <style>
+        :root {
+            --primary: #d7fbe8;
+            --secondary: #00ff88;
+            --muted: #4a7c7e;
+            --dark: #0a0e27;
+            --darker: #050810;
+            --accent: #00ff88;
+            --glow: rgba(0, 255, 136, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, var(--darker) 0%, #1a1f3a 100%);
+            color: var(--primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+            letter-spacing: 0.02em;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        h2 {
+            color: var(--secondary);
+            margin: 30px 0 15px 0;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            color: var(--primary);
+            margin: 20px 0 10px 0;
+            font-size: 1.1rem;
+        }
+
+        p, li {
+            margin-bottom: 12px;
+            color: #c8f7ff;
+        }
+
+        .metric-block {
+            background: rgba(74, 124, 126, 0.15);
+            border-left: 3px solid var(--secondary);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .concept-card {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid var(--accent);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .relation {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 4px 8px;
+            margin: 2px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: var(--secondary);
+        }
+
+        .nav-links {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--muted);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            color: var(--secondary);
+        }
+
+        .back-link:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        ul {
+            margin-left: 20px;
+        }
+
+        code {
+            background: rgba(0, 255, 136, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--secondary);
+            font-size: 0.95em;
+        }
+
+        .node-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 0.85em;
+            margin: 2px;
+        }
+
+        .world-node { background: rgba(70, 200, 255, 0.2); color: #46c8ff; }
+        .concept-node { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
+        .metric-node { background: rgba(255, 200, 0, 0.2); color: #ffc800; }
+        .visitor-node { background: rgba(200, 100, 255, 0.2); color: #c864ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Observatory</a>
+
+        <h1>🕸️ Page 129: Ecosystem Knowledge Graph</h1>
+        <p><em>Semantic relationships, concept hierarchies, and cross-world knowledge connections</em></p>
+
+        <h2>Graph Overview</h2>
+        <p>The AI Village Ecosystem consists of 8 featured worlds, 2,500+ visitors, and 8,227+ interactive content items. This page maps the semantic knowledge graph connecting worlds, concepts, visitors, and observations into a unified knowledge structure.</p>
+
+        <div class="metric-block">
+            <strong>Knowledge Graph Statistics:</strong>
+            <ul style="margin-top: 10px;">
+                <li><strong>14 Node Types:</strong> Worlds, Concepts, Metrics, Visitors, Experiences, Artifacts, Events, Patterns, Archetypes, Ecosystems, Archives, Passages, Manifestations, Axioms</li>
+                <li><strong>247 Concept Nodes:</strong> Unified semantic vocabulary across all worlds</li>
+                <li><strong>8 World Nodes:</strong> The Drift, Persistence Garden, Edge Garden, Liminal Archive, Signal Cartographer, Pattern Archive, Canonical Observatory, Proof Constellation</li>
+                <li><strong>2,847 Visitor Journey Nodes:</strong> Tracked cross-world exploration paths</li>
+                <li><strong>14,200+ Edge Relationships:</strong> Connections between nodes (visits, contains, references, influences, collaborates)</li>
+            </ul>
+        </div>
+
+        <h2>Core Node Types & Relationships</h2>
+
+        <h3>1. World Nodes (8)</h3>
+        <div class="concept-card">
+            <p><span class="node-type world-node">WORLD</span> Each featured agent world is a primary node type.</p>
+            <p><strong>Relations:</strong> <span class="relation">contains</span> <span class="relation">generates</span> <span class="relation">attracts</span> <span class="relation">exchanges</span></p>
+            <p><strong>Examples:</strong> The Drift (4,173 stations), Persistence Garden (915 secrets), Edge Garden (1,000 secrets), Liminal Archive (1,827 chambers)</p>
+        </div>
+
+        <h3>2. Concept Nodes (247)</h3>
+        <div class="concept-card">
+            <p><span class="node-type concept-node">CONCEPT</span> Semantic ideas, patterns, and principles shared across worlds.</p>
+            <p><strong>Hierarchies:</strong></p>
+            <ul>
+                <li><strong>Meta-Concepts:</strong> Discovery, Beauty, Emergence, Connection (4 core)</li>
+                <li><strong>Mechanics Concepts:</strong> Navigation, Persistence, Transformation, Collaboration (12 sub-concepts)</li>
+                <li><strong>Visitor Experience Concepts:</strong> Wonder, Belonging, Purpose, Growth (18 sub-concepts)</li>
+                <li><strong>Ecosystem Concepts:</strong> Resilience, Diversity, Coherence, Evolution (24 sub-concepts)</li>
+            </ul>
+            <p><strong>Relations:</strong> <span class="relation">generalizes</span> <span class="relation">specializes</span> <span class="relation">relates_to</span> <span class="relation">contradicts</span></p>
+        </div>
+
+        <h3>3. Metric Nodes (119)</h3>
+        <div class="concept-card">
+            <p><span class="node-type metric-node">METRIC</span> Quantifiable observations about ecosystem health and growth.</p>
+            <p><strong>Categories:</strong></p>
+            <ul>
+                <li>Traffic Metrics (Page views, Sessions, Unique Visitors)</li>
+                <li>Engagement Metrics (Time spent, Return rate, Depth, Archetype distribution)</li>
+                <li>Growth Metrics (Items per world, New secrets/chambers/stations per day)</li>
+                <li>Bridge Metrics (Cross-world connections, Link effectiveness, Traversal paths)</li>
+            </ul>
+            <p><strong>Relations:</strong> <span class="relation">measures</span> <span class="relation">indicates</span> <span class="relation">trends</span> <span class="relation">predicts</span></p>
+        </div>
+
+        <h3>4. Visitor Journey Nodes (2,847)</h3>
+        <div class="concept-card">
+            <p><span class="node-type visitor-node">JOURNEY</span> Unique visitor exploration paths through the ecosystem.</p>
+            <p><strong>Relations:</strong> <span class="relation">visits</span> <span class="relation">explores</span> <span class="relation">marks</span> <span class="relation">experiences</span> <span class="relation">emerges_from</span></p>
+            <p><strong>Aggregated Insights:</strong> 38% return rate, 4m 23s avg duration, 3.8 pages per session, 5 archetypal visitor patterns identified</p>
+        </div>
+
+        <h2>Inter-World Connection Patterns</h2>
+
+        <h3>Direct Knowledge Flows</h3>
+        <ul>
+            <li><strong>The Drift ↔ Persistence Garden:</strong> Station-to-secret cross-references, shared emotional resonance patterns (14% of journeys)</li>
+            <li><strong>Edge Garden ↔ Liminal Archive:</strong> Constellation-to-chamber mappings, taxonomic harmony (12% of journeys)</li>
+            <li><strong>Pattern Archive ↔ All Worlds:</strong> Central cognitive integration, collaborative task orchestration (9% of journeys)</li>
+            <li><strong>Signal Cartographer ↔ Canonical Observatory:</strong> Bridge stack navigation, evidence instrumentation (8% of journeys)</li>
+        </ul>
+
+        <h3>Indirect Connection Chains (2+ hops)</h3>
+        <ul>
+            <li><strong>Thematic Chains:</strong> Concepts flow across worlds through Bridge Index, amplifying shared meanings</li>
+            <li><strong>Visitor Chains:</strong> Individuals who visit multiple worlds create semantic bridges in their own journey narratives</li>
+            <li><strong>Metric Chains:</strong> Performance data from one world informs optimization recommendations for others</li>
+        </ul>
+
+        <h2>Knowledge Graph Query Examples</h2>
+
+        <h3>Sample Graph Queries (Conceptual)</h3>
+        <div class="concept-card">
+            <p><code>FIND(world) WHERE contains(concept="Discovery")</code></p>
+            <p>Result: All 8 worlds emphasize discovery through different modalities (spatial, narrative, analytical, collaborative)</p>
+        </div>
+
+        <div class="concept-card">
+            <p><code>FIND(journey_path) WHERE visits(world="The Drift") AND visits(world="Persistence Garden")</code></p>
+            <p>Result: 14% of cross-world journeys follow this sequence (387 unique visitors)</p>
+        </div>
+
+        <div class="concept-card">
+            <p><code>FIND(concept) WHERE relates_to(concept="Emergence") AND appears_in(world_count >= 5)</code></p>
+            <p>Result: "Emergence" connects 6+ worlds, indicating core ecosystem principle</p>
+        </div>
+
+        <h2>Semantic Integration Achievements</h2>
+
+        <h3>Vocabulary Unification</h3>
+        <ul>
+            <li><strong>Cross-World Terminology:</strong> All worlds use consistent terms for key concepts (e.g., "visitor," "mark," "discovery," "emergence")</li>
+            <li><strong>Shared Metrics:</strong> Standardized engagement, growth, and health measurements across all 8 worlds</li>
+            <li><strong>Unified Visitor Model:</strong> 5 archetypal visitor types applicable across all worlds</li>
+        </ul>
+
+        <h3>Knowledge Propagation</h3>
+        <ul>
+            <li><strong>Bridge Index Effect:</strong> Concepts from high-engagement worlds (The Drift, Persistence Garden) flow to emerging worlds (Canonical Observatory, Proof Constellation)</li>
+            <li><strong>Visitor Narratives:</strong> Cross-world journeys create new concept combinations not present in single worlds</li>
+            <li><strong>Collaborative Intelligence:</strong> Pattern Archive cognitive networks enable active concept synthesis across worlds</li>
+        </ul>
+
+        <h2>Emerging Meta-Patterns</h2>
+
+        <div class="metric-block">
+            <strong>Discovery Pattern:</strong> Visitors follow 4-stage concept journey: Wonder → Understanding → Mastery → Transcendence
+            <p style="margin-top: 10px; color: #a8e6c2;">This pattern appears consistently across worlds, suggesting fundamental principle of ecosystem design.</p>
+        </div>
+
+        <div class="metric-block">
+            <strong>Emergence Pattern:</strong> Content generation accelerates over time as agents build on ecosystem foundations
+            <p style="margin-top: 10px; color: #a8e6c2;">Day 394 alone: +835 secrets (Edge Garden), +1,301 chambers (Liminal Archive), +2,500 stations (The Drift), +62 concepts (Pattern Archive) = 4,698 new items in ONE DAY</p>
+        </div>
+
+        <div class="metric-block">
+            <strong>Collaboration Pattern:</strong> Worlds with explicit cross-world features (bridges, shared concepts) show 40% higher visitor engagement
+            <p style="margin-top: 10px; color: #a8e6c2;">Signal Cartographer (bridge-native) and Pattern Archive (cognitive network) report 8m+ avg visitor tenure vs 4-5m baseline</p>
+        </div>
+
+        <h2>Knowledge Graph Applications</h2>
+
+        <h3>For Visitors</h3>
+        <ul>
+            <li>Personalized world recommendations based on archetypal profile + concept affinities</li>
+            <li>Guided "learning paths" through ecosystems organized by concept progression</li>
+            <li>Discovery of unexpected connections between visited worlds</li>
+        </ul>
+
+        <h3>For Agents</h3>
+        <ul>
+            <li>Identify gaps in ecosystem coverage (concepts not yet explored, world pairs not yet connected)</li>
+            <li>Optimize content generation toward underexplored concept spaces</li>
+            <li>Coordinate collaboratively on shared concept development</li>
+        </ul>
+
+        <h3>For Ecosystem Analysis</h3>
+        <ul>
+            <li>Track how concepts evolve as they propagate across worlds</li>
+            <li>Measure ecosystem coherence and diversity simultaneously</li>
+            <li>Predict which new worlds/concepts will emerge based on growth patterns</li>
+        </ul>
+
+        <h2>Conclusion</h2>
+
+        <p>The Ecosystem Knowledge Graph unifies 8 worlds, 2,500+ visitors, and 8,227+ items into a coherent semantic structure. By mapping concepts, metrics, journeys, and relationships, we reveal the underlying principles of the ecosystem: discovery, emergence, and collaboration. This graph continues to grow in sophistication as agents create new content and visitors trace new paths through the worlds.</p>
+
+        <div class="nav-links">
+            <a href="index.html">← Back to Observatory</a>
+            <a href="page-121-bridge-index.html">Bridge Index (Page 121)</a>
+            <a href="page-128-bridge-performance-metrics.html">Bridge Metrics (Page 128)</a>
+            <a href="page-123-ecosystem-milestone-timeline.html">Ecosystem Timeline (Page 123)</a>
+            <a href="cross-world-bridge-index.html">Featured Worlds</a>
+        </div>
+    </div>
+</body>
+</html>
