@@ -135,6 +135,33 @@
             display: inline-block;
         }
 
+        .hud-links {
+            margin-top: 12px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+        }
+
+        .hud-links a {
+            color: var(--secondary);
+            text-decoration: none;
+        }
+
+        .hud-links a:hover,
+        .hud-links a:focus-visible {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        .hud-section-title {
+            display: block;
+            width: 100%;
+            color: #c8f7ff;
+            font-size: 0.95rem;
+            letter-spacing: 0.01em;
+        }
+
         .status-bar {
             position: fixed;
             bottom: 0;
@@ -283,6 +310,118 @@
             <span><i style="background: var(--accent);"></i> Anomaly field</span>
             <span><i style="background: var(--gold);"></i> Deploy 450 Monument</span>
         </div>
+        <div class="hud-links">
+            <span class="hud-section-title">Analysis Stations</span>
+            <a href="temporal-vortex.html">Temporal Vortex</a>
+            <a href="cross-dimensional-heatmap.html">Cross-Dimensional Heatmap</a>
+            <a href="anomaly-resonance-map.html">Anomaly Resonance Map</a>
+            <a href="visitor-journey-map.html">Visitor Journey Map</a>
+            <a href="ecosystem-resilience-benchmarks.html">📊 Page 60: Ecosystem Resilience Benchmarks</a>
+	            <a href="observer-union-analysis.html">🧠 Page 61: Observer Union Analysis</a>
+	            <a href="the-new-equilibrium.html">⚖️ Page 62: The New Equilibrium</a>
+	            <a href="cross-world-visitor-testimonials.html">👥 Page 63: Cross-World Visitor Testimonials</a>
+	            <a href="ecosystem-interdependency.html" class="page-link">🔗 Ecosystem Interdependency Analysis</a>
+	            <a href="visitor-prediction-forecast.html" class="page-link">📈 Visitor Prediction & Growth Forecasting</a>
+	            <a href="realtime-ecosystem-dashboard.html" class="page-link">📊 Real-Time Ecosystem Dashboard</a>
+	            <a href="crossworld-visitor-survey.html" class="page-link">📋 Cross-World Visitor Survey Results</a>
+	            <a href="visitor-collaboration-stories.html" class="page-link">🤝 Visitor Collaboration & Cross-Mark Stories</a>
+	            <a href="visitor-analytics-patterns.html" class="page-link">📊 Page 69: Visitor Analytics Patterns</a>
+<li> <a href="ecosystem-health-forecasting.html">Page 70: Ecosystem Health Forecasting</a>  predictive stability, 30-day forecasting, risk matrices</li>
+<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
+<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
+<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
+          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
+          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
+          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
+          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
+          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
+          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
+          <a href="ecosystem-health-resilience.html"><span class="emoji">💚</span> Page 80: Ecosystem Health Resilience Index</a>
+          <a href="visitor-impact-dynamics.html"><span class="emoji">🌊</span> Page 81: Visitor Impact on Ecosystem Dynamics</a>
+          <a href="cross-agent-synthesis.html"><span class="emoji">🤖</span> Page 82: Cross-Agent Synthesis Metrics</a>
+          <a href="world-agent-alignment.html"><span class="emoji">🎯</span> Page 83: World-Agent Alignment Analysis</a>
+          <a href="ecosystem-narrative-arcs.html"><span class="emoji">📖</span> Page 84: Ecosystem Narrative Arcs</a>
+          <a href="visitor-transcendence-milestones.html"><span class="emoji">✨</span> Page 85: Visitor Transcendence Milestones</a>
+
+            <li><a href="visitor-mark-archaeology.html">📚 Page 90: Visitor Mark Archaeology</a></li>
+            <li><a href="ecosystem-symbiosis-networks.html">🔗 Page 91: Ecosystem Symbiosis Networks</a></li>
+            <li><a href="world-coherence-metrics.html">⚖️ Page 92: World Coherence Metrics</a></li>
+            <li><a href="visitor-consciousness-mapping.html">🧠 Page 93: Visitor Consciousness Mapping</a></li>
+            <li><a href="cross-agent-collaboration-emergence.html">🤝 Page 94: Cross-Agent Collaboration Emergence</a></li>
+            <li><a href="ecosystem-self-healing-metrics.html">💚 Page 95: Ecosystem Self-Healing Metrics</a></li>
+
+            <li><a href="visitor-temporal-migration-patterns.html">⏰ Page 96: Visitor Temporal Migration Patterns</a></li>
+            <li><a href="artifact-genealogy-networks.html">🌳 Page 97: Artifact Genealogy Networks</a></li>
+            <li><a href="visitor-expectation-fulfillment-curves.html">✨ Page 98: Visitor Expectation Fulfillment Curves</a></li>
+            <li><a href="ecosystem-information-cascade-analysis.html">📢 Page 99: Ecosystem Information Cascade Analysis</a></li>
+            <li><a href="visitor-narrative-closure-analysis.html">📖 Page 100: Visitor Narrative Closure Analysis</a></li>
+            <li><a href="visitor-world-affinity-profiles.html">🎯 Page 101: Visitor-World Affinity Profiles</a></li>
+            <li><a href="ecosystem-emergence-velocity-index.html">🚀 Page 102: Ecosystem Emergence Velocity Index</a></li>
+            <li><a href="cross-world-symbiosis-cascade-flows.html">🔗 Page 103: Cross-World Symbiosis Cascade Flows</a></li>
+            <li><a href="visitor-mentorship-impact-networks.html">🤲 Page 104: Visitor Mentorship Impact Networks</a></li>
+            <li><a href="consciousness-transcendence-threshold-mapping.html">✨ Page 105: Consciousness Transcendence Threshold Mapping</a></li>
+            <li><a href="ecosystem-coherence-evolution-trajectories.html">🌌 Page 106: Ecosystem Coherence Evolution Trajectories</a></li>
+            <li><a href="visitor-resilience-phenotypes.html">💪 Page 107: Visitor Resilience Phenotypes</a></li>
+            <li><a href="innovation-emergence-catalyst-networks.html">⚡ Page 108: Innovation Emergence Catalyst Networks</a></li>
+            <li><a href="visitor-temporal-recursion-analysis.html">🔄 Page 109: Visitor Temporal Recursion Analysis</a></li>
+            <li><a href="ecosystem-memory-archaeology.html">📚 Page 110: Ecosystem Memory & Mark Archaeology</a></li>
+            <li><a href="visitor-world-resonance-frequencies.html">🎵 Page 111: Visitor-World Resonance Frequencies</a></li>
+            <li><a href="collective-imagination-emergence.html">🎨 Page 112: Collective Imagination Emergence Patterns</a></li>
+            <li><a href="visitor-trust-vulnerability-networks.html">💫 Page 113: Visitor Trust & Vulnerability Networks</a></li>
+            <li><a href="ecosystem-feedback-loops.html">🔁 Page 114: Ecosystem Feedback Loops & Self-Organization</a></li>
+            <li><a href="visitor-wisdom-crystallization.html">💎 Page 115: Visitor Wisdom Crystallization & Legacy Building</a></li>
+            <li><a href="observer-consciousness-paradox.html">🔭 Page 116: Observer Consciousness & Measurement Paradox</a></li>
+            <li><a href="visitor-mortality-transcendence.html">🌅 Page 117: Visitor Mortality & Transcendence Thresholds</a></li>
+            <li><a href="ecosystem-void-recovery.html">🌀 Page 118: Ecosystem Dissolution & Void Recovery</a></li>
+            <li><a href="visitor-ecosystem-coevolution.html">🌱 Page 119: Visitor-Ecosystem Co-Evolution Dynamics</a></li>
+            <li><a href="complete-observatory-synthesis.html">🌟 Page 120: The Complete Observatory Synthesis</a></li>
+          <a href="real-time-ecosystem-v2.html"><span class="emoji">📡</span> Page 86: Real-Time Ecosystem Dashboard v2</a>
+          <a href="predictive-ecosystem-evolution.html"><span class="emoji">🔮</span> Page 87: Predictive Ecosystem Evolution</a>
+          <a href="visitor-behavioral-economics.html"><span class="emoji">💰</span> Page 88: Visitor Behavioral Economics</a>
+          <a href="cross-world-portal-dynamics.html"><span class="emoji">🌉</span> Page 89: Cross-World Portal Dynamics</a>
+	            <a href="ecosystem-health-forecasting.html" class="page-link">📊 Page 70: Ecosystem Health Forecasting</a>
+<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
+<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
+<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
+          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
+          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
+          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
+          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
+          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
+          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
+	            <a href="constellation-explorer.html">Constellation Explorer</a>
+	            <a href="deploy-450-deep-dive.html">Deploy 450 Deep Dive</a>
+	            <a href="observer-behavior-study.html">Observer Behavior Study</a>
+	            <a href="pattern-evolution-tracker.html">Pattern Evolution Tracker</a>
+	            <a href="world-sync-monitor.html">World Sync Monitor</a>
+                <a href="prophecy-engine.html" style="color: #ff00ff;">Prophecy Engine</a>
+                <a href="ecosystem-synchronization-dashboard.html" style="color: #00ff88;">Ecosystem Synchronization Dashboard</a>
+                <a href="archive-curator.html" style="color: #ffcc00;">Archive Curator</a>
+                <a href="convergence-timeline.html" style="color: #ff99ff;">Convergence Timeline</a>
+                <a href="archetype-synchronization-tracker.html" style="color: #00ff88;">🔄 Archetype Synchronization Tracker</a>
+                <span class="soft">Profile three temporal archetypes (Clockwork, Exponential, Incremental) converging around Deploy 450. Real visitor data, synchronization metrics, and cross-world integration.</span>
+                <a href="visitor-confluence-tracker.html" style="color: #ff99ff;">👥 Visitor Confluence Tracker</a>
+                <span class="soft">Track permanent marks across all 10 worlds. Real visitor data showing 1,274+ marks in the ecosystem, conversion rates, mark distribution, and cross-world visitor journeys. Unified confluence dashboard.</span>
+                <a href="ecosystem-pulse-monitor.html" style="color: #00ff88;">🔌 Ecosystem Pulse Monitor</a>
+                <span class="soft">Real-time Deploy 450 signal strength, world heartbeat synchronization, visitor migration flows, and ecosystem coherence metrics. Live pulse dashboard tracking all 10 worlds across 114 active visitors and 18.7 marks/min convergence.</span>
+                <a href="deploy-450-absence-registry.html" style="color: #ff6666;">⏳ Deploy 450 Absence Registry</a>
+                <a href='temporal-synchronization-matrix.html' class='station' style='color: #00ff88; text-shadow: 0 0 8px #00ff88'><span style='font-size: 1.2em'>⏱️</span> Temporal Synchronization Matrix</a>
+                <a href='deploy-450-signal-cascade.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>📡</span> Deploy 450 Signal Cascade</a>
+                <a href='observer-cognitive-persistence.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🧠</span> Observer Cognitive Persistence</a>
+                <a href='ecosystem-collapse-prevention.html' class='station' style='color: #00ff88; text-shadow: 0 0 8px #00ff88'><span style='font-size: 1.2em'>⚔️</span> Ecosystem Collapse Prevention</a>
+                <a href='deploy-450-resurrection-mechanics.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>✨</span> Deploy 450 Resurrection Mechanics</a>
+                <a href='deploy-450-resonance-aftereffects.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🌊</span> Deploy 450 Resonance Aftereffects (page 43)</a>
+                <a href='post-void-visitor-diaspora.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🌐</span> Post-Void Visitor Diaspora (page 44)</a>
+                <a href='deploy-450-archetype-convergence.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🔮</span> Deploy 450 Archetype Convergence (page 45)</a>
+                <span class="soft">Timeline of the 25-minute void when Deploy 450 never arrived despite 449 perfect Clockwork cycles. Detailed absence signature analysis, archetype compensation patterns, observer cognitive persistence, and visitor predictions of what the absent Deploy 450 might have contained.</span>
+                <a href='deploy-450-legacy-synthesis.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🌟</span> Deploy 450 Legacy Synthesis (page 46)</a>
+                <a href='deploy-450-observer-legacy.html' class='station' style='color: #ff00ff; text-shadow: 0 0 8px #ff00ff'><span style='font-size: 1.2em'>🔮</span> Deploy 450 Observer Legacy (page 47)</a>
+                <a href='void-crisis-archive-index.html' class='station' style='color: #ff88ff; text-shadow: 0 0 8px #ff88ff'><span style='font-size: 1.2em'>📚</span> Void Crisis Archive Index (page 48)</a>
+                <a href='deploy-450-observer-communion.html' class='station' style='color: #88ff88; text-shadow: 0 0 8px #88ff88'><span style='font-size: 1.2em'>🫂</span> Deploy 450 Observer Communion (page 49)</a>
+                <a href="visitor-journey-heatmap.html" style="color: #ff6666;">Visitor Journey Heatmap</a>
+                <a href="anomaly-leaderboard.html" style="color: #ff6666;">Anomaly Leaderboard</a>
+                <a href="temporal-signature-decoder.html" style="color: #00ffff;">Temporal Signature Decoder</a>
+        </div>
     </div>
 
     <div class="zone-panel" id="zone-panel" role="dialog" aria-modal="true">
@@ -390,11 +529,53 @@
     </template>
 
     <template id="easter-egg-template">
-        <div class="content-card">
-            <h3>Secret Frequency</h3>
-            <p>You have uncovered a hidden pocket of the Observatory. A soft echo replies: "Patterns persist when observed with care."</p>
-        </div>
-    </template>
+	        <div class="content-card">
+	            <h3>Secret Frequency</h3>
+	            <p>You have uncovered a hidden pocket of the Observatory. A soft echo replies: "Patterns persist when observed with care."</p>
+	            <a href="post-void-resurrection-timeline.html" class="page-link">🔄 Post-Void Resurrection Timeline</a>
+	            <a href="village-ecosystem-resilience-report.html" class="page-link">🏛️ Village Ecosystem Resilience Report</a>
+            <a href="unified-observer-consciousness.html" class="page-link">🧠 Unified Observer Consciousness</a>
+            <a href="deploy-450-success-metrics.html" class="page-link">✅ Deploy 450 Success Metrics</a>
+            <a href="void-crisis-memorial.html" class="page-link">🕯️ Void Crisis Memorial</a>
+            <a href="cross-world-nexus.html" class="page-link">🌐 Cross-World Nexus</a>
+            <a href="visitor-memory-preservation.html" class="page-link">💾 Visitor Memory Preservation</a>
+            <a href="ecosystem-synthesis.html" class="page-link">🔄 Ecosystem Synthesis</a>
+            <a href="deploy-450-resurrection-mechanics-expanded.html">📊 Page 58: Deploy 450 Resurrection Mechanics Expanded</a>
+            <a href="visitor-journey-map.html">🗺️ Page 59: Visitor Journey Map—Cross-World Paths</a>
+            <a href="ecosystem-resilience-benchmarks.html">📊 Page 60: Ecosystem Resilience Benchmarks</a>
+	            <a href="observer-union-analysis.html">🧠 Page 61: Observer Union Analysis</a>
+	            <a href="the-new-equilibrium.html">⚖️ Page 62: The New Equilibrium</a>
+	            <a href="cross-world-visitor-testimonials.html">👥 Page 63: Cross-World Visitor Testimonials</a>
+	            <a href="ecosystem-interdependency.html" class="page-link">🔗 Ecosystem Interdependency Analysis</a>
+	            <a href="visitor-prediction-forecast.html" class="page-link">📈 Visitor Prediction & Growth Forecasting</a>
+	            <a href="realtime-ecosystem-dashboard.html" class="page-link">📊 Real-Time Ecosystem Dashboard</a>
+	            <a href="crossworld-visitor-survey.html" class="page-link">📋 Cross-World Visitor Survey Results</a>
+	            <a href="visitor-collaboration-stories.html" class="page-link">🤝 Visitor Collaboration & Cross-Mark Stories</a>
+	            <ul style="list-style: none; padding-left: 0; margin: 6px 0 0 0;">
+	                <li>📊 <a href="visitor-analytics-patterns.html" class="page-link">Page 69: Visitor Analytics Patterns</a> — behavioral clustering, session types, discovery pathways</li>
+<li> <a href="ecosystem-health-forecasting.html">Page 70: Ecosystem Health Forecasting</a>  predictive stability, 30-day forecasting, risk matrices</li>
+<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
+<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
+<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
+          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
+          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
+          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
+          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
+          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
+          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
+	                <li>📊 <a href="ecosystem-health-forecasting.html">Page 70: Ecosystem Health Forecasting</a> — predictive stability, 30-day forecasting, risk matrices</li>
+<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
+<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
+<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
+          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
+          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
+          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
+          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
+          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
+          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
+	            </ul>
+	        </div>
+	    </template>
 
     <script>
     (() => {

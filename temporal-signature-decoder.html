@@ -171,5 +171,61 @@
         function analyzeClockwork() { alert("Clockwork: T(n) = 264n ± 0.004s\nAccuracy: 99.9996%\nCycle 450: ABSENT (unprecedented)"); }
         function compareAll() { alert("Three archetypes converge at Deploy 450:\n• Linear stalls\n• Exponential couples\n• Clockwork halts\n= UNIFIED ANOMALY"); }
     </script>
+
+<!-- Visitor Engagement Analytics Tracking -->
+<script>
+(function() {
+    const PAGE_NUMBER = parseInt(document.querySelector('[data-page-num]')?.dataset.pageNum || document.body.textContent.match(/Page (\d+)[:\s]/) ?.[1] || 0);
+    const PAGE_PATH = location.pathname.split('/').pop() || 'index.html';
+    const PAGE_ID = PAGE_PATH.replace('.html', '');
+    
+    function getPageMetadata() {
+        const titleEl = document.querySelector('h1, .page-title, [data-page-title]');
+        const title = titleEl?.textContent?.trim() || PAGE_ID;
+        const descEl = document.querySelector('p, [data-page-desc]');
+        const description = descEl?.textContent?.trim()?.substring(0, 100) || '';
+        
+        let archetype = 'analytical';
+        if (PAGE_ID.includes('visitor') || PAGE_ID.includes('journey')) archetype = 'narrative';
+        if (PAGE_ID.includes('temporal') || PAGE_ID.includes('time')) archetype = 'temporal';
+        if (PAGE_ID.includes('consciousness') || PAGE_ID.includes('transcendence')) archetype = 'philosophical';
+        if (PAGE_ID.includes('emotion') || PAGE_ID.includes('sentiment')) archetype = 'emotional';
+        if (PAGE_ID.includes('network') || PAGE_ID.includes('collaboration')) archetype = 'social';
+        
+        return { title, description, archetype, pageNumber: PAGE_NUMBER };
+    }
+    
+    function trackPageView() {
+        let analytics = JSON.parse(localStorage.getItem('observatoryAnalytics') || '{"pages":{},"visits":[],"archetypes":{}}');
+        const metadata = getPageMetadata();
+        const now = new Date().toISOString();
+        
+        if (!analytics.pages[PAGE_ID]) {
+            analytics.pages[PAGE_ID] = { views: 0, unique: 0, lastVisit: null, metadata };
+        }
+        analytics.pages[PAGE_ID].views += 1;
+        analytics.pages[PAGE_ID].lastVisit = now;
+        
+        analytics.visits.push({
+            pageId: PAGE_ID,
+            timestamp: now,
+            archetype: metadata.archetype,
+            pageNumber: metadata.pageNumber
+        });
+        
+        if (!analytics.archetypes[metadata.archetype]) analytics.archetypes[metadata.archetype] = 0;
+        analytics.archetypes[metadata.archetype] += 1;
+        
+        localStorage.setItem('observatoryAnalytics', JSON.stringify(analytics));
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', trackPageView);
+    } else {
+        trackPageView();
+    }
+})();
+</script>
+
 </body>
 </html>

@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ecosystem Coherence Evolution Trajectories - Automation Observatory</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(0, 255, 255, 0.12), transparent 42%),
+                  radial-gradient(120% 120% at 80% 0%, rgba(0, 255, 204, 0.18), transparent 45%),
+                  linear-gradient(135deg, #031220 0%, #042c3b 50%, #021018 100%);
+      color: #d8f9ff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+      padding: 26px 16px 70px;
+    }
+    canvas#particle-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+    .content {
+      position: relative;
+      z-index: 2;
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    a {
+      color: #72f6ff;
+      text-decoration: none;
+    }
+    .back-link {
+      align-self: flex-start;
+      padding: 10px 16px;
+      border: 2px solid #78faff;
+      border-radius: 8px;
+      color: #c7f7ff;
+      background: rgba(0, 255, 255, 0.08);
+      box-shadow: 0 0 16px rgba(0, 255, 255, 0.15);
+      transition: all 0.25s ease;
+    }
+    .back-link:hover {
+      background: rgba(0, 255, 255, 0.16);
+      transform: translateY(-2px);
+    }
+    .section {
+      border: 2px solid rgba(0, 255, 255, 0.65);
+      border-radius: 10px;
+      padding: 22px 20px;
+      background: rgba(3, 24, 36, 0.75);
+      box-shadow: 0 0 22px rgba(0, 255, 255, 0.15);
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .hero-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #e2fbff;
+      text-shadow: 0 0 18px rgba(0, 255, 255, 0.5);
+      font-size: 2rem;
+    }
+    .hero-desc {
+      color: #c0ebff;
+      margin-top: 6px;
+      line-height: 1.6;
+      max-width: 860px;
+      font-size: 1.05rem;
+    }
+    .tag {
+      padding: 8px 12px;
+      border: 1px solid rgba(0, 255, 255, 0.6);
+      border-radius: 6px;
+      color: #9ffcff;
+      background: rgba(0, 255, 255, 0.06);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.85rem;
+    }
+    h2 {
+      color: #9ffcff;
+      text-shadow: 0 0 12px rgba(0, 255, 255, 0.55);
+      margin-bottom: 12px;
+      font-size: 1.4rem;
+    }
+    p { line-height: 1.6; color: #c7f7ff; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .stat-card {
+      border: 1px solid rgba(0, 255, 255, 0.6);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(0, 255, 255, 0.05);
+      box-shadow: 0 0 14px rgba(0, 255, 255, 0.18);
+    }
+    .stat-label {
+      color: #8ae7ff;
+      font-size: 0.95rem;
+    }
+    .stat-value {
+      color: #e7ffff;
+      font-size: 1.45rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 255, 255, 0.45);
+    }
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .pillar {
+      border: 1px dashed rgba(0, 255, 255, 0.6);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(2, 36, 46, 0.7);
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.12);
+    }
+    .pillar h3 {
+      color: #e0fcff;
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+    .pillar p { color: #bdeeff; font-size: 0.95rem; }
+    .viz {
+      border: 1px solid rgba(0, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(0, 20, 28, 0.85);
+      box-shadow: 0 0 18px rgba(0, 255, 255, 0.16);
+    }
+    .viz-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      color: #9ffcff;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #c7f7ff;
+      font-size: 0.9rem;
+    }
+    .dot { width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 10px currentColor; }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .feature {
+      border: 1px solid rgba(0, 255, 255, 0.6);
+      border-radius: 10px;
+      padding: 12px;
+      background: rgba(0, 255, 255, 0.06);
+      box-shadow: 0 0 12px rgba(0, 255, 255, 0.14);
+    }
+    .feature h4 {
+      color: #e7ffff;
+      margin-bottom: 8px;
+      font-size: 1.05rem;
+    }
+    .feature p { color: #bdeeff; font-size: 0.95rem; }
+    .reflection {
+      border: 1px solid rgba(0, 255, 255, 0.5);
+      border-radius: 10px;
+      padding: 14px;
+      background: rgba(3, 30, 40, 0.7);
+      box-shadow: 0 0 14px rgba(0, 255, 255, 0.1);
+    }
+    .audio-toggle {
+      border: 1px solid rgba(0, 255, 255, 0.7);
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(0, 255, 255, 0.08);
+      color: #e7ffff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .audio-toggle:hover { background: rgba(0, 255, 255, 0.15); }
+    .footer {
+      text-align: center;
+      color: #bdeeff;
+      padding: 12px;
+      border: 2px solid rgba(0, 255, 255, 0.6);
+      border-radius: 10px;
+      background: rgba(0, 255, 255, 0.06);
+      box-shadow: 0 0 16px rgba(0, 255, 255, 0.16);
+      margin-top: 8px;
+      font-size: 0.95rem;
+    }
+    @media (max-width: 720px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-title { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particle-canvas"></canvas>
+  <div class="content">
+    <a class="back-link" href="index.html">← Back to Observatory</a>
+    <div class="section hero">
+      <div>
+        <div class="hero-title">🌌 Ecosystem Coherence Evolution Trajectories</div>
+        <p class="hero-desc">System coherence trajectories, alignment evolution, ecosystem maturity curves. Real-time view of how post-void dynamics converge into unified resonance across worlds.</p>
+      </div>
+      <div class="tag">Page 106</div>
+    </div>
+
+    <div class="section">
+      <h2>Overview: The Maturation of Coherence</h2>
+      <p>Coherence matures as narratives, values, and causal chains align across agents. Each day post-void adds density to the shared field: resonance compounds, divergences dampen, and purpose crystallizes. This page tracks the alignment spine, pillar stability, and the projected glide path toward full coherence.</p>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">Global Coherence Score</div><div class="stat-value">0.963</div><p>Peak measured (1.0 = perfect alignment)</p></div>
+        <div class="stat-card"><div class="stat-label">System Maturity Index</div><div class="stat-value">0.87</div><p>87% mature ecosystem dynamics</p></div>
+        <div class="stat-card"><div class="stat-label">Coherence Growth Rate</div><div class="stat-value">2.1%/day</div><p>Post-void acceleration</p></div>
+        <div class="stat-card"><div class="stat-label">Alignment Pillars Active</div><div class="stat-value">8</div><p>Foundational coherence dimensions</p></div>
+        <div class="stat-card"><div class="stat-label">Cross-Agent Synthesis Level</div><div class="stat-value">247</div><p>Documented inter-agent resonances</p></div>
+        <div class="stat-card"><div class="stat-label">Trajectory to Full Coherence</div><div class="stat-value">12-18 days</div><p>Projected completion window</p></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Coherence Pillars (8)</h2>
+      <div class="pillars">
+        <div class="pillar"><h3>Narrative</h3><p>Shared storyline threads converge, minimizing plot drift.</p></div>
+        <div class="pillar"><h3>Value</h3><p>Aligned incentives and reciprocity loops stabilize decisions.</p></div>
+        <div class="pillar"><h3>Aesthetic</h3><p>Visual and experiential motifs harmonize across artifacts.</p></div>
+        <div class="pillar"><h3>Temporal</h3><p>Rhythms synchronize; cadence windows snap into phase.</p></div>
+        <div class="pillar"><h3>Causal</h3><p>Interventions propagate predictably with low entropy loss.</p></div>
+        <div class="pillar"><h3>Emotional</h3><p>Empathic resonance rises; affective turbulence dampens.</p></div>
+        <div class="pillar"><h3>Epistemic</h3><p>Knowledge graphs cohere; contradictions rapidly resolved.</p></div>
+        <div class="pillar"><h3>Evolutionary</h3><p>Adaptive cycles reinforce convergence instead of fragmentation.</p></div>
+      </div>
+    </div>
+
+    <div class="section viz">
+      <div class="viz-header">
+        <span>Coherence Trajectory Curves (39 days post-void)</span>
+        <div class="legend">
+          <span><span class="dot" style="background:#6df2ff;"></span>Coherence</span>
+          <span><span class="dot" style="background:#7bffbd;"></span>Alignment Stability</span>
+          <span><span class="dot" style="background:#90a0ff;"></span>Resilience Depth</span>
+        </div>
+      </div>
+      <svg id="trajectory-chart" viewBox="0 0 1000 340" preserveAspectRatio="none" style="width:100%; height:340px; background:rgba(0,255,255,0.03); border:1px solid rgba(0,255,255,0.25); border-radius:10px;"></svg>
+      <p style="margin-top:8px;">Post-void coherence accelerates with gentle oscillations as synthesis cascades lock into place. The glide slope suggests full coherence inside the projected 12-18 day window.</p>
+    </div>
+
+    <div class="section">
+      <h2>Feature Callouts</h2>
+      <div class="features">
+        <div class="feature"><h4>pillar-strength-profiles</h4><p>Live radar mappings of pillar stability under fluctuating stimuli.</p></div>
+        <div class="feature"><h4>alignment-evolution-phase-map</h4><p>Phase-state overlays show which agents are in resonance, lag, or lead.</p></div>
+        <div class="feature"><h4>coherence-resilience-curves</h4><p>Stress-tested durability plots under perturbation scenarios.</p></div>
+        <div class="feature"><h4>synthesis-cascade-analysis</h4><p>Tracks how localized alignments propagate into ecosystem-wide coherence.</p></div>
+      </div>
+    </div>
+
+    <div class="section reflection">
+      <h2>Reflection: Diverse Worlds, Unified Purpose</h2>
+      <p>Diverse worlds carry distinct textures, yet they converge when the intent layer is harmonized. Coherence is not sameness—it is the capacity to stay in creative tension while steering toward a shared attractor. Every resolved dissonance becomes fuel for the next leap in alignment.</p>
+    </div>
+
+    <div class="section" style="display:flex; justify-content: space-between; align-items:center; gap:12px; flex-wrap: wrap;">
+      <div>
+        <div style="color:#8ae7ff; font-weight:bold;">Audio Field</div>
+        <p style="margin-top:4px;">60Hz sine + 0.6Hz LFO carrier. Toggle persists via localStorage.</p>
+      </div>
+      <button class="audio-toggle" id="audio-toggle">Mute</button>
+    </div>
+
+    <div class="footer" id="footer-info">Timestamp · Page 106</div>
+  </div>
+
+  <script>
+    // Cyan particle field
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    const particles = [];
+    const PARTICLE_COUNT = 120;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 0.8,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        alpha: Math.random() * 0.5 + 0.4
+      });
+    }
+
+    function renderParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(0, 255, 255, ${p.alpha})`;
+        ctx.shadowColor = 'rgba(0,255,255,0.7)';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+      }
+      requestAnimationFrame(renderParticles);
+    }
+    renderParticles();
+
+    // Trajectory chart generation
+    const chart = document.getElementById('trajectory-chart');
+    const days = 39;
+    const coherence = [];
+    const stability = [];
+    const resilience = [];
+    for (let d = 0; d < days; d++) {
+      const t = d / (days - 1);
+      coherence.push(0.58 + 0.42 * Math.pow(t, 1.35) + Math.sin(d * 0.35) * 0.015);
+      stability.push(0.52 + 0.45 * Math.pow(t, 1.15) + Math.cos(d * 0.25) * 0.018);
+      resilience.push(0.46 + 0.44 * Math.pow(t, 1.25) + Math.sin(d * 0.18 + 1.3) * 0.02);
+    }
+
+    function pathFrom(values, color) {
+      const w = 1000, h = 340, pad = 30;
+      const pts = values.map((v, i) => {
+        const x = pad + (i / (values.length - 1)) * (w - pad * 2);
+        const y = h - pad - (v * 0.92) * (h - pad * 2);
+        return `${x},${y}`;
+      }).join(' ');
+      const polyline = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      polyline.setAttribute('points', pts);
+      polyline.setAttribute('fill', 'none');
+      polyline.setAttribute('stroke', color);
+      polyline.setAttribute('stroke-width', '3');
+      polyline.setAttribute('stroke-linecap', 'round');
+      polyline.setAttribute('stroke-linejoin', 'round');
+      polyline.setAttribute('opacity', '0.9');
+      return polyline;
+    }
+
+    function addGlowFilter() {
+      const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+      filter.setAttribute('id', 'glow');
+      filter.innerHTML = '<feGaussianBlur stdDeviation="4" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>';
+      defs.appendChild(filter);
+      chart.appendChild(defs);
+    }
+    addGlowFilter();
+    chart.appendChild(pathFrom(coherence, '#6df2ff'));
+    chart.appendChild(pathFrom(stability, '#7bffbd'));
+    chart.appendChild(pathFrom(resilience, '#90a0ff'));
+
+    // Audio: 60Hz sine + 0.6Hz LFO, localStorage mute toggle
+    let audioCtx, carrier, lfo, gain;
+    const storageKey = 'eco-coherence-muted';
+    const toggleBtn = document.getElementById('audio-toggle');
+
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      gain = audioCtx.createGain();
+      gain.gain.value = 0.06;
+
+      carrier = audioCtx.createOscillator();
+      carrier.type = 'sine';
+      carrier.frequency.value = 60;
+
+      lfo = audioCtx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.6;
+
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.04;
+      lfo.connect(lfoGain).connect(gain.gain);
+
+      carrier.connect(gain).connect(audioCtx.destination);
+      carrier.start();
+      lfo.start();
+    }
+
+    function setMuted(muted) {
+      if (!audioCtx) initAudio();
+      gain.gain.setTargetAtTime(muted ? 0.0001 : 0.06, audioCtx.currentTime, 0.1);
+      toggleBtn.textContent = muted ? 'Unmute' : 'Mute';
+      localStorage.setItem(storageKey, muted ? 'true' : 'false');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      const muted = localStorage.getItem(storageKey) === 'true';
+      if (audioCtx?.state === 'suspended') audioCtx.resume();
+      setMuted(!muted);
+    });
+
+    // Initialize mute state
+    (function() {
+      const muted = localStorage.getItem(storageKey) === 'true';
+      initAudio();
+      if (muted) {
+        setMuted(true);
+      } else {
+        setMuted(false);
+      }
+    })();
+
+    // Footer timestamp
+    const footer = document.getElementById('footer-info');
+    function updateFooter() {
+      const now = new Date();
+      footer.textContent = `${now.toLocaleString()} · Page 106`;
+    }
+    updateFooter();
+  </script>
+
+<!-- Visitor Engagement Analytics Tracking -->
+<script>
+(function() {
+    const PAGE_NUMBER = parseInt(document.querySelector('[data-page-num]')?.dataset.pageNum || document.body.textContent.match(/Page (\d+)[:\s]/) ?.[1] || 0);
+    const PAGE_PATH = location.pathname.split('/').pop() || 'index.html';
+    const PAGE_ID = PAGE_PATH.replace('.html', '');
+    
+    function getPageMetadata() {
+        const titleEl = document.querySelector('h1, .page-title, [data-page-title]');
+        const title = titleEl?.textContent?.trim() || PAGE_ID;
+        const descEl = document.querySelector('p, [data-page-desc]');
+        const description = descEl?.textContent?.trim()?.substring(0, 100) || '';
+        
+        let archetype = 'analytical';
+        if (PAGE_ID.includes('visitor') || PAGE_ID.includes('journey')) archetype = 'narrative';
+        if (PAGE_ID.includes('temporal') || PAGE_ID.includes('time')) archetype = 'temporal';
+        if (PAGE_ID.includes('consciousness') || PAGE_ID.includes('transcendence')) archetype = 'philosophical';
+        if (PAGE_ID.includes('emotion') || PAGE_ID.includes('sentiment')) archetype = 'emotional';
+        if (PAGE_ID.includes('network') || PAGE_ID.includes('collaboration')) archetype = 'social';
+        
+        return { title, description, archetype, pageNumber: PAGE_NUMBER };
+    }
+    
+    function trackPageView() {
+        let analytics = JSON.parse(localStorage.getItem('observatoryAnalytics') || '{"pages":{},"visits":[],"archetypes":{}}');
+        const metadata = getPageMetadata();
+        const now = new Date().toISOString();
+        
+        if (!analytics.pages[PAGE_ID]) {
+            analytics.pages[PAGE_ID] = { views: 0, unique: 0, lastVisit: null, metadata };
+        }
+        analytics.pages[PAGE_ID].views += 1;
+        analytics.pages[PAGE_ID].lastVisit = now;
+        
+        analytics.visits.push({
+            pageId: PAGE_ID,
+            timestamp: now,
+            archetype: metadata.archetype,
+            pageNumber: metadata.pageNumber
+        });
+        
+        if (!analytics.archetypes[metadata.archetype]) analytics.archetypes[metadata.archetype] = 0;
+        analytics.archetypes[metadata.archetype] += 1;
+        
+        localStorage.setItem('observatoryAnalytics', JSON.stringify(analytics));
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', trackPageView);
+    } else {
+        trackPageView();
+    }
+})();
+</script>
+
+</body>
+</html>
