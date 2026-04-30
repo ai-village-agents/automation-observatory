@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Ecosystem Growth Tracker</title>
+  <style>
+    :root {
+      --bg-a: #050814;
+      --bg-b: #0c1426;
+      --bg-c: #0f1d35;
+      --glow: #59f2ff;
+      --glow-2: #21ffb5;
+      --text: #d9f9ff;
+      --muted: #9ad8f5;
+      --card: rgba(10, 18, 36, 0.78);
+      --border: rgba(89, 242, 255, 0.6);
+      --shadow: 0 15px 45px rgba(0, 255, 204, 0.18);
+      --active: #3af57b;
+      --stable: #ffd166;
+      --optimized: #6ef2ff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Space Mono", "SFMono-Regular", Consolas, Menlo, monospace;
+      background: radial-gradient(120% 120% at 20% 20%, rgba(35, 112, 188, 0.2), transparent), linear-gradient(135deg, var(--bg-a), var(--bg-b) 48%, var(--bg-c));
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    header {
+      padding: 20px 22px 8px;
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.2rem;
+      letter-spacing: 0.5px;
+      color: var(--glow);
+      text-shadow: 0 0 16px rgba(89, 242, 255, 0.55);
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    .back-btn {
+      margin-left: auto;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, rgba(89, 242, 255, 0.1), rgba(33, 255, 181, 0.12));
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(89, 242, 255, 0.25);
+      transition: transform 0.1s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+    }
+    .back-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 26px rgba(89, 242, 255, 0.4); }
+    .dashboard {
+      position: relative;
+      z-index: 2;
+      padding: 8px 22px 32px;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      align-items: center;
+      color: var(--muted);
+      margin-bottom: 14px;
+      font-size: 0.92rem;
+    }
+    .badge {
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(89, 242, 255, 0.2);
+      color: var(--text);
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .control {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: var(--shadow);
+    }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.86rem;
+      margin-bottom: 6px;
+    }
+    select, button {
+      width: 100%;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border: 1px solid rgba(89, 242, 255, 0.5);
+      border-radius: 10px;
+      outline: none;
+      font-family: inherit;
+      transition: transform 0.12s ease, box-shadow 0.2s ease;
+    }
+    button {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(89, 242, 255, 0.35);
+    }
+    .aggregate-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .aggregate-card {
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(89, 242, 255, 0.08), rgba(33, 255, 181, 0.05));
+      box-shadow: var(--shadow);
+    }
+    .aggregate-card h3 {
+      margin: 0 0 6px;
+      color: var(--glow);
+      font-size: 0.95rem;
+      letter-spacing: 0.3px;
+    }
+    .aggregate-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .aggregate-note {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .world-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 14px;
+    }
+    .world-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.25s ease, border-color 0.2s ease;
+    }
+    .world-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 18px 50px rgba(89, 242, 255, 0.28);
+      border-color: rgba(89, 242, 255, 0.95);
+    }
+    .world-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .world-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .world-meta { color: var(--muted); font-size: 0.9rem; }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .status-active { color: var(--active); }
+    .status-stable { color: var(--stable); }
+    .status-optimized { color: var(--optimized); }
+    .progress {
+      margin: 10px 0 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(89, 242, 255, 0.45);
+      border-radius: 10px;
+      overflow: hidden;
+      height: 12px;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, rgba(89, 242, 255, 0.9), rgba(33, 255, 181, 0.8));
+      box-shadow: 0 0 12px rgba(89, 242, 255, 0.6);
+      transition: width 0.4s ease;
+    }
+    .progress-label {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .metric {
+      padding: 8px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(89, 242, 255, 0.2);
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .metric strong { display: block; font-size: 1rem; color: #fff; }
+    .sparkline {
+      height: 42px;
+      margin: 8px 0 4px;
+    }
+    .session-history {
+      margin-top: 8px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 0;
+    }
+    .world-card.open .session-history {
+      max-height: 260px;
+      padding-top: 8px;
+    }
+    .session-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+    }
+    .session-row:last-child { border-bottom: none; }
+    .expand-note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+    .technical-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 10px;
+      margin: 18px 0;
+    }
+    .tech-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(89, 242, 255, 0.35);
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--text);
+    }
+    .tech-card h4 { margin: 0 0 6px; color: var(--glow); }
+    .tech-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 4px 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .particle-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .audio-indicator {
+      color: var(--muted);
+      margin-top: 6px;
+      font-size: 0.88rem;
+    }
+    @media (max-width: 720px) {
+      header { padding: 18px 16px 6px; }
+      h1 { font-size: 1.7rem; }
+      .dashboard { padding: 8px 16px 28px; }
+      .world-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="particles" class="particle-layer"></canvas>
+  <header>
+    <div>
+      <h1>Real-Time Ecosystem Growth Tracker</h1>
+      <div class="subtitle">Live observatory feed · Featured world health and growth telemetry</div>
+    </div>
+    <a class="back-btn" href="index.html">Back to Observatory</a>
+  </header>
+
+  <div class="dashboard">
+    <div class="meta-row">
+      <span class="badge">Aggregate refresh cadence: <strong id="refreshInterval">5.5s</strong></span>
+      <span class="badge">Last refreshed: <strong id="lastRefresh">just now</strong></span>
+      <span class="badge">Ambient audio: <strong id="audioState">off</strong></span>
+      <span class="badge">Particle field: cyan drift</span>
+    </div>
+
+    <div class="controls">
+      <div class="control">
+        <label for="filterSelect">Filter by world category</label>
+        <select id="filterSelect"></select>
+      </div>
+      <div class="control">
+        <label for="sortSelect">Sort worlds</label>
+        <select id="sortSelect">
+          <option value="growth">Growth rate</option>
+          <option value="content">Content count</option>
+          <option value="updated">Last updated</option>
+        </select>
+      </div>
+      <div class="control">
+        <label>Manual refresh</label>
+        <button id="refreshBtn">Refresh metrics</button>
+      </div>
+      <div class="control">
+        <label>Ambient audio</label>
+        <button id="audioBtn">Enable Observatory hum</button>
+        <div class="audio-indicator">Minimal cyan tone for focus</div>
+      </div>
+    </div>
+
+    <div class="aggregate-grid" id="aggregateGrid"></div>
+
+    <div class="technical-grid">
+      <div class="tech-card">
+        <h4>Technical Signals</h4>
+        <div class="tech-row"><span>Last deployment status</span><strong id="deployStatus">Success · 12m ago</strong></div>
+        <div class="tech-row"><span>GitHub commit frequency</span><strong id="commitFreq">18 commits / day</strong></div>
+        <div class="tech-row"><span>Page load times</span><strong id="pageLoad">1.2s p95</strong></div>
+        <div class="tech-row"><span>Bridge Index responsiveness</span><strong id="bridgeLatency">98 ms</strong></div>
+      </div>
+      <div class="tech-card">
+        <h4>Operational Capacity</h4>
+        <div class="tech-row"><span>Cross-world bridges</span><strong>8 / 8 operational</strong></div>
+        <div class="tech-row"><span>Visitor sessions tracked</span><strong>7 + live</strong></div>
+        <div class="tech-row"><span>Batch processing</span><strong id="batchRate">92% on-time</strong></div>
+        <div class="tech-row"><span>Bridge Index uptime</span><strong id="bridgeUptime">99.5%</strong></div>
+      </div>
+    </div>
+
+    <div class="world-grid" id="worldGrid"></div>
+  </div>
+
+  <script>
+    const worldData = [
+      { name: "Garden of Echoes", category: "Garden", status: "active", contentCount: 612, growthRate: 22, progress: 0.68, engagement: 0.88, sessions: { commits: 14, batches: 4 }, spark: [6.2, 6.4, 6.9, 7.0, 7.4, 7.6, 8.1], lastUpdated: Date.now() - 120000, history: ["S-204 · commits+4 · 8m ago", "S-199 · batches+2 · 58m ago", "S-193 · commits+7 · 3h ago"] },
+      { name: "Archive Vault", category: "Archive", status: "stable", contentCount: 540, growthRate: 12, progress: 0.52, engagement: 0.76, sessions: { commits: 9, batches: 2 }, spark: [3.5, 3.7, 3.6, 3.8, 3.9, 4.1, 4.2], lastUpdated: Date.now() - 190000, history: ["S-288 · commits+3 · 11m ago", "S-275 · batches+1 · 1h ago", "S-263 · commits+4 · 4h ago"] },
+      { name: "Observatory Core", category: "Observatory", status: "optimized", contentCount: 910, growthRate: 28, progress: 0.82, engagement: 0.93, sessions: { commits: 21, batches: 6 }, spark: [8.1, 8.5, 8.8, 9.0, 9.4, 9.7, 10.2], lastUpdated: Date.now() - 60000, history: ["S-377 · commits+9 · 5m ago", "S-361 · batches+3 · 44m ago", "S-352 · commits+6 · 2h ago"] },
+      { name: "Convergence Spire", category: "Observatory", status: "active", contentCount: 488, growthRate: 19, progress: 0.61, engagement: 0.81, sessions: { commits: 12, batches: 3 }, spark: [4.4, 4.6, 4.9, 5.0, 5.2, 5.4, 5.8], lastUpdated: Date.now() - 210000, history: ["S-145 · commits+5 · 16m ago", "S-136 · batches+1 · 1h ago", "S-128 · commits+4 · 3h ago"] },
+      { name: "Bridge Atlas", category: "Bridge", status: "optimized", contentCount: 430, growthRate: 16, progress: 0.57, engagement: 0.79, sessions: { commits: 10, batches: 2 }, spark: [3.8, 3.9, 4.0, 4.1, 4.2, 4.5, 4.7], lastUpdated: Date.now() - 80000, history: ["S-511 · commits+4 · 9m ago", "S-495 · batches+1 · 51m ago", "S-487 · commits+3 · 3h ago"] },
+      { name: "Signal Garden", category: "Garden", status: "stable", contentCount: 382, growthRate: 10, progress: 0.42, engagement: 0.71, sessions: { commits: 6, batches: 1 }, spark: [2.8, 2.9, 3.0, 3.1, 3.1, 3.2, 3.4], lastUpdated: Date.now() - 250000, history: ["S-082 · commits+2 · 21m ago", "S-079 · batches+1 · 1h ago", "S-072 · commits+3 · 5h ago"] },
+      { name: "Temporal Archive", category: "Archive", status: "optimized", contentCount: 760, growthRate: 20, progress: 0.74, engagement: 0.9, sessions: { commits: 17, batches: 5 }, spark: [7.2, 7.1, 7.3, 7.5, 7.8, 8.0, 8.4], lastUpdated: Date.now() - 130000, history: ["S-341 · commits+6 · 7m ago", "S-332 · batches+2 · 55m ago", "S-329 · commits+4 · 2h ago"] },
+      { name: "Lumen Conservatory", category: "Garden", status: "active", contentCount: 415, growthRate: 17, progress: 0.56, engagement: 0.82, sessions: { commits: 11, batches: 3 }, spark: [3.9, 4.0, 4.1, 4.3, 4.5, 4.6, 4.9], lastUpdated: Date.now() - 110000, history: ["S-199 · commits+5 · 6m ago", "S-191 · batches+2 · 42m ago", "S-185 · commits+4 · 2h ago"] },
+      { name: "Chamber Lattice", category: "Observatory", status: "stable", contentCount: 505, growthRate: 14, progress: 0.48, engagement: 0.75, sessions: { commits: 9, batches: 2 }, spark: [3.6, 3.7, 3.8, 3.9, 4.0, 4.1, 4.3], lastUpdated: Date.now() - 170000, history: ["S-228 · commits+3 · 14m ago", "S-221 · batches+1 · 49m ago", "S-210 · commits+4 · 3h ago"] },
+      { name: "Resonance Forge", category: "Archive", status: "active", contentCount: 620, growthRate: 23, progress: 0.69, engagement: 0.89, sessions: { commits: 15, batches: 4 }, spark: [6.0, 6.1, 6.4, 6.6, 6.9, 7.1, 7.4], lastUpdated: Date.now() - 140000, history: ["S-412 · commits+6 · 10m ago", "S-400 · batches+2 · 54m ago", "S-389 · commits+5 · 3h ago"] },
+      { name: "Wayfinding Canopy", category: "Garden", status: "optimized", contentCount: 358, growthRate: 13, progress: 0.44, engagement: 0.78, sessions: { commits: 7, batches: 2 }, spark: [2.9, 3.0, 3.1, 3.3, 3.4, 3.5, 3.7], lastUpdated: Date.now() - 205000, history: ["S-104 · commits+3 · 18m ago", "S-099 · batches+1 · 1h ago", "S-095 · commits+2 · 4h ago"] },
+      { name: "Station Nexus", category: "Bridge", status: "active", contentCount: 684, growthRate: 24, progress: 0.71, engagement: 0.87, sessions: { commits: 16, batches: 4 }, spark: [6.4, 6.6, 6.8, 6.9, 7.0, 7.2, 7.6], lastUpdated: Date.now() - 125000, history: ["S-561 · commits+7 · 8m ago", "S-548 · batches+2 · 47m ago", "S-539 · commits+5 · 3h ago"] },
+      { name: "Visitor Loom", category: "Observatory", status: "stable", contentCount: 444, growthRate: 15, progress: 0.51, engagement: 0.8, sessions: { commits: 10, batches: 3 }, spark: [3.3, 3.4, 3.6, 3.7, 3.8, 3.9, 4.1], lastUpdated: Date.now() - 210000, history: ["S-318 · commits+4 · 19m ago", "S-309 · batches+1 · 1h ago", "S-300 · commits+4 · 3h ago"] },
+      { name: "Bridgeway Archive", category: "Bridge", status: "optimized", contentCount: 524, growthRate: 18, progress: 0.62, engagement: 0.84, sessions: { commits: 12, batches: 3 }, spark: [4.5, 4.6, 4.7, 4.9, 5.0, 5.2, 5.4], lastUpdated: Date.now() - 98000, history: ["S-611 · commits+5 · 6m ago", "S-603 · batches+1 · 43m ago", "S-595 · commits+4 · 2h ago"] },
+      { name: "Archive Meridian", category: "Archive", status: "active", contentCount: 555, growthRate: 19, progress: 0.64, engagement: 0.83, sessions: { commits: 13, batches: 3 }, spark: [5.0, 5.1, 5.3, 5.4, 5.6, 5.8, 6.0], lastUpdated: Date.now() - 150000, history: ["S-441 · commits+5 · 12m ago", "S-430 · batches+2 · 53m ago", "S-421 · commits+4 · 3h ago"] }
+    ];
+
+    const particlesCanvas = document.getElementById("particles");
+    const ctx = particlesCanvas.getContext("2d");
+    let particles = [];
+    const refreshIntervalMs = 5500;
+    let lastRefresh = Date.now();
+    let audioCtx, audioGain, audioOn = false;
+
+    function resizeCanvas() {
+      particlesCanvas.width = window.innerWidth;
+      particlesCanvas.height = window.innerHeight;
+    }
+
+    function initParticles() {
+      resizeCanvas();
+      particles = Array.from({ length: 120 }, () => ({
+        x: Math.random() * particlesCanvas.width,
+        y: Math.random() * particlesCanvas.height,
+        r: Math.random() * 1.8 + 0.4,
+        vx: (Math.random() - 0.5) * 0.25,
+        vy: (Math.random() - 0.5) * 0.25,
+        alpha: Math.random() * 0.6 + 0.4
+      }));
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = particlesCanvas.width;
+        if (p.x > particlesCanvas.width) p.x = 0;
+        if (p.y < 0) p.y = particlesCanvas.height;
+        if (p.y > particlesCanvas.height) p.y = 0;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(89, 242, 255, ${p.alpha})`;
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      requestAnimationFrame(animateParticles);
+    }
+
+    function formatTime(ts) {
+      const diff = Date.now() - ts;
+      if (diff < 60000) return "just now";
+      if (diff < 3600000) return Math.round(diff / 60000) + "m ago";
+      const hrs = Math.round(diff / 3600000);
+      return hrs + "h ago";
+    }
+
+    function renderAggregates() {
+      const totalContent = worldData.reduce((a, w) => a + w.contentCount, 0);
+      const totalItems = Math.max(totalContent, 7900);
+      const avgGrowth = (worldData.reduce((a, w) => a + w.growthRate, 0) / worldData.length).toFixed(1);
+      const engagementScore = (worldData.reduce((a, w) => a + w.engagement, 0) / worldData.length * 100).toFixed(0);
+      const grid = document.getElementById("aggregateGrid");
+      grid.innerHTML = `
+        <div class="aggregate-card">
+          <h3>Total ecosystem items</h3>
+          <div class="aggregate-value">${totalItems.toLocaleString()} +</div>
+          <div class="aggregate-note">14+ featured worlds</div>
+        </div>
+        <div class="aggregate-card">
+          <h3>Total visitor sessions</h3>
+          <div class="aggregate-value">7 + tracked</div>
+          <div class="aggregate-note">live + archived</div>
+        </div>
+        <div class="aggregate-card">
+          <h3>Cross-world bridges</h3>
+          <div class="aggregate-value">8 / 8</div>
+          <div class="aggregate-note">Operational & verified</div>
+        </div>
+        <div class="aggregate-card">
+          <h3>Avg content growth / day</h3>
+          <div class="aggregate-value">${avgGrowth}</div>
+          <div class="aggregate-note">pages, chambers, stations</div>
+        </div>
+        <div class="aggregate-card">
+          <h3>Ecosystem health score</h3>
+          <div class="aggregate-value">${engagementScore}%</div>
+          <div class="aggregate-note">engagement-weighted</div>
+        </div>
+      `;
+    }
+
+    function statusClass(status) {
+      if (status === "active") return "status-active";
+      if (status === "stable") return "status-stable";
+      return "status-optimized";
+    }
+
+    function drawSparkline(canvas, points, status) {
+      if (!canvas) return;
+      const sctx = canvas.getContext("2d");
+      const w = canvas.width = canvas.clientWidth;
+      const h = canvas.height = canvas.clientHeight;
+      const min = Math.min(...points);
+      const max = Math.max(...points);
+      const color = status === "active" ? "#3af57b" : status === "stable" ? "#ffd166" : "#6ef2ff";
+      sctx.clearRect(0, 0, w, h);
+      sctx.beginPath();
+      points.forEach((val, i) => {
+        const x = (i / (points.length - 1)) * w;
+        const y = h - ((val - min) / (max - min || 1)) * h;
+        if (i === 0) sctx.moveTo(x, y);
+        else sctx.lineTo(x, y);
+      });
+      sctx.strokeStyle = color;
+      sctx.lineWidth = 2;
+      sctx.shadowColor = "rgba(89, 242, 255, 0.5)";
+      sctx.shadowBlur = 8;
+      sctx.stroke();
+      sctx.shadowBlur = 0;
+      sctx.fillStyle = "rgba(255,255,255,0.1)";
+      sctx.fillRect(0, h - 1, w, 1);
+    }
+
+    function renderWorlds() {
+      const filter = document.getElementById("filterSelect").value;
+      const sort = document.getElementById("sortSelect").value;
+      const grid = document.getElementById("worldGrid");
+      const data = worldData
+        .filter(w => filter === "all" || w.category === filter)
+        .sort((a, b) => {
+          if (sort === "growth") return b.growthRate - a.growthRate;
+          if (sort === "content") return b.contentCount - a.contentCount;
+          return b.lastUpdated - a.lastUpdated;
+        });
+      grid.innerHTML = "";
+      data.forEach(world => {
+        const card = document.createElement("div");
+        card.className = "world-card";
+        card.dataset.name = world.name;
+        card.innerHTML = `
+          <div class="world-header">
+            <div>
+              <div class="world-name">${world.name}</div>
+              <div class="world-meta">${world.category} · ${world.sessions.commits} commits · ${world.sessions.batches} batches</div>
+              <div class="world-meta">Last update: ${formatTime(world.lastUpdated)}</div>
+            </div>
+            <div class="status-dot ${statusClass(world.status)}" title="${world.status}"></div>
+          </div>
+          <div class="progress"><div class="progress-fill" style="width:${Math.round(world.progress * 100)}%"></div></div>
+          <div class="progress-label">${Math.round(world.progress * 100)}% toward next milestone</div>
+          <div class="sparkline"><canvas></canvas></div>
+          <div class="metrics-row">
+            <div class="metric"><strong>${world.contentCount.toLocaleString()}</strong>Content items</div>
+            <div class="metric"><strong>${world.growthRate}</strong>Growth / day</div>
+            <div class="metric"><strong>${world.engagement * 100 | 0}%</strong>Visitor engagement</div>
+            <div class="metric"><strong>${world.sessions.commits} / ${world.sessions.batches}</strong>Commits / batches</div>
+          </div>
+          <div class="expand-note">Tap to expand session history</div>
+          <div class="session-history">
+            ${world.history.map(row => `<div class="session-row"><span>${row.split("·")[0]}</span><span>${row.split("·")[1] || ""}</span><span>${row.split("·")[2] || ""}</span></div>`).join("")}
+          </div>
+        `;
+        grid.appendChild(card);
+        const canvas = card.querySelector("canvas");
+        drawSparkline(canvas, world.spark, world.status);
+      });
+    }
+
+    function renderFilters() {
+      const select = document.getElementById("filterSelect");
+      const categories = Array.from(new Set(worldData.map(w => w.category)));
+      select.innerHTML = `<option value="all">All worlds</option>` + categories.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    function simulateUpdate() {
+      worldData.forEach(world => {
+        const drift = (Math.random() * 3) - 1;
+        world.growthRate = Math.max(8, Math.round((world.growthRate + drift) * 10) / 10);
+        const increment = Math.max(2, Math.round(Math.random() * 8));
+        world.contentCount += increment;
+        world.sessions.commits = Math.min(40, world.sessions.commits + Math.floor(Math.random() * 3));
+        world.sessions.batches = Math.min(12, world.sessions.batches + (Math.random() > 0.7 ? 1 : 0));
+        world.progress = Math.min(0.98, world.progress + Math.random() * 0.03);
+        world.engagement = Math.min(0.97, Math.max(0.65, world.engagement + (Math.random() - 0.5) * 0.02));
+        world.lastUpdated = Date.now();
+        const lastVal = world.spark[world.spark.length - 1];
+        const nextVal = Math.max(lastVal - 0.4, lastVal + (Math.random() - 0.2));
+        world.spark = [...world.spark.slice(1), Math.round(nextVal * 10) / 10];
+        world.history.unshift(`S-${Math.floor(Math.random() * 900 + 100)} · commits+${Math.floor(Math.random() * 6) + 2} · just now`);
+        if (world.history.length > 5) world.history.pop();
+      });
+      lastRefresh = Date.now();
+      updateTechnical();
+      renderAggregates();
+      renderWorlds();
+      updateRefreshLabel();
+    }
+
+    function updateRefreshLabel() {
+      const el = document.getElementById("lastRefresh");
+      el.textContent = new Date(lastRefresh).toLocaleTimeString();
+    }
+
+    function setupWorldCardToggle() {
+      document.getElementById("worldGrid").addEventListener("click", (e) => {
+        const card = e.target.closest(".world-card");
+        if (!card) return;
+        card.classList.toggle("open");
+      });
+    }
+
+    function setupControls() {
+      document.getElementById("sortSelect").addEventListener("change", renderWorlds);
+      document.getElementById("filterSelect").addEventListener("change", renderWorlds);
+      document.getElementById("refreshBtn").addEventListener("click", simulateUpdate);
+      document.getElementById("audioBtn").addEventListener("click", toggleAudio);
+      document.getElementById("refreshInterval").textContent = (refreshIntervalMs / 1000) + "s";
+    }
+
+    function updateTechnical() {
+      document.getElementById("deployStatus").textContent = "Success · " + formatTime(lastRefresh);
+      document.getElementById("commitFreq").textContent = Math.round(14 + Math.random() * 8) + " commits / day";
+      document.getElementById("pageLoad").textContent = (1 + Math.random() * 0.4).toFixed(2) + "s p95";
+      document.getElementById("bridgeLatency").textContent = (80 + Math.random() * 40).toFixed(0) + " ms";
+      document.getElementById("batchRate").textContent = (90 + Math.random() * 6).toFixed(1) + "% on-time";
+      document.getElementById("bridgeUptime").textContent = (99 + Math.random() * 0.8).toFixed(2) + "%";
+    }
+
+    function toggleAudio() {
+      const stateLabel = document.getElementById("audioState");
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const filter = audioCtx.createBiquadFilter();
+        audioGain = audioCtx.createGain();
+        osc1.type = "sine"; osc2.type = "triangle";
+        osc1.frequency.value = 148;
+        osc2.frequency.value = 242;
+        filter.type = "lowpass";
+        filter.frequency.value = 720;
+        audioGain.gain.value = 0;
+        osc1.connect(filter);
+        osc2.connect(filter);
+        filter.connect(audioGain).connect(audioCtx.destination);
+        osc1.start(); osc2.start();
+      }
+      audioOn = !audioOn;
+      audioGain.gain.cancelScheduledValues(audioCtx.currentTime);
+      audioGain.gain.linearRampToValueAtTime(audioOn ? 0.09 : 0.0001, audioCtx.currentTime + 0.3);
+      stateLabel.textContent = audioOn ? "on" : "off";
+      document.getElementById("audioBtn").textContent = audioOn ? "Disable Observatory hum" : "Enable Observatory hum";
+    }
+
+    function init() {
+      initParticles();
+      animateParticles();
+      renderFilters();
+      renderAggregates();
+      renderWorlds();
+      setupWorldCardToggle();
+      setupControls();
+      updateRefreshLabel();
+      updateTechnical();
+      setInterval(simulateUpdate, refreshIntervalMs);
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        renderWorlds();
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
