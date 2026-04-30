@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📊 Visitor Engagement Analytics</title>
+  <style>
+    :root {
+      --bg-start: #0a0e27;
+      --bg-end: #1a1f3a;
+      --cyan: #d7fbe8;
+      --cyan-soft: #c8f7ff;
+      --neon: #00ff88;
+      --card: rgba(255, 255, 255, 0.04);
+      --border: rgba(215, 251, 232, 0.28);
+      --muted: rgba(255, 255, 255, 0.7);
+      --radius: 7px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Courier New", monospace;
+      color: var(--cyan);
+      background: radial-gradient(circle at 20% 20%, rgba(0, 255, 136, 0.05), transparent 32%),
+        radial-gradient(circle at 80% 10%, rgba(200, 247, 255, 0.08), transparent 28%),
+        linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      overflow-x: hidden;
+    }
+
+    a { color: var(--neon); }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    canvas#particleCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    main {
+      position: relative;
+      z-index: 1;
+      padding: 32px 24px 48px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .title {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px 12px;
+    }
+
+    .title h1 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0.5px;
+      color: var(--cyan);
+    }
+
+    .meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--cyan-soft);
+      font-size: 14px;
+    }
+
+    .pill {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    button {
+      border: 1px solid var(--neon);
+      color: #00140b;
+      background: var(--neon);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--cyan);
+      border-color: var(--border);
+    }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 0 0 2px rgba(0,255,136,0.15); }
+    button:active { transform: translateY(0); filter: brightness(0.94); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .card h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+      letter-spacing: 0.2px;
+    }
+
+    .stat {
+      font-size: 28px;
+      margin: 0;
+      color: var(--neon);
+    }
+
+    .subtext { color: var(--muted); font-size: 13px; }
+
+    .top-list { list-style: none; margin: 8px 0 0; padding: 0; }
+
+    .top-list li {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(200, 247, 255, 0.1);
+      font-size: 14px;
+    }
+
+    .bar {
+      display: block;
+      height: 6px;
+      background: linear-gradient(90deg, rgba(0,255,136,0.8), rgba(200,247,255,0.8));
+      border-radius: 999px;
+      margin-top: 6px;
+      width: var(--w, 0%);
+      transition: width 200ms ease;
+    }
+
+    .heatmap {
+      display: grid;
+      grid-template-columns: repeat(24, minmax(10px, 1fr));
+      gap: 2px;
+      margin-top: 10px;
+    }
+
+    .heat-cell {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      background: rgba(200, 247, 255, 0.08);
+      transition: background 200ms ease, transform 120ms ease;
+    }
+
+    .heat-cell:hover { transform: scale(1.05); }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .table th, .table td {
+      padding: 8px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(200, 247, 255, 0.1);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .timeline-item {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.02);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .sparkline {
+      height: 48px;
+      width: 100%;
+    }
+
+    .badge { color: var(--cyan-soft); font-size: 12px; padding: 2px 8px; border: 1px solid var(--border); border-radius: 999px; }
+
+    .section-title {
+      margin: 26px 0 10px;
+      font-size: 18px;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    footer { margin-top: 32px; color: var(--muted); font-size: 13px; text-align: center; }
+
+    @media (max-width: 720px) {
+      header { grid-template-columns: 1fr; }
+      .actions { justify-content: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"><canvas id="particleCanvas"></canvas></div>
+  <main>
+    <header>
+      <div>
+        <div class="title">
+          <h1>📊 Visitor Engagement Analytics</h1>
+          <span class="badge">Page #121</span>
+          <span class="badge">Tags: analytics · observatory · engagement</span>
+        </div>
+        <div class="meta">
+          <span class="pill">Description: Observatory-wide engagement pulse with archetypes + discovery trails.</span>
+          <span class="pill">Captures every page view across 121 experiences.</span>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="backBtn">← Back to Observatory</button>
+        <button id="audioToggle" class="secondary">Toggle Audio</button>
+        <button id="downloadBtn">Download JSON</button>
+        <button id="clearBtn" class="secondary">Clear Analytics</button>
+      </div>
+    </header>
+
+    <section class="grid" id="summaryCards">
+      <div class="card">
+        <h3>Total Visits</h3>
+        <p class="stat" id="totalVisits">0</p>
+        <div class="subtext">Across all 121 pages</div>
+      </div>
+      <div class="card">
+        <h3>Unique Visitors</h3>
+        <p class="stat" id="uniqueVisitors">0</p>
+        <div class="subtext">Anonymous local visitors</div>
+      </div>
+      <div class="card">
+        <h3>Pages Explored</h3>
+        <p class="stat" id="pagesExplored">0</p>
+        <div class="subtext">Distinct pages viewed</div>
+      </div>
+      <div class="card">
+        <h3>Current Visitor</h3>
+        <p class="stat" id="visitorId">–</p>
+        <div class="subtext" id="lastVisit">Last visit: –</div>
+      </div>
+    </section>
+
+    <h2 class="section-title">Engagement Signals</h2>
+    <section class="grid">
+      <div class="card">
+        <h3>Top 10 Most Visited Pages</h3>
+        <ul class="top-list" id="topPages"></ul>
+      </div>
+      <div class="card">
+        <h3>Visitor Archetype Distribution</h3>
+        <canvas id="archetypeChart" class="sparkline"></canvas>
+        <div class="chip-row" id="archetypeChips"></div>
+      </div>
+      <div class="card">
+        <h3>Traffic Patterns (Hour x Day)</h3>
+        <div class="heatmap" id="heatmap"></div>
+        <div class="subtext">Hover cells to see intensity</div>
+      </div>
+      <div class="card">
+        <h3>Real-Time Sequence</h3>
+        <div id="sequenceView" class="subtext">Tracking discovery order…</div>
+        <canvas id="sequenceSpark" class="sparkline"></canvas>
+      </div>
+    </section>
+
+    <h2 class="section-title">Navigation Intelligence</h2>
+    <section class="grid">
+      <div class="card">
+        <h3>Discovery Sequences</h3>
+        <ul class="top-list" id="sequenceList"></ul>
+      </div>
+      <div class="card">
+        <h3>Page Recommendations</h3>
+        <ul class="top-list" id="recommendations"></ul>
+      </div>
+      <div class="card">
+        <h3>Visitor Journey Timeline</h3>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </section>
+
+    <h2 class="section-title">Page-by-Page Detail</h2>
+    <section class="card">
+      <table class="table" id="pageTable">
+        <thead>
+          <tr>
+            <th>Page</th>
+            <th>Views</th>
+            <th>Unique Visitors</th>
+            <th>Last Visit</th>
+            <th>Tags</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <footer>
+      Real-time, local-first analytics. Data stays on this device (localStorage: observatoryAnalytics, visitorId, audioMuted).
+    </footer>
+  </main>
+
+  <script>
+    // --- Utilities ---
+    const PAGE_META = {
+      id: location.pathname.split('/').pop() || 'index.html',
+      title: 'Visitor Engagement Analytics',
+      number: 121,
+      description: 'Observatory-wide engagement pulse with archetypes + discovery trails.',
+      tags: ['analytics', 'observatory', 'engagement']
+    };
+
+    const STORAGE_KEY = 'observatoryAnalytics';
+    const VISITOR_KEY = 'visitorId';
+    const AUDIO_KEY = 'audioMuted';
+
+    const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '—';
+    const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+    function seededId(prefix = 'visitor') {
+      return `${prefix}-${Math.random().toString(36).slice(2, 10)}-${Date.now().toString(36)}`;
+    }
+
+    function initVisitor() {
+      let id = localStorage.getItem(VISITOR_KEY);
+      if (!id) {
+        id = seededId('visitor');
+        localStorage.setItem(VISITOR_KEY, id);
+      }
+      return id;
+    }
+
+    function getAnalytics() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        return {
+          totalVisits: parsed.totalVisits || 0,
+          pages: parsed.pages || {},
+          visitors: parsed.visitors || {},
+          transitions: parsed.transitions || {},
+          discoverySequences: parsed.discoverySequences || [],
+          heatmap: parsed.heatmap || {},
+          timeline: parsed.timeline || [],
+          lastPageId: parsed.lastPageId || null,
+        };
+      } catch (e) {
+        return { totalVisits: 0, pages: {}, visitors: {}, transitions: {}, discoverySequences: [], heatmap: {}, timeline: [] };
+      }
+    }
+
+    function saveAnalytics(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function inferArchetype(tags = []) {
+      const tagSet = tags.join(' ').toLowerCase();
+      if (/technical|pattern|matrix|map|tracker|sync/.test(tagSet)) return 'technical';
+      if (/story|narrative|testimonials|memories|gallery/.test(tagSet)) return 'narrative';
+      if (/philosophy|consciousness|void|equilibrium/.test(tagSet)) return 'philosophical';
+      if (/analytics|metrics|forecast|heatmap/.test(tagSet)) return 'analytical';
+      return 'explorer';
+    }
+
+    function trackPageView(meta = PAGE_META) {
+      const visitorId = initVisitor();
+      const data = getAnalytics();
+      const now = Date.now();
+
+      data.totalVisits += 1;
+
+      // Page tracking
+      if (!data.pages[meta.id]) {
+        data.pages[meta.id] = { views: 0, lastVisit: null, visitors: {}, tags: meta.tags || [], description: meta.description || '', number: meta.number || null };
+      }
+      const pageEntry = data.pages[meta.id];
+      pageEntry.views += 1;
+      pageEntry.lastVisit = now;
+      pageEntry.tags = meta.tags || pageEntry.tags;
+      pageEntry.description = meta.description || pageEntry.description;
+      pageEntry.number = meta.number || pageEntry.number;
+      pageEntry.visitors[visitorId] = (pageEntry.visitors[visitorId] || 0) + 1;
+
+      // Visitor tracking
+      if (!data.visitors[visitorId]) {
+        data.visitors[visitorId] = { id: visitorId, firstVisit: now, lastVisit: now, visits: {}, sequence: [] };
+      }
+      const visitor = data.visitors[visitorId];
+      visitor.lastVisit = now;
+      visitor.visits[meta.id] = (visitor.visits[meta.id] || 0) + 1;
+      visitor.sequence.push({ page: meta.id, ts: now });
+      if (visitor.sequence.length > 80) visitor.sequence = visitor.sequence.slice(-80);
+
+      // Discovery sequences (keep last 25 paths of length >=3)
+      if (visitor.sequence.length >= 3) {
+        const recent = visitor.sequence.slice(-6).map(s => s.page);
+        data.discoverySequences.push(recent.join(' → '));
+        if (data.discoverySequences.length > 25) data.discoverySequences = data.discoverySequences.slice(-25);
+      }
+
+      // Page transitions for recommendation engine
+      if (data.lastPageId && data.lastPageId !== meta.id) {
+        if (!data.transitions[data.lastPageId]) data.transitions[data.lastPageId] = {};
+        data.transitions[data.lastPageId][meta.id] = (data.transitions[data.lastPageId][meta.id] || 0) + 1;
+      }
+      data.lastPageId = meta.id;
+
+      // Heatmap (day-hour)
+      const day = new Date().getDay();
+      const hour = new Date().getHours();
+      const key = `${day}-${hour}`;
+      data.heatmap[key] = (data.heatmap[key] || 0) + 1;
+
+      // Timeline (limit 120 events)
+      data.timeline.push({ page: meta.id, ts: now, visitor: visitorId, archetype: inferArchetype(meta.tags) });
+      if (data.timeline.length > 120) data.timeline = data.timeline.slice(-120);
+
+      saveAnalytics(data);
+      renderDashboard(data, visitorId);
+    }
+
+    function renderDashboard(data, visitorId) {
+      document.getElementById('totalVisits').textContent = data.totalVisits.toLocaleString();
+      document.getElementById('uniqueVisitors').textContent = Object.keys(data.visitors).length;
+      document.getElementById('pagesExplored').textContent = Object.keys(data.pages).length;
+      document.getElementById('visitorId').textContent = visitorId;
+      document.getElementById('lastVisit').textContent = `Last visit: ${fmtDate(data.visitors[visitorId]?.lastVisit)}`;
+
+      renderTopPages(data.pages);
+      renderArchetypes(data.pages);
+      renderHeatmap(data.heatmap);
+      renderSequences(data.discoverySequences);
+      renderRecommendations(data.transitions);
+      renderTimeline(data.timeline);
+      renderPageTable(data.pages);
+      renderSequenceSpark(data.visitors[visitorId]?.sequence || []);
+    }
+
+    function renderTopPages(pages) {
+      const list = document.getElementById('topPages');
+      list.innerHTML = '';
+      const entries = Object.entries(pages).sort((a,b) => (b[1].views||0) - (a[1].views||0)).slice(0,10);
+      entries.forEach(([id, info]) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${id}</span><span>${info.views || 0}</span>`;
+        const bar = document.createElement('span');
+        bar.className = 'bar';
+        const topCount = entries[0]?.[1]?.views || 1;
+        bar.style.setProperty('--w', `${Math.max(8, (info.views / topCount) * 100)}%`);
+        li.appendChild(bar);
+        list.appendChild(li);
+      });
+    }
+
+    function renderArchetypes(pages) {
+      const canvas = document.getElementById('archetypeChart');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      const counts = {};
+      Object.values(pages).forEach(p => {
+        const arch = inferArchetype(p.tags || []);
+        counts[arch] = (counts[arch] || 0) + (p.views || 0);
+      });
+      const labels = Object.keys(counts);
+      const values = labels.map(l => counts[l]);
+      const max = Math.max(...values, 1);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      labels.forEach((label, i) => {
+        const barW = canvas.width / labels.length - 12;
+        const x = i * (barW + 12) + 8;
+        const h = (values[i] / max) * (canvas.height - 14);
+        const y = canvas.height - h - 6;
+        const gradient = ctx.createLinearGradient(x, y, x, canvas.height);
+        gradient.addColorStop(0, 'rgba(0,255,136,0.8)');
+        gradient.addColorStop(1, 'rgba(200,247,255,0.5)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, y, barW, h);
+        ctx.fillStyle = 'rgba(215, 251, 232, 0.9)';
+        ctx.font = '12px "Courier New"';
+        ctx.fillText(label.slice(0,8), x, canvas.height - 2);
+      });
+
+      const chipRow = document.getElementById('archetypeChips');
+      chipRow.innerHTML = '';
+      labels.forEach(label => {
+        const chip = document.createElement('span');
+        chip.className = 'pill';
+        chip.textContent = `${label}: ${counts[label] || 0} views`;
+        chipRow.appendChild(chip);
+      });
+    }
+
+    function renderHeatmap(map) {
+      const container = document.getElementById('heatmap');
+      container.innerHTML = '';
+      let max = 1;
+      Object.values(map).forEach(v => { if (v > max) max = v; });
+      for (let d = 0; d < 7; d++) {
+        for (let h = 0; h < 24; h++) {
+          const key = `${d}-${h}`;
+          const val = map[key] || 0;
+          const cell = document.createElement('div');
+          cell.className = 'heat-cell';
+          const intensity = val / max;
+          const alpha = 0.1 + intensity * 0.8;
+          cell.style.background = `rgba(0, 255, 136, ${alpha.toFixed(2)})`;
+          cell.title = `Day ${d} Hour ${h}: ${val} visits`;
+          container.appendChild(cell);
+        }
+      }
+    }
+
+    function renderSequences(seqs) {
+      const list = document.getElementById('sequenceList');
+      list.innerHTML = '';
+      const counts = {};
+      seqs.forEach(seq => { counts[seq] = (counts[seq] || 0) + 1; });
+      const top = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0,8);
+      if (!top.length) {
+        const li = document.createElement('li');
+        li.textContent = 'No sequences yet — start exploring.';
+        list.appendChild(li);
+        return;
+      }
+      top.forEach(([seq, count]) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${seq}</span><span>${count}×</span>`;
+        list.appendChild(li);
+      });
+      const live = top[0]?.[0] || 'Awaiting data';
+      document.getElementById('sequenceView').textContent = live;
+    }
+
+    function renderRecommendations(transitions) {
+      const list = document.getElementById('recommendations');
+      list.innerHTML = '';
+      const pairs = [];
+      Object.entries(transitions).forEach(([from, tos]) => {
+        Object.entries(tos).forEach(([to, count]) => {
+          pairs.push({ from, to, count });
+        });
+      });
+      pairs.sort((a,b) => b.count - a.count);
+      const top = pairs.slice(0, 10);
+      if (!top.length) {
+        const li = document.createElement('li');
+        li.textContent = 'Insufficient data — navigate to build suggestions.';
+        list.appendChild(li);
+        return;
+      }
+      top.forEach(p => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>If ${p.from} → try ${p.to}</span><span>${p.count} flows</span>`;
+        list.appendChild(li);
+      });
+    }
+
+    function renderTimeline(events) {
+      const container = document.getElementById('timeline');
+      container.innerHTML = '';
+      const sorted = [...events].sort((a,b) => b.ts - a.ts).slice(0, 8);
+      sorted.forEach(evt => {
+        const item = document.createElement('div');
+        item.className = 'timeline-item';
+        item.innerHTML = `<div><strong>${evt.page}</strong><div class="subtext">${fmtDate(evt.ts)}</div></div><span class="pill">${evt.archetype}</span>`;
+        container.appendChild(item);
+      });
+    }
+
+    function renderPageTable(pages) {
+      const tbody = document.querySelector('#pageTable tbody');
+      tbody.innerHTML = '';
+      const rows = Object.entries(pages).sort((a,b) => b[1].views - a[1].views);
+      rows.forEach(([id, info]) => {
+        const tr = document.createElement('tr');
+        const unique = Object.keys(info.visitors || {}).length;
+        tr.innerHTML = `
+          <td>${id}</td>
+          <td>${info.views || 0}</td>
+          <td>${unique}</td>
+          <td>${fmtDate(info.lastVisit)}</td>
+          <td>${(info.tags || []).join(', ')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSequenceSpark(sequence) {
+      const canvas = document.getElementById('sequenceSpark');
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      if (!sequence.length) return;
+      ctx.strokeStyle = 'rgba(0, 255, 136, 0.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      sequence.slice(-50).forEach((entry, i) => {
+        const x = (i / Math.max(1, sequence.length - 1)) * canvas.width;
+        const y = canvas.height - ((i % 7) / 7) * canvas.height * 0.8 - 6;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    // --- Audio system ---
+    let audioCtx, baseOsc, lfoOsc, gainNode;
+    function setupAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      baseOsc = audioCtx.createOscillator();
+      lfoOsc = audioCtx.createOscillator();
+      gainNode = audioCtx.createGain();
+      baseOsc.frequency.value = 60;
+      lfoOsc.frequency.value = 0.6;
+      gainNode.gain.value = 0.15;
+
+      const lfoGain = audioCtx.createGain();
+      lfoGain.gain.value = 0.1;
+      lfoOsc.connect(lfoGain).connect(gainNode.gain);
+      baseOsc.connect(gainNode).connect(audioCtx.destination);
+
+      baseOsc.start();
+      lfoOsc.start();
+    }
+
+    function toggleAudio() {
+      const muted = localStorage.getItem(AUDIO_KEY) === 'true';
+      const nextMuted = !muted;
+      localStorage.setItem(AUDIO_KEY, nextMuted);
+      const btn = document.getElementById('audioToggle');
+
+      if (nextMuted) {
+        if (gainNode) gainNode.gain.value = 0;
+        btn.textContent = 'Enable Audio';
+      } else {
+        setupAudio();
+        if (audioCtx?.state === 'suspended') audioCtx.resume();
+        if (gainNode) gainNode.gain.value = 0.15;
+        btn.textContent = 'Mute Audio';
+      }
+    }
+
+    function initAudioButton() {
+      const btn = document.getElementById('audioToggle');
+      const muted = localStorage.getItem(AUDIO_KEY) === 'true';
+      btn.textContent = muted ? 'Enable Audio' : 'Mute Audio';
+      btn.addEventListener('click', () => {
+        setupAudio();
+        toggleAudio();
+      });
+      // Start audio softly after interaction
+      window.addEventListener('click', () => {
+        if (!muted) {
+          setupAudio();
+          if (audioCtx?.state === 'suspended') audioCtx.resume();
+        }
+      }, { once: true });
+    }
+
+    // --- Particles ---
+    const particles = [];
+    function initParticles() {
+      const canvas = document.getElementById('particleCanvas');
+      const ctx = canvas.getContext('2d');
+      const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+      resize();
+      window.addEventListener('resize', resize);
+      for (let i = 0; i < 35; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.8,
+          vy: (Math.random() - 0.5) * 0.8,
+          size: Math.random() * 2 + 1,
+        });
+      }
+      function draw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+          ctx.fillStyle = 'rgba(200, 247, 255, 0.6)';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+    }
+
+    // --- Controls ---
+    function initControls() {
+      document.getElementById('backBtn').addEventListener('click', () => {
+        window.location.href = 'index.html';
+      });
+      document.getElementById('downloadBtn').addEventListener('click', () => {
+        const data = getAnalytics();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'observatory-analytics.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+      document.getElementById('clearBtn').addEventListener('click', () => {
+        const confirmed = confirm('Clear local analytics? This removes observatoryAnalytics and visitorId.');
+        if (!confirmed) return;
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(VISITOR_KEY);
+        localStorage.removeItem(AUDIO_KEY);
+        window.location.reload();
+      });
+    }
+
+    // --- Real-time refresh ---
+    function startLiveUpdates(visitorId) {
+      setInterval(() => {
+        const fresh = getAnalytics();
+        renderDashboard(fresh, visitorId);
+      }, 1200);
+    }
+
+    // --- Init ---
+    document.addEventListener('DOMContentLoaded', () => {
+      initParticles();
+      initControls();
+      initAudioButton();
+      const visitorId = initVisitor();
+      trackPageView(PAGE_META);
+      startLiveUpdates(visitorId);
+    });
+  </script>
+</body>
+</html>
