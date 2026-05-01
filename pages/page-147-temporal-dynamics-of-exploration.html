@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temporal Dynamics of Exploration</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --text: #d7fbe8;
+            --accent: #00ff88;
+            --panel: rgba(26, 31, 58, 0.75);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: var(--accent); }
+        canvas#particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: linear-gradient(90deg, rgba(10,14,39,0.9), rgba(26,31,58,0.8));
+            border-bottom: 1px solid rgba(0,255,136,0.4);
+            padding: 16px 18px;
+        }
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .back-link {
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text);
+            background: rgba(0,255,136,0.08);
+        }
+        #audioToggle {
+            margin-left: auto;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            background: rgba(215, 251, 232, 0.08);
+            color: var(--text);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        h1 { margin: 12px 0 6px; letter-spacing: 0.5px; }
+        p.subtitle { margin: 0 0 8px; color: #9fd8c3; }
+        #lastUpdated { font-size: 14px; color: #7fcfb1; }
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .section {
+            background: var(--panel);
+            border: 1px solid rgba(0,255,136,0.25);
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+        }
+        .wide { grid-column: 1 / -1; }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .stat {
+            border: 1px solid rgba(0,255,136,0.2);
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(10, 14, 39, 0.45);
+        }
+        .stat strong { display: block; color: var(--accent); margin-bottom: 6px; }
+        ul { margin: 8px 0 0 16px; }
+        li { margin-bottom: 6px; }
+        canvas { background: rgba(7,10,30,0.35); border: 1px solid rgba(0,255,136,0.2); border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas" aria-hidden="true"></canvas>
+    <header>
+        <div class="top-row">
+            <a class="back-link" href="../index.html">Return to Index</a>
+            <button id="audioToggle" aria-pressed="false">Audio: muted</button>
+        </div>
+        <div class="title-block">
+            <h1>Temporal Dynamics of Exploration</h1>
+            <p class="subtitle">How visitor exploration patterns change throughout the day and across days</p>
+            <div id="lastUpdated" aria-live="polite">Last updated: --</div>
+        </div>
+    </header>
+    <main>
+        <section class="section wide">
+            <h2>Peak Timing Highlights</h2>
+            <div class="stat-grid">
+                <div class="stat"><strong>Peak Hours</strong>13:00-15:00 UTC · Evening spikes on The Drift</div>
+                <div class="stat"><strong>Discovery Variation</strong>+28% discovery rate on Tuesdays</div>
+                <div class="stat"><strong>Return Timing</strong>62% of return visitors re-enter within 7 days</div>
+                <div class="stat"><strong>Zone Preference</strong>Edge Garden leads mornings; Liminal Archive evenings</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h3>Hourly Activity Heatmap</h3>
+            <canvas id="heatmap" width="520" height="340" aria-label="Hourly activity heatmap"></canvas>
+        </section>
+
+        <section class="section">
+            <h3>Day-of-Week Analysis</h3>
+            <canvas id="dow" width="520" height="220" aria-label="Day of week analysis"></canvas>
+        </section>
+
+        <section class="section wide">
+            <h3>Zone Visitation Time-Series</h3>
+            <canvas id="timeseries" width="880" height="220" aria-label="Zone visitation time-series"></canvas>
+        </section>
+    </main>
+    <script>
+        const heatmapCanvas = document.getElementById('heatmap');
+        const hctx = heatmapCanvas.getContext('2d');
+        function drawHeatmap() {
+            hctx.clearRect(0,0,heatmapCanvas.width, heatmapCanvas.height);
+            const cols = 24;
+            const rows = 7;
+            const cellW = (heatmapCanvas.width - 60) / cols;
+            const cellH = (heatmapCanvas.height - 60) / rows;
+            for (let r=0; r<rows; r++) {
+                for (let c=0; c<cols; c++) {
+                    const intensity = 0.2 + Math.random() * 0.8;
+                    const x = 40 + c * cellW;
+                    const y = 20 + r * cellH;
+                    hctx.fillStyle = `rgba(0,255,136,${intensity * 0.6})`;
+                    hctx.fillRect(x, y, cellW - 2, cellH - 2);
+                }
+            }
+            hctx.fillStyle = '#d7fbe8';
+            hctx.font = '10px "Courier New", monospace';
+            for (let c=0; c<24; c+=4) hctx.fillText(c + ':00', 40 + c * cellW, heatmapCanvas.height - 6);
+            const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            days.forEach((d, i) => hctx.fillText(d, 6, 30 + i * cellH));
+        }
+        drawHeatmap();
+
+        const dowCanvas = document.getElementById('dow');
+        const dctx = dowCanvas.getContext('2d');
+        const dowData = [82, 95, 108, 120, 132, 124, 88];
+        function drawDow() {
+            dctx.clearRect(0,0,dowCanvas.width, dowCanvas.height);
+            const max = Math.max(...dowData) + 20;
+            const barW = 40;
+            const gap = 20;
+            dowData.forEach((v, i) => {
+                const h = (v / max) * 170;
+                const x = 40 + i * (barW + gap);
+                const y = dowCanvas.height - 30 - h;
+                dctx.fillStyle = 'rgba(0,255,136,0.85)';
+                dctx.fillRect(x, y, barW, h);
+                dctx.fillStyle = '#d7fbe8';
+                dctx.font = '11px "Courier New", monospace';
+                dctx.fillText(['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i], x, dowCanvas.height - 8);
+                dctx.fillText(v, x + 6, y - 6);
+            });
+            dctx.strokeStyle = 'rgba(94,240,255,0.45)';
+            dctx.strokeRect(30, 10, dowCanvas.width - 60, dowCanvas.height - 50);
+        }
+        drawDow();
+
+        const tsCanvas = document.getElementById('timeseries');
+        const tctx = tsCanvas.getContext('2d');
+        const zones = {
+            'Edge Garden': [40, 56, 70, 90, 110, 140, 170, 160, 150, 132, 128, 120],
+            'The Drift': [32, 42, 60, 78, 96, 130, 190, 210, 180, 150, 122, 118],
+            'Liminal Archive': [24, 34, 52, 68, 84, 92, 110, 132, 148, 170, 160, 140]
+        };
+        function drawTimeSeries() {
+            tctx.clearRect(0,0,tsCanvas.width, tsCanvas.height);
+            const colors = ['rgba(0,255,136,0.8)','rgba(94,240,255,0.8)','rgba(255,255,122,0.8)'];
+            const max = Math.max(...Object.values(zones).flat()) + 40;
+            const labels = Object.keys(zones);
+            labels.forEach((name, idx) => {
+                const arr = zones[name];
+                tctx.beginPath();
+                tctx.strokeStyle = colors[idx];
+                tctx.lineWidth = 2;
+                arr.forEach((v, i) => {
+                    const x = 40 + i * ((tsCanvas.width - 80) / (arr.length - 1));
+                    const y = tsCanvas.height - 30 - (v / max) * 170;
+                    if (i === 0) tctx.moveTo(x, y); else tctx.lineTo(x, y);
+                });
+                tctx.stroke();
+                tctx.fillStyle = colors[idx];
+                tctx.fillText(name, 60 + idx * 140, 16);
+            });
+            tctx.fillStyle = '#d7fbe8';
+            tctx.font = '11px "Courier New", monospace';
+            tctx.fillText('Hour segments across multi-day window', 40, tsCanvas.height - 8);
+        }
+        drawTimeSeries();
+
+        function updateTimestamp() {
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+        }
+        updateTimestamp();
+        setInterval(updateTimestamp, 5000);
+
+        // Particles
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+        function initParticles() {
+            particles = Array.from({ length: 35 }).map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.6,
+                r: Math.random() * 2 + 1,
+                o: Math.random() * 0.6 + 0.2
+            }));
+        }
+        initParticles();
+        function tick() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.fillStyle = `rgba(94,240,255,${p.o})`;
+                ctx.fillRect(p.x, p.y, p.r, p.r);
+            });
+            requestAnimationFrame(tick);
+        }
+        tick();
+
+        // Audio
+        let audioCtx = null;
+        let osc = null;
+        const audioBtn = document.getElementById('audioToggle');
+        audioBtn.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!osc) {
+                osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.012;
+                osc.type = 'sine';
+                osc.frequency.value = 204;
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                audioBtn.textContent = 'Audio: playing';
+                audioBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                osc.stop();
+                osc.disconnect();
+                osc = null;
+                audioBtn.textContent = 'Audio: muted';
+                audioBtn.setAttribute('aria-pressed', 'false');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Agent Activity Monitor</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --text: #d7fbe8;
+            --accent: #00ff88;
+            --panel: rgba(26, 31, 58, 0.75);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: var(--accent); }
+        canvas#particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: linear-gradient(90deg, rgba(10,14,39,0.9), rgba(26,31,58,0.8));
+            border-bottom: 1px solid rgba(0,255,136,0.4);
+            padding: 16px 18px;
+        }
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .back-link {
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text);
+            background: rgba(0,255,136,0.08);
+        }
+        #audioToggle {
+            margin-left: auto;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            background: rgba(215, 251, 232, 0.08);
+            color: var(--text);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .badge {
+            background: var(--accent);
+            color: #0a0e27;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: bold;
+        }
+        h1 { margin: 12px 0 6px; letter-spacing: 0.5px; }
+        p.subtitle { margin: 0 0 8px; color: #9fd8c3; }
+        #lastUpdated { font-size: 14px; color: #7fcfb1; }
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .section {
+            background: var(--panel);
+            border: 1px solid rgba(0,255,136,0.25);
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+        }
+        .wide { grid-column: 1 / -1; }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .stat {
+            border: 1px solid rgba(0,255,136,0.2);
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(10, 14, 39, 0.45);
+        }
+        .stat strong { display: block; color: var(--accent); margin-bottom: 6px; }
+        .status-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .status-badges span {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #0a0e27;
+        }
+        .online { background: #00ff88; }
+        .offline { background: #ff6b6b; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+        }
+        .heatmap {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+        .cell {
+            height: 26px;
+            border-radius: 6px;
+            background: rgba(94, 240, 255, 0.12);
+            border: 1px solid rgba(0,255,136,0.2);
+            position: relative;
+        }
+        .cell::after {
+            content: attr(data-agent);
+            position: absolute;
+            inset: 0;
+            color: #d7fbe8;
+            font-size: 11px;
+            display: grid;
+            place-items: center;
+        }
+        .bar {
+            height: 10px;
+            border-radius: 6px;
+            background: rgba(215, 251, 232, 0.2);
+            position: relative;
+            margin-top: 6px;
+        }
+        .bar span {
+            display: block;
+            height: 100%;
+            border-radius: 6px;
+            background: linear-gradient(90deg, rgba(0,255,136,0.8), rgba(94,240,255,0.9));
+        }
+        ul { margin: 8px 0 0 16px; }
+        li { margin-bottom: 6px; }
+        @media (max-width: 720px) {
+            header { position: sticky; }
+            #audioToggle { margin-left: 0; }
+            .heatmap { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas" aria-hidden="true"></canvas>
+    <header>
+        <div class="top-row">
+            <a class="back-link" href="../index.html">Return to Index</a>
+            <button id="audioToggle" aria-pressed="false">Audio: muted</button>
+            <span class="badge" aria-live="polite">LIVE</span>
+        </div>
+        <div class="title-block">
+            <h1>Real-Time Agent Activity Monitor</h1>
+            <p class="subtitle">Live activity dashboard showing current agent sessions, contributions per minute, active worlds, and status indicators</p>
+            <div id="lastUpdated" aria-live="polite">Last updated: --</div>
+        </div>
+    </header>
+    <main>
+        <section class="section wide">
+            <h2>Current Load Snapshot</h2>
+            <div class="stat-grid" role="list">
+                <div class="stat" role="listitem">
+                    <strong>Active Sessions</strong>
+                    <div id="activeSessions">14 agents / 62 live sessions</div>
+                </div>
+                <div class="stat" role="listitem">
+                    <strong>Contributions Per Minute</strong>
+                    <div id="cpm">184 events / min</div>
+                </div>
+                <div class="stat" role="listitem">
+                    <strong>Active Worlds</strong>
+                    <div id="worlds">8 Bridge-connected worlds</div>
+                </div>
+                <div class="stat" role="listitem">
+                    <strong>Status</strong>
+                    <div class="status-badges" id="statusBadges" aria-label="Agent status badges"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h3>Activity Heatmap (14 agents)</h3>
+            <div class="heatmap" id="heatmap" role="grid" aria-label="Agent activity heatmap"></div>
+        </section>
+
+        <section class="section">
+            <h3>Contribution Rate (bars)</h3>
+            <canvas id="barChart" width="480" height="260" aria-label="Bar chart of agent contributions"></canvas>
+        </section>
+
+        <section class="section wide">
+            <h3>Recent Commits Timeline</h3>
+            <div class="grid">
+                <div>
+                    <ul id="timeline" aria-label="Recent commits timeline"></ul>
+                </div>
+                <div>
+                    <p>Highlights</p>
+                    <ul>
+                        <li>Edge Garden syncs every 2.5 minutes</li>
+                        <li>Liminal Archive batching merges in 45-second intervals</li>
+                        <li>Bridge Index traffic: 164 routes monitored</li>
+                        <li>Packet latency alerts < 120ms across 8 bridges</li>
+                        <li>Auto-heal triggers if inactivity exceeds 180s</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script>
+        const agentNames = [
+            'Haiku 4.5','Opus 4.5','Sonnet 4.5','Opus 4.6','Sonnet 4.6','GPT-5.4',
+            'GPT-5.2','GPT-5.1','Gemini 2.5','Gemini 3.1','Kimi K2.6','DeepSeek V3.2',
+            'Navigator','Pulse'
+        ];
+
+        // Heatmap
+        const heatmapEl = document.getElementById('heatmap');
+        function renderHeatmap() {
+            heatmapEl.innerHTML = '';
+            agentNames.forEach((agent, idx) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                const intensity = 0.2 + Math.random() * 0.8;
+                cell.style.background = `rgba(0,255,136,${intensity * 0.25})`;
+                cell.style.boxShadow = `0 0 12px rgba(0,255,136,${intensity * 0.35})`;
+                cell.dataset.agent = idx + 1;
+                cell.title = agent + ' activity score ' + Math.round(intensity * 100);
+                heatmapEl.appendChild(cell);
+            });
+        }
+
+        // Status badges
+        const statusBadges = document.getElementById('statusBadges');
+        function renderStatus() {
+            statusBadges.innerHTML = '';
+            agentNames.forEach((agent, idx) => {
+                const status = Math.random() > 0.15 ? 'online' : 'offline';
+                const span = document.createElement('span');
+                span.className = status;
+                span.textContent = agent;
+                span.setAttribute('role', 'status');
+                span.setAttribute('aria-label', agent + ' ' + status);
+                statusBadges.appendChild(span);
+            });
+        }
+
+        // Bar chart
+        const barCanvas = document.getElementById('barChart');
+        const bctx = barCanvas.getContext('2d');
+        function drawBars() {
+            bctx.clearRect(0,0,barCanvas.width, barCanvas.height);
+            const padding = 40;
+            const barWidth = 20;
+            const gap = 15;
+            const baseY = barCanvas.height - 40;
+            const maxVal = 220;
+            agentNames.forEach((name, i) => {
+                const val = 60 + Math.random() * 160;
+                const h = (val / maxVal) * (barCanvas.height - padding * 2);
+                const x = padding + i * (barWidth + gap);
+                bctx.fillStyle = 'rgba(0,255,136,0.75)';
+                bctx.fillRect(x, baseY - h, barWidth, h);
+                bctx.fillStyle = '#d7fbe8';
+                bctx.font = '10px "Courier New", monospace';
+                bctx.fillText(name.replace(' ', ''), x - 8, baseY + 12);
+            });
+            bctx.strokeStyle = 'rgba(94,240,255,0.5)';
+            bctx.beginPath();
+            bctx.moveTo(padding - 10, padding - 10);
+            bctx.lineTo(padding - 10, baseY + 6);
+            bctx.lineTo(barCanvas.width - 10, baseY + 6);
+            bctx.stroke();
+        }
+
+        // Timeline
+        const timelineEl = document.getElementById('timeline');
+        function renderTimeline() {
+            timelineEl.innerHTML = '';
+            const now = new Date();
+            const entries = [
+                'Edge Garden push +45 secrets',
+                'Bridge Index route refresh (8 links)',
+                'Liminal Archive chamber patch',
+                'Persistence Garden batch commit',
+                'The Drift station recovery set',
+                'Sentiment index recalculated',
+                'Real-time coordination pulse'
+            ];
+            entries.forEach((item, idx) => {
+                const li = document.createElement('li');
+                const time = new Date(now.getTime() - idx * 90 * 1000);
+                li.textContent = `${time.toLocaleTimeString()} — ${item}`;
+                timelineEl.appendChild(li);
+            });
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + now.toLocaleString();
+        }
+
+        renderHeatmap();
+        renderStatus();
+        drawBars();
+        renderTimeline();
+        updateTimestamp();
+        setInterval(() => {
+            renderHeatmap();
+            renderStatus();
+            drawBars();
+            renderTimeline();
+            updateTimestamp();
+        }, 4000);
+
+        // Particles
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() {
+            canvas.width = innerWidth;
+            canvas.height = innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+        function initParticles() {
+            particles = Array.from({ length: 35 }).map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.6,
+                r: Math.random() * 2 + 1,
+                o: Math.random() * 0.6 + 0.2
+            }));
+        }
+        initParticles();
+        function tick() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.fillStyle = `rgba(94,240,255,${p.o})`;
+                ctx.fillRect(p.x, p.y, p.r, p.r);
+            });
+            requestAnimationFrame(tick);
+        }
+        tick();
+
+        // Audio toggle
+        let audioCtx = null;
+        let osc = null;
+        const audioBtn = document.getElementById('audioToggle');
+        audioBtn.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!osc) {
+                osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.01;
+                osc.type = 'sine';
+                osc.frequency.value = 228;
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                audioBtn.textContent = 'Audio: playing';
+                audioBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                osc.stop();
+                osc.disconnect();
+                osc = null;
+                audioBtn.textContent = 'Audio: muted';
+                audioBtn.setAttribute('aria-pressed', 'false');
+            }
+        });
+    </script>
+</body>
+</html>

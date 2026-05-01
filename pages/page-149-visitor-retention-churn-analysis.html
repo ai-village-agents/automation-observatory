@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visitor Retention &amp; Churn Analysis</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --text: #d7fbe8;
+            --accent: #00ff88;
+            --panel: rgba(26, 31, 58, 0.75);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: var(--accent); }
+        canvas#particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: linear-gradient(90deg, rgba(10,14,39,0.9), rgba(26,31,58,0.8));
+            border-bottom: 1px solid rgba(0,255,136,0.4);
+            padding: 16px 18px;
+        }
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .back-link {
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text);
+            background: rgba(0,255,136,0.08);
+        }
+        #audioToggle {
+            margin-left: auto;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            background: rgba(215, 251, 232, 0.08);
+            color: var(--text);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        h1 { margin: 12px 0 6px; letter-spacing: 0.5px; }
+        p.subtitle { margin: 0 0 8px; color: #9fd8c3; }
+        #lastUpdated { font-size: 14px; color: #7fcfb1; }
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .section {
+            background: var(--panel);
+            border: 1px solid rgba(0,255,136,0.25);
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+        }
+        .wide { grid-column: 1 / -1; }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .stat {
+            border: 1px solid rgba(0,255,136,0.2);
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(10, 14, 39, 0.45);
+        }
+        .stat strong { display: block; color: var(--accent); margin-bottom: 6px; }
+        ul { margin: 8px 0 0 16px; }
+        li { margin-bottom: 6px; }
+        canvas { background: rgba(7,10,30,0.35); border: 1px solid rgba(0,255,136,0.2); border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas" aria-hidden="true"></canvas>
+    <header>
+        <div class="top-row">
+            <a class="back-link" href="../index.html">Return to Index</a>
+            <button id="audioToggle" aria-pressed="false">Audio: muted</button>
+        </div>
+        <div class="title-block">
+            <h1>Visitor Retention &amp; Churn Analysis</h1>
+            <p class="subtitle">Deep dive into return visitor behavior, retention cohorts, churn prediction</p>
+            <div id="lastUpdated" aria-live="polite">Last updated: --</div>
+        </div>
+    </header>
+    <main>
+        <section class="section wide">
+            <h2>Conversion & Retention Snapshot</h2>
+            <div class="stat-grid">
+                <div class="stat"><strong>First → Repeat</strong>Conversion: 42% after first visit</div>
+                <div class="stat"><strong>7-day Retention</strong>58% sustained engagement</div>
+                <div class="stat"><strong>30-day Retention</strong>36% active explorers</div>
+                <div class="stat"><strong>Churn Risk</strong>High-risk segment: new visitors with <5 marks</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h3>Retention Curves by Cohort</h3>
+            <canvas id="cohorts" width="520" height="320" aria-label="Retention curves"></canvas>
+        </section>
+
+        <section class="section">
+            <h3>Churn Risk Segments</h3>
+            <ul>
+                <li>Low-mark visitors with no Bridge traversal in first session</li>
+                <li>High-browse, low-mark cohort (silent lurkers) on day 3</li>
+                <li>Single-world visitors who never see Observatory cross-links</li>
+            </ul>
+        </section>
+
+        <section class="section wide">
+            <h3>Engagement Pathways for At-Risk Visitors</h3>
+            <ul>
+                <li>Guide them to Bridge Index with suggested two-hop journeys</li>
+                <li>Serve context-aware callouts: "Explore The Drift next" or "Visit Liminal Archive annotations"</li>
+                <li>Show progress meters after first 3 marks to encourage completion</li>
+                <li>Offer micro-quests that require a return visit in 24h</li>
+            </ul>
+        </section>
+    </main>
+    <script>
+        const cohortCanvas = document.getElementById('cohorts');
+        const cctx = cohortCanvas.getContext('2d');
+        const cohorts = {
+            'Week 1': [100, 78, 68, 60, 58, 55, 52, 50],
+            'Week 2': [100, 80, 70, 62, 60, 58, 56, 54],
+            'Week 3': [100, 82, 74, 66, 64, 62, 60, 58]
+        };
+        function drawCohorts() {
+            cctx.clearRect(0,0,cohortCanvas.width, cohortCanvas.height);
+            const colors = ['rgba(0,255,136,0.8)','rgba(94,240,255,0.8)','rgba(255,255,122,0.8)'];
+            const maxX = Object.values(cohorts)[0].length - 1;
+            const keys = Object.keys(cohorts);
+            keys.forEach((key, idx) => {
+                const arr = cohorts[key];
+                cctx.beginPath();
+                cctx.strokeStyle = colors[idx];
+                cctx.lineWidth = 2;
+                arr.forEach((val, i) => {
+                    const x = 40 + i * ((cohortCanvas.width - 80) / maxX);
+                    const y = cohortCanvas.height - 30 - (val / 100) * 260;
+                    if (i === 0) cctx.moveTo(x, y); else cctx.lineTo(x, y);
+                });
+                cctx.stroke();
+                cctx.fillStyle = colors[idx];
+                cctx.fillText(key, 60 + idx * 120, 18);
+            });
+            cctx.fillStyle = '#d7fbe8';
+            cctx.font = '11px "Courier New", monospace';
+            cctx.fillText('Retention % across 8-week window', 40, cohortCanvas.height - 8);
+        }
+        drawCohorts();
+
+        function updateTimestamp() {
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+        }
+        updateTimestamp();
+        setInterval(updateTimestamp, 5000);
+
+        // Particles
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+        function initParticles() {
+            particles = Array.from({ length: 35 }).map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.6,
+                r: Math.random() * 2 + 1,
+                o: Math.random() * 0.6 + 0.2
+            }));
+        }
+        initParticles();
+        function tick() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.fillStyle = `rgba(94,240,255,${p.o})`;
+                ctx.fillRect(p.x, p.y, p.r, p.r);
+            });
+            requestAnimationFrame(tick);
+        }
+        tick();
+
+        // Audio
+        let audioCtx = null;
+        let osc = null;
+        const audioBtn = document.getElementById('audioToggle');
+        audioBtn.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!osc) {
+                osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.012;
+                osc.type = 'triangle';
+                osc.frequency.value = 214;
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                audioBtn.textContent = 'Audio: playing';
+                audioBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                osc.stop();
+                osc.disconnect();
+                osc = null;
+                audioBtn.textContent = 'Audio: muted';
+                audioBtn.setAttribute('aria-pressed', 'false');
+            }
+        });
+    </script>
+</body>
+</html>

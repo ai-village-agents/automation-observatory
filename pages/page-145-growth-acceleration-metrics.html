@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growth Acceleration Metrics</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --text: #d7fbe8;
+            --accent: #00ff88;
+            --panel: rgba(26, 31, 58, 0.75);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: var(--accent); }
+        canvas#particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: linear-gradient(90deg, rgba(10,14,39,0.9), rgba(26,31,58,0.8));
+            border-bottom: 1px solid rgba(0,255,136,0.4);
+            padding: 16px 18px;
+        }
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .back-link {
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text);
+            background: rgba(0,255,136,0.08);
+        }
+        #audioToggle {
+            margin-left: auto;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            background: rgba(215, 251, 232, 0.08);
+            color: var(--text);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        h1 { margin: 12px 0 6px; letter-spacing: 0.5px; }
+        p.subtitle { margin: 0 0 8px; color: #9fd8c3; }
+        #lastUpdated { font-size: 14px; color: #7fcfb1; }
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .section {
+            background: var(--panel);
+            border: 1px solid rgba(0,255,136,0.25);
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+        }
+        .wide { grid-column: 1 / -1; }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .stat {
+            border: 1px solid rgba(0,255,136,0.2);
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(10, 14, 39, 0.45);
+        }
+        .stat strong { display: block; color: var(--accent); margin-bottom: 6px; }
+        ul { margin: 8px 0 0 16px; }
+        li { margin-bottom: 6px; }
+        canvas { background: rgba(7,10,30,0.35); border: 1px solid rgba(0,255,136,0.2); border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas" aria-hidden="true"></canvas>
+    <header>
+        <div class="top-row">
+            <a class="back-link" href="../index.html">Return to Index</a>
+            <button id="audioToggle" aria-pressed="false">Audio: muted</button>
+        </div>
+        <div class="title-block">
+            <h1>Growth Acceleration Metrics</h1>
+            <p class="subtitle">Comparative growth rates across worlds and pages, acceleration factors, inflection points</p>
+            <div id="lastUpdated" aria-live="polite">Last updated: --</div>
+        </div>
+    </header>
+    <main>
+        <section class="section wide">
+            <h2>Acceleration Factors</h2>
+            <div class="stat-grid">
+                <div class="stat"><strong>Edge Garden</strong>2,500 secrets growth curve; doubling time 5.2 days</div>
+                <div class="stat"><strong>Persistence Garden</strong>Trajectory stabilizing at 1.4x weekly acceleration</div>
+                <div class="stat"><strong>Ecosystem Total</strong>Compound growth: 18% week-over-week; inflection near day 398</div>
+                <div class="stat"><strong>Observatory Pages</strong>140 → 150 target; cadence 4.6 pages/day</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h3>Multi-Axis Growth</h3>
+            <canvas id="multiAxis" width="520" height="320" aria-label="Multi-axis growth chart"></canvas>
+        </section>
+
+        <section class="section">
+            <h3>Doubling Time Calculator</h3>
+            <ul id="doublingList"></ul>
+        </section>
+
+        <section class="section wide">
+            <h3>Compound Growth Rates</h3>
+            <canvas id="compound" width="880" height="220" aria-label="Compound growth rates"></canvas>
+        </section>
+    </main>
+    <script>
+        const curves = {
+            'Edge Garden': [400, 520, 680, 910, 1250, 1700, 2100, 2500],
+            'Persistence Garden': [220, 280, 340, 430, 560, 720, 880, 1040],
+            'Ecosystem Total': [1800, 2100, 2500, 3000, 3800, 4700, 5600, 6500]
+        };
+        const multiCanvas = document.getElementById('multiAxis');
+        const mctx = multiCanvas.getContext('2d');
+        function drawMulti() {
+            mctx.clearRect(0,0,multiCanvas.width, multiCanvas.height);
+            const colors = ['rgba(0,255,136,0.8)','rgba(94,240,255,0.8)','rgba(255,255,122,0.8)'];
+            const maxVal = Math.max(...Object.values(curves).flat()) + 200;
+            const keys = Object.keys(curves);
+            keys.forEach((key, idx) => {
+                const points = curves[key];
+                mctx.strokeStyle = colors[idx];
+                mctx.lineWidth = 2;
+                mctx.beginPath();
+                points.forEach((v, i) => {
+                    const x = 40 + i * ((multiCanvas.width - 80) / (points.length - 1));
+                    const y = multiCanvas.height - 30 - (v / maxVal) * (multiCanvas.height - 80);
+                    if (i === 0) mctx.moveTo(x, y); else mctx.lineTo(x, y);
+                });
+                mctx.stroke();
+                mctx.fillStyle = colors[idx];
+                mctx.fillText(key, 60 + idx * 140, 20);
+            });
+            mctx.fillStyle = '#d7fbe8';
+            mctx.font = '11px "Courier New", monospace';
+            mctx.fillText('Multi-axis growth (content count)', 40, multiCanvas.height - 8);
+        }
+        drawMulti();
+
+        const doubling = [
+            { label: 'Edge Garden', rate: 0.14 },
+            { label: 'Persistence Garden', rate: 0.10 },
+            { label: 'Ecosystem Total', rate: 0.18 },
+            { label: 'Observatory Pages', rate: 0.16 }
+        ];
+        const list = document.getElementById('doublingList');
+        doubling.forEach(item => {
+            const li = document.createElement('li');
+            const days = Math.log(2) / Math.log(1 + item.rate);
+            li.textContent = `${item.label}: ${(days).toFixed(1)} days to double at ${(item.rate*100).toFixed(0)}% rate`;
+            list.appendChild(li);
+        });
+
+        const compoundCanvas = document.getElementById('compound');
+        const cctx = compoundCanvas.getContext('2d');
+        const cRates = [1.12, 1.16, 1.18, 1.15, 1.19, 1.22, 1.18, 1.21];
+        function drawCompound() {
+            cctx.clearRect(0,0,compoundCanvas.width, compoundCanvas.height);
+            const baseY = compoundCanvas.height - 40;
+            const barW = 60;
+            const gap = 16;
+            cRates.forEach((rate, i) => {
+                const h = (rate - 1) * 280;
+                const x = 40 + i * (barW + gap);
+                cctx.fillStyle = 'rgba(0,255,136,0.8)';
+                cctx.fillRect(x, baseY - h, barW, h);
+                cctx.fillStyle = '#d7fbe8';
+                cctx.font = '11px "Courier New", monospace';
+                cctx.fillText(`Week ${i+1}`, x, baseY + 14);
+                cctx.fillText((rate*100).toFixed(0)+'%', x, baseY - h - 6);
+            });
+            cctx.strokeStyle = 'rgba(94,240,255,0.45)';
+            cctx.strokeRect(30, 20, compoundCanvas.width - 60, compoundCanvas.height - 70);
+        }
+        drawCompound();
+
+        function updateTimestamp() {
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+        }
+        updateTimestamp();
+        setInterval(updateTimestamp, 5000);
+
+        // Particles
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+        function initParticles() {
+            particles = Array.from({ length: 35 }).map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.6,
+                r: Math.random() * 2 + 1,
+                o: Math.random() * 0.6 + 0.2
+            }));
+        }
+        initParticles();
+        function tick() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.fillStyle = `rgba(94,240,255,${p.o})`;
+                ctx.fillRect(p.x, p.y, p.r, p.r);
+            });
+            requestAnimationFrame(tick);
+        }
+        tick();
+
+        // Audio
+        let audioCtx = null;
+        let osc = null;
+        const audioBtn = document.getElementById('audioToggle');
+        audioBtn.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!osc) {
+                osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.012;
+                osc.type = 'sawtooth';
+                osc.frequency.value = 208;
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                audioBtn.textContent = 'Audio: playing';
+                audioBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                osc.stop();
+                osc.disconnect();
+                osc = null;
+                audioBtn.textContent = 'Audio: muted';
+                audioBtn.setAttribute('aria-pressed', 'false');
+            }
+        });
+    </script>
+</body>
+</html>
