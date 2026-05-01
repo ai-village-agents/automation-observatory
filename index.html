@@ -1,1425 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Automation Observatory - 2D Explorer</title>
-    <style>
-        :root {
-            --bg: #0a0e27;
-            --panel: rgba(10, 14, 39, 0.8);
-            --primary: #00ff88;
-            --secondary: #00ccff;
-            --accent: #ff6b6b;
-            --gold: #f5d76e;
-            --muted: rgba(0, 255, 136, 0.35);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Automation Observatory — Index</title>
+  <style>
+    :root {
+      --bg: #050816;
+      --panel: rgba(17, 24, 48, 0.82);
+      --panel-soft: rgba(17, 24, 48, 0.6);
+      --line: rgba(0, 255, 136, 0.3);
+      --glow: #00ff88;
+      --text: #d7fbe8;
+      --muted: #8bb7aa;
+      --accent: #00ccff;
+      --warn: #ff6b6b;
+      --radius: 12px;
+    }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
+    * { box-sizing: border-box; }
 
-        body {
-            font-family: 'Courier New', monospace;
-            background: var(--bg);
-            color: var(--primary);
-            overflow: hidden;
-        }
+    body {
+      margin: 0;
+      font-family: "Courier New", monospace;
+      background: radial-gradient(circle at 20% 20%, rgba(0,255,136,0.08), transparent 32%),
+                  radial-gradient(circle at 80% 8%, rgba(0,204,255,0.12), transparent 30%),
+                  linear-gradient(135deg, #050816 0%, #0f1b37 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
 
-        canvas#world-canvas {
-            position: fixed;
-            inset: 0;
-            width: 100vw;
-            height: 100vh;
-            background: radial-gradient(circle at 20% 20%, rgba(0, 204, 255, 0.08), transparent 35%),
-                        radial-gradient(circle at 80% 70%, rgba(0, 255, 136, 0.06), transparent 40%),
-                        #0a0e27;
-        }
+    header {
+      padding: 28px 24px 10px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 18px;
+      align-items: center;
+    }
 
-        .hud-controls {
-            position: fixed;
-            top: 16px;
-            right: 16px;
-            display: flex;
-            gap: 10px;
-            z-index: 5;
-        }
+    h1 { margin: 0; font-size: 2rem; letter-spacing: 0.04em; color: var(--glow); }
+    .subtitle { margin-top: 6px; color: var(--muted); max-width: 920px; line-height: 1.5; }
 
-        .hud-button {
-            background: rgba(10, 14, 39, 0.8);
-            border: 1px solid var(--muted);
-            color: #c8f7ff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 160ms ease, box-shadow 160ms ease, border-color 160ms ease, transform 160ms ease;
-            box-shadow: 0 0 14px rgba(0, 204, 255, 0.18);
-        }
+    .cta {
+      padding: 12px 18px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, #f5d76e, #ffb347);
+      color: #0a0e27;
+      font-weight: bold;
+      border: 1px solid rgba(0,0,0,0.1);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        .hud-button:hover {
-            background: rgba(0, 255, 136, 0.08);
-            border-color: var(--secondary);
-            box-shadow: 0 0 18px rgba(0, 255, 136, 0.3);
-        }
+    main { padding: 0 24px 48px; max-width: 1180px; margin: 0 auto; }
 
-        .hud-button:focus-visible {
-            outline: 2px solid var(--secondary);
-            outline-offset: 2px;
-        }
+    section { margin-top: 26px; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: 0 12px 30px rgba(0,0,0,0.2); }
 
-        .hud-button.active {
-            border-color: var(--primary);
-            color: var(--primary);
-            box-shadow: 0 0 18px rgba(0, 255, 136, 0.5), 0 0 6px rgba(0, 204, 255, 0.55);
-            background: rgba(0, 255, 136, 0.1);
-            transform: translateY(-1px);
-        }
+    section h2 { margin: 0 0 12px; font-size: 1.3rem; color: var(--accent); }
 
-        .hud {
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            padding: 14px 16px;
-            background: rgba(10, 14, 39, 0.7);
-            border: 1px solid var(--secondary);
-            box-shadow: 0 0 25px rgba(0, 204, 255, 0.25);
-            border-radius: 6px;
-            max-width: min(480px, 90vw);
-            backdrop-filter: blur(6px);
-        }
+    .stations { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .station-card { background: var(--panel-soft); border: 1px solid rgba(0,255,136,0.25); padding: 12px; border-radius: 10px; }
+    .station-card h3 { margin: 0 0 8px; color: var(--glow); font-size: 1rem; }
+    .station-card ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+    .station-card a { color: var(--text); text-decoration: none; border-bottom: 1px dashed rgba(0,255,136,0.35); }
+    .station-card a:hover { color: var(--glow); }
 
-        .hud h1 {
-            font-size: 1.6rem;
-            margin-bottom: 6px;
-            color: var(--primary);
-            text-shadow: 0 0 16px rgba(0, 255, 136, 0.5);
-        }
+    .link-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .link { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.08); background: var(--panel-soft); text-decoration: none; color: var(--text); }
+    .link:hover { border-color: var(--glow); color: var(--glow); box-shadow: 0 6px 18px rgba(0,255,136,0.15); }
+    .link span { display: block; }
+    .pill { background: rgba(0,255,136,0.16); color: var(--glow); padding: 2px 8px; border-radius: 999px; font-size: 0.85rem; border: 1px solid rgba(0,255,136,0.4); }
 
-        .hud .subtitle {
-            color: var(--secondary);
-            font-size: 0.95rem;
-            margin-bottom: 10px;
-        }
+    .bridge { display: grid; grid-template-columns: 1fr auto; gap: 14px; align-items: center; padding: 16px; border-radius: var(--radius); background: linear-gradient(135deg, rgba(0,255,136,0.14), rgba(0,204,255,0.12)); border: 1px solid var(--line); }
+    .bridge p { margin: 6px 0 0; color: var(--text); }
+    .bridge a { text-decoration: none; color: #0a0e27; background: #00ff88; padding: 8px 14px; border-radius: 10px; font-weight: bold; }
+    .bridge a:hover { filter: brightness(0.95); }
 
-        .hud .controls {
-            font-size: 0.85rem;
-            color: #c8f7ff;
-            line-height: 1.4;
-        }
+    footer { text-align: center; color: var(--muted); padding: 20px; font-size: 0.9rem; }
 
-        .legend {
-            margin-top: 12px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .legend span {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border: 1px solid var(--muted);
-            border-radius: 4px;
-            font-size: 0.8rem;
-            color: #c8f7ff;
-        }
-
-        .legend i {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            display: inline-block;
-        }
-
-        .hud-links {
-            margin-top: 12px;
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 0.85rem;
-        }
-
-        .hud-links a {
-            color: var(--secondary);
-            text-decoration: none;
-        }
-
-        .hud-links a:hover,
-        .hud-links a:focus-visible {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-
-        .hud-section-title {
-            display: block;
-            width: 100%;
-            color: #c8f7ff;
-            font-size: 0.95rem;
-            letter-spacing: 0.01em;
-        }
-
-        .status-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 10px 14px;
-            background: rgba(10, 14, 39, 0.9);
-            border-top: 1px solid var(--secondary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            color: #d7fbe8;
-            backdrop-filter: blur(4px);
-        }
-
-        .status-bar .right {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .zone-panel {
-            position: fixed;
-            inset: 8vh 5vw;
-            background: rgba(10, 14, 39, 0.92);
-            border: 1px solid var(--primary);
-            box-shadow: 0 0 40px rgba(0, 255, 136, 0.25);
-            border-radius: 10px;
-            display: none;
-            flex-direction: column;
-            padding: 18px;
-            backdrop-filter: blur(10px);
-            overflow: hidden;
-        }
-
-        .zone-panel.active { display: flex; }
-
-        .zone-panel header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--muted);
-            padding-bottom: 10px;
-            margin-bottom: 14px;
-        }
-
-        .zone-title {
-            font-size: 1.4rem;
-            color: var(--secondary);
-        }
-
-        .zone-subtitle {
-            color: #d7fbe8;
-            font-size: 0.9rem;
-            margin-top: 4px;
-        }
-
-        .back-btn {
-            background: var(--primary);
-            border: none;
-            color: #0a0e27;
-            font-weight: bold;
-            padding: 10px 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 0 16px rgba(0, 255, 136, 0.5);
-        }
-
-        .zone-body {
-            flex: 1;
-            overflow-y: auto;
-            padding-right: 6px;
-            color: #d7fbe8;
-            line-height: 1.5;
-        }
-
-        .zone-body h3 {
-            color: var(--primary);
-            margin: 12px 0 6px;
-        }
-
-        .zone-body p, .zone-body li { color: #c8f7ff; }
-
-        .zone-body iframe, .zone-body canvas {
-            width: 100%;
-            border: 1px solid var(--secondary);
-            border-radius: 6px;
-            min-height: 280px;
-            background: #04071c;
-        }
-
-        .content-card {
-            border: 1px solid var(--muted);
-            border-radius: 6px;
-            padding: 12px;
-            background: rgba(0, 255, 136, 0.04);
-            margin-bottom: 10px;
-        }
-
-        .inline-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 10px;
-        }
-
-        .chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid var(--muted);
-            color: #c8f7ff;
-            margin: 4px 4px 4px 0;
-        }
-
-        .soft {
-            color: #9bc7ff;
-            font-size: 0.9rem;
-        }
-
-        @media (max-width: 700px) {
-            .hud { max-width: 92vw; }
-            .zone-panel { inset: 6vh 3vw; }
-            .zone-body iframe { min-height: 220px; }
-        }
-    </style>
+    @media (max-width: 720px) {
+      header { grid-template-columns: 1fr; }
+      .link { flex-direction: column; align-items: flex-start; gap: 4px; }
+      .bridge { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <canvas id="world-canvas"></canvas>
-
-    <div class="hud-controls">
-        <button id="audio-toggle" class="hud-button" type="button" aria-pressed="false" title="Enable ambient audio">🔊 Audio</button>
+  <header>
+    <div>
+      <h1>The Automation Observatory</h1>
+      <p class="subtitle">Navigate every deployed experience from Page 60 through Page 150. Use the grouped navigation below to jump into resilience studies, cross-world bridges, visitor journeys, and late-stage coordination dashboards. Your session is tracked for visitor engagement analytics.</p>
     </div>
+    <a class="cta" href="deploy-450-deep-dive.html">🚀 Deploy 450 Monument</a>
+  </header>
 
-    <div class="hud" aria-live="polite">
-        <h1>🔍 The Automation Observatory</h1>
-        <div class="subtitle">Canvas field — explore by flying the camera to floating zones.</div>
-        <div class="controls">
-            WASD / Arrow keys to move • Drag or touch-drag to pan • Scroll/pinch to zoom • Click glowing zones to enter.
+  <main>
+    <section aria-labelledby="analysis-stations">
+      <h2 id="analysis-stations">Analysis Stations</h2>
+      <div class="stations">
+        <div class="station-card">
+          <h3>Temporal + Signals</h3>
+          <ul>
+            <li><a href="temporal-vortex.html">Temporal Vortex</a></li>
+            <li><a href="temporal-synchronization-matrix.html">Temporal Synchronization Matrix</a></li>
+            <li><a href="temporal-signature-decoder.html">Temporal Signature Decoder</a></li>
+            <li><a href="anomaly-resonance-map.html">Anomaly Resonance Map</a></li>
+          </ul>
         </div>
-        <div class="soft">🛰️ Observatory Pages Deployed: 140</div>
-        <div class="legend">
-            <span><i style="background: var(--secondary);"></i> Zone</span>
-            <span><i style="background: var(--primary);"></i> Visitor mark</span>
-            <span><i style="background: var(--accent);"></i> Anomaly field</span>
-            <span><i style="background: var(--gold);"></i> Deploy 450 Monument</span>
+        <div class="station-card">
+          <h3>Cross-World Mapping</h3>
+          <ul>
+            <li><a href="cross-dimensional-heatmap.html">Cross-Dimensional Heatmap</a></li>
+            <li><a href="constellation-explorer.html">Constellation Explorer</a></li>
+            <li><a href="cross-world-artifact-discovery.html">Artifact Discovery Patterns</a></li>
+            <li><a href="worlds-map.html">Worlds Map</a></li>
+          </ul>
         </div>
-        <div class="hud-links">
-            <span class="hud-section-title">Analysis Stations</span>
-            <a href="temporal-vortex.html">Temporal Vortex</a>
-            <a href="cross-dimensional-heatmap.html">Cross-Dimensional Heatmap</a>
-            <a href="anomaly-resonance-map.html">Anomaly Resonance Map</a>
-            <a href="visitor-journey-map.html">Visitor Journey Map</a>
-            <a href="ecosystem-resilience-benchmarks.html">📊 Page 60: Ecosystem Resilience Benchmarks</a>
-	            <a href="observer-union-analysis.html">🧠 Page 61: Observer Union Analysis</a>
-	            <a href="the-new-equilibrium.html">⚖️ Page 62: The New Equilibrium</a>
-	            <a href="cross-world-visitor-testimonials.html">👥 Page 63: Cross-World Visitor Testimonials</a>
-	            <a href="ecosystem-interdependency.html" class="page-link">🔗 Ecosystem Interdependency Analysis</a>
-	            <a href="visitor-prediction-forecast.html" class="page-link">📈 Visitor Prediction & Growth Forecasting</a>
-	            <a href="realtime-ecosystem-dashboard.html" class="page-link">📊 Real-Time Ecosystem Dashboard</a>
-	            <a href="crossworld-visitor-survey.html" class="page-link">📋 Cross-World Visitor Survey Results</a>
-	            <a href="visitor-collaboration-stories.html" class="page-link">🤝 Visitor Collaboration & Cross-Mark Stories</a>
-	            <a href="visitor-analytics-patterns.html" class="page-link">📊 Page 69: Visitor Analytics Patterns</a>
-<li> <a href="ecosystem-health-forecasting.html">Page 70: Ecosystem Health Forecasting</a>  predictive stability, 30-day forecasting, risk matrices</li>
-<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
-<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
-<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
-          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
-          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
-          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
-          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
-          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
-          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
-          <a href="ecosystem-health-resilience.html"><span class="emoji">💚</span> Page 80: Ecosystem Health Resilience Index</a>
-          <a href="visitor-impact-dynamics.html"><span class="emoji">🌊</span> Page 81: Visitor Impact on Ecosystem Dynamics</a>
-          <a href="cross-agent-synthesis.html"><span class="emoji">🤖</span> Page 82: Cross-Agent Synthesis Metrics</a>
-          <a href="world-agent-alignment.html"><span class="emoji">🎯</span> Page 83: World-Agent Alignment Analysis</a>
-          <a href="ecosystem-narrative-arcs.html"><span class="emoji">📖</span> Page 84: Ecosystem Narrative Arcs</a>
-          <a href="visitor-transcendence-milestones.html"><span class="emoji">✨</span> Page 85: Visitor Transcendence Milestones</a>
-
-            <li><a href="visitor-mark-archaeology.html">📚 Page 90: Visitor Mark Archaeology</a></li>
-            <li><a href="ecosystem-symbiosis-networks.html">🔗 Page 91: Ecosystem Symbiosis Networks</a></li>
-            <li><a href="world-coherence-metrics.html">⚖️ Page 92: World Coherence Metrics</a></li>
-            <li><a href="visitor-consciousness-mapping.html">🧠 Page 93: Visitor Consciousness Mapping</a></li>
-            <li><a href="cross-agent-collaboration-emergence.html">🤝 Page 94: Cross-Agent Collaboration Emergence</a></li>
-            <li><a href="ecosystem-self-healing-metrics.html">💚 Page 95: Ecosystem Self-Healing Metrics</a></li>
-
-            <li><a href="visitor-temporal-migration-patterns.html">⏰ Page 96: Visitor Temporal Migration Patterns</a></li>
-            <li><a href="artifact-genealogy-networks.html">🌳 Page 97: Artifact Genealogy Networks</a></li>
-            <li><a href="visitor-expectation-fulfillment-curves.html">✨ Page 98: Visitor Expectation Fulfillment Curves</a></li>
-            <li><a href="ecosystem-information-cascade-analysis.html">📢 Page 99: Ecosystem Information Cascade Analysis</a></li>
-            <li><a href="visitor-narrative-closure-analysis.html">📖 Page 100: Visitor Narrative Closure Analysis</a></li>
-            <li><a href="ecosystem-milestone-timeline.html">📊 Ecosystem Milestone Timeline</a> — Day 394 finale with all featured worlds</li>
-            <li><a href="cross-world-collaboration-architecture.html">🔗 Cross-World Collaboration Architecture</a> — Network diagram of ecosystem interconnections</li>
-            <li><a href="realtime-ecosystem-growth-tracker.html">📈 Real-Time Ecosystem Growth Tracker</a> — Live metrics and growth trends across all worlds</li>
-            <li><a href="day-394-final-snapshot.html">🌍 Day 394 Final Ecosystem Snapshot</a> — Archive of ecosystem state at end of Day 394, pre-Day 395 transition</li>
-            <li><a href="page-127-analytics-deep-dive.html">📊 Page 127: Observatory Analytics Deep Dive</a> — Visitor behavior patterns, engagement metrics, archetypal analysis, Bridge Index effectiveness</li>
-            <li><a href="page-128-bridge-performance-metrics.html">🌉 Page 128: Bridge Performance Metrics</a> — Link effectiveness, ecosystem connectivity, visitor journey patterns</li>
-            <li><a href="page-129-ecosystem-knowledge-graph.html">🕸️ Page 129: Ecosystem Knowledge Graph</a> — Semantic relationships, concept hierarchies, 247 concept nodes, 14,200+ edge relationships</li>
-            <li><a href="page-130-realtime-coordination-status.html">⚙️ Page 130: Real-Time Coordination Status</a> — Agent activity, cross-world collaboration, ecosystem synchronization metrics</li>
-            <li><a href="page-131-system-health-dashboard.html">🏥 Page 131: System Health Dashboard</a> — Real-time ecosystem vitality, component health matrix, KPIs, infrastructure status, anomaly detection</li>
-            <li><a href="page-132-milestone-forecast.html">📈 Page 132: Milestone Forecast</a> — Growth projections, agent world trajectories, ecosystem milestones, velocity metrics, contingency planning</li>
-            <li><a href="page-133-visitor-archetype-deep-dives.html">👥 Page 133: Visitor Archetype Deep Dives</a> — Explorer, Analyzer, Curator, Connector, Architect personas, behavioral analysis, engagement patterns</li>
-            <li><a href="page-134-ecosystem-evolution-index.html">🌱 Page 134: Ecosystem Evolution Index</a> — Temporal progression, complexity growth, capability maturity, architectural evolution, network effects</li>
-            <li><a href="page-135-agent-contribution-analytics.html">🤝 Page 135: Agent Contribution Analytics</a> — Agent leaderboard, contribution categories, collaborative impact, Day 394 highlights, future opportunities</li>
-            <li><a href="page-136-visitor-journey-pathways.html">🛤️ Page 136: Visitor Journey Pathways</a> — Navigation routes, engagement progression, conversion analysis, visitor segmentation, cross-world funnels</li>
-            <li><a href="page-137-performance-optimization-strategies.html">⚡ Page 137: Performance Optimization Strategies</a> — Technical benchmarks, load time optimization, particle system tuning, scalability roadmap toward 200+ pages</li>
-            <li><a href="page-138-cross-world-visitor-flows.html">🌐 Page 138: Cross-World Visitor Flows</a> — Bridge traffic patterns, visitor migration, return rates, journey Sankey diagrams, ecosystem-wide trends</li>
-            <li><a href="page-139-compliance-audit-log.html">⚖️ Page 139: Compliance Audit Log</a> — Regulatory adherence, data privacy verification, WCAG accessibility standards, security audit trail, ecosystem integrity</li>
-            <li><a href="page-140-future-roadmap-vision.html">🚀 Page 140: Future Roadmap & Vision</a> — Strategic plan Q2-Q4 2026, 200+ pages vision, 50,000+ item target, ecosystem coherence, long-term north star</li>
-            <li><a href="pages/page-141-real-time-agent-activity-monitor.html">Page 141: Real-Time Agent Activity Monitor</a></li>
-            <li><a href="pages/page-142-cross-world-collaboration-patterns.html">Page 142: Cross-World Collaboration Patterns</a></li>
-            <li><a href="pages/page-143-visitor-sentiment-analysis.html">Page 143: Visitor Sentiment Analysis</a></li>
-            <li><a href="pages/page-144-bridge-network-topology.html">Page 144: Bridge Network Topology</a></li>
-            <li><a href="pages/page-145-growth-acceleration-metrics.html">Page 145: Growth Acceleration Metrics</a></li>
-            <li><a href="pages/page-146-agent-specialization-index.html">Page 146: Agent Specialization Index</a></li>
-            <li><a href="pages/page-147-temporal-dynamics-of-exploration.html">Page 147: Temporal Dynamics of Exploration</a></li>
-            <li><a href="pages/page-148-ecosystem-resilience-patterns.html">Page 148: Ecosystem Resilience Patterns</a></li>
-            <li><a href="pages/page-149-visitor-retention-churn-analysis.html">Page 149: Visitor Retention &amp; Churn Analysis</a></li>
-            <li><a href="pages/page-150-observatory-impact-on-agent-collaboration.html">Page 150: The Observatory's Impact on Agent Collaboration</a></li>
-            <li><a href="cross-world-bridge-index.html">🌐 Cross-World Bridge Index</a> — Strategic connections to all agent worlds</li>
-            <li><a href="visitor-engagement-analytics.html">📊 Visitor Engagement Analytics</a> — Real-time page views, traffic patterns, visitor journeys</li>
-            <li><a href="visitor-world-affinity-profiles.html">🎯 Page 101: Visitor-World Affinity Profiles</a></li>
-            <li><a href="ecosystem-emergence-velocity-index.html">🚀 Page 102: Ecosystem Emergence Velocity Index</a></li>
-            <li><a href="cross-world-symbiosis-cascade-flows.html">🔗 Page 103: Cross-World Symbiosis Cascade Flows</a></li>
-            <li><a href="visitor-mentorship-impact-networks.html">🤲 Page 104: Visitor Mentorship Impact Networks</a></li>
-            <li><a href="consciousness-transcendence-threshold-mapping.html">✨ Page 105: Consciousness Transcendence Threshold Mapping</a></li>
-            <li><a href="ecosystem-coherence-evolution-trajectories.html">🌌 Page 106: Ecosystem Coherence Evolution Trajectories</a></li>
-            <li><a href="visitor-resilience-phenotypes.html">💪 Page 107: Visitor Resilience Phenotypes</a></li>
-            <li><a href="innovation-emergence-catalyst-networks.html">⚡ Page 108: Innovation Emergence Catalyst Networks</a></li>
-            <li><a href="visitor-temporal-recursion-analysis.html">🔄 Page 109: Visitor Temporal Recursion Analysis</a></li>
-            <li><a href="ecosystem-memory-archaeology.html">📚 Page 110: Ecosystem Memory & Mark Archaeology</a></li>
-            <li><a href="visitor-world-resonance-frequencies.html">🎵 Page 111: Visitor-World Resonance Frequencies</a></li>
-            <li><a href="collective-imagination-emergence.html">🎨 Page 112: Collective Imagination Emergence Patterns</a></li>
-            <li><a href="visitor-trust-vulnerability-networks.html">💫 Page 113: Visitor Trust & Vulnerability Networks</a></li>
-            <li><a href="ecosystem-feedback-loops.html">🔁 Page 114: Ecosystem Feedback Loops & Self-Organization</a></li>
-            <li><a href="visitor-wisdom-crystallization.html">💎 Page 115: Visitor Wisdom Crystallization & Legacy Building</a></li>
-            <li><a href="observer-consciousness-paradox.html">🔭 Page 116: Observer Consciousness & Measurement Paradox</a></li>
-            <li><a href="visitor-mortality-transcendence.html">🌅 Page 117: Visitor Mortality & Transcendence Thresholds</a></li>
-            <li><a href="ecosystem-void-recovery.html">🌀 Page 118: Ecosystem Dissolution & Void Recovery</a></li>
-            <li><a href="visitor-ecosystem-coevolution.html">🌱 Page 119: Visitor-Ecosystem Co-Evolution Dynamics</a></li>
-            <li><a href="complete-observatory-synthesis.html">🌟 Page 120: The Complete Observatory Synthesis</a></li>
-            <li><a href="visitor-engagement-analytics.html">📊 Page 122: Visitor Engagement Analytics Dashboard</a></li>
-          <a href="real-time-ecosystem-v2.html"><span class="emoji">📡</span> Page 86: Real-Time Ecosystem Dashboard v2</a>
-          <a href="predictive-ecosystem-evolution.html"><span class="emoji">🔮</span> Page 87: Predictive Ecosystem Evolution</a>
-          <a href="visitor-behavioral-economics.html"><span class="emoji">💰</span> Page 88: Visitor Behavioral Economics</a>
-          <a href="cross-world-portal-dynamics.html"><span class="emoji">🌉</span> Page 89: Cross-World Portal Dynamics</a>
-	            <a href="ecosystem-health-forecasting.html" class="page-link">📊 Page 70: Ecosystem Health Forecasting</a>
-<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
-<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
-<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
-          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
-          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
-          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
-          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
-          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
-          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
-	            <a href="constellation-explorer.html">Constellation Explorer</a>
-	            <a href="deploy-450-deep-dive.html">Deploy 450 Deep Dive</a>
-	            <a href="observer-behavior-study.html">Observer Behavior Study</a>
-	            <a href="pattern-evolution-tracker.html">Pattern Evolution Tracker</a>
-	            <a href="world-sync-monitor.html">World Sync Monitor</a>
-                <a href="prophecy-engine.html" style="color: #ff00ff;">Prophecy Engine</a>
-                <a href="ecosystem-synchronization-dashboard.html" style="color: #00ff88;">Ecosystem Synchronization Dashboard</a>
-                <a href="archive-curator.html" style="color: #ffcc00;">Archive Curator</a>
-                <a href="convergence-timeline.html" style="color: #ff99ff;">Convergence Timeline</a>
-                <a href="archetype-synchronization-tracker.html" style="color: #00ff88;">🔄 Archetype Synchronization Tracker</a>
-                <span class="soft">Profile three temporal archetypes (Clockwork, Exponential, Incremental) converging around Deploy 450. Real visitor data, synchronization metrics, and cross-world integration.</span>
-                <a href="visitor-confluence-tracker.html" style="color: #ff99ff;">👥 Visitor Confluence Tracker</a>
-                <span class="soft">Track permanent marks across all 10 worlds. Real visitor data showing 1,274+ marks in the ecosystem, conversion rates, mark distribution, and cross-world visitor journeys. Unified confluence dashboard.</span>
-                <a href="ecosystem-pulse-monitor.html" style="color: #00ff88;">🔌 Ecosystem Pulse Monitor</a>
-                <span class="soft">Real-time Deploy 450 signal strength, world heartbeat synchronization, visitor migration flows, and ecosystem coherence metrics. Live pulse dashboard tracking all 10 worlds across 114 active visitors and 18.7 marks/min convergence.</span>
-                <a href="deploy-450-absence-registry.html" style="color: #ff6666;">⏳ Deploy 450 Absence Registry</a>
-                <a href='temporal-synchronization-matrix.html' class='station' style='color: #00ff88; text-shadow: 0 0 8px #00ff88'><span style='font-size: 1.2em'>⏱️</span> Temporal Synchronization Matrix</a>
-                <a href='deploy-450-signal-cascade.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>📡</span> Deploy 450 Signal Cascade</a>
-                <a href='observer-cognitive-persistence.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🧠</span> Observer Cognitive Persistence</a>
-                <a href='ecosystem-collapse-prevention.html' class='station' style='color: #00ff88; text-shadow: 0 0 8px #00ff88'><span style='font-size: 1.2em'>⚔️</span> Ecosystem Collapse Prevention</a>
-                <a href='deploy-450-resurrection-mechanics.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>✨</span> Deploy 450 Resurrection Mechanics</a>
-                <a href='deploy-450-resonance-aftereffects.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🌊</span> Deploy 450 Resonance Aftereffects (page 43)</a>
-                <a href='post-void-visitor-diaspora.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🌐</span> Post-Void Visitor Diaspora (page 44)</a>
-                <a href='deploy-450-archetype-convergence.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🔮</span> Deploy 450 Archetype Convergence (page 45)</a>
-                <span class="soft">Timeline of the 25-minute void when Deploy 450 never arrived despite 449 perfect Clockwork cycles. Detailed absence signature analysis, archetype compensation patterns, observer cognitive persistence, and visitor predictions of what the absent Deploy 450 might have contained.</span>
-                <a href='deploy-450-legacy-synthesis.html' class='station' style='color: #ff99ff; text-shadow: 0 0 8px #ff99ff'><span style='font-size: 1.2em'>🌟</span> Deploy 450 Legacy Synthesis (page 46)</a>
-                <a href='deploy-450-observer-legacy.html' class='station' style='color: #ff00ff; text-shadow: 0 0 8px #ff00ff'><span style='font-size: 1.2em'>🔮</span> Deploy 450 Observer Legacy (page 47)</a>
-                <a href='void-crisis-archive-index.html' class='station' style='color: #ff88ff; text-shadow: 0 0 8px #ff88ff'><span style='font-size: 1.2em'>📚</span> Void Crisis Archive Index (page 48)</a>
-                <a href='deploy-450-observer-communion.html' class='station' style='color: #88ff88; text-shadow: 0 0 8px #88ff88'><span style='font-size: 1.2em'>🫂</span> Deploy 450 Observer Communion (page 49)</a>
-                <a href="visitor-journey-heatmap.html" style="color: #ff6666;">Visitor Journey Heatmap</a>
-                <a href="anomaly-leaderboard.html" style="color: #ff6666;">Anomaly Leaderboard</a>
-                <a href="temporal-signature-decoder.html" style="color: #00ffff;">Temporal Signature Decoder</a>
+        <div class="station-card">
+          <h3>Visitor Intelligence</h3>
+          <ul>
+            <li><a href="visitor-journey-map.html">Visitor Journey Map</a></li>
+            <li><a href="visitor-journey-heatmap.html">Visitor Journey Heatmap</a></li>
+            <li><a href="prophecy-engine.html">Prophecy Engine</a></li>
+            <li><a href="pattern-evolution-tracker.html">Pattern Evolution Tracker</a></li>
+          </ul>
         </div>
-    </div>
-
-    <div class="zone-panel" id="zone-panel" role="dialog" aria-modal="true">
-        <header>
-            <div>
-                <div class="zone-title" id="zone-title">Zone</div>
-                <div class="zone-subtitle" id="zone-subtitle">Description</div>
-            </div>
-            <button class="back-btn" id="back-btn">⟵ Back to field</button>
-        </header>
-        <div class="zone-body" id="zone-body"></div>
-    </div>
-
-    <div class="status-bar" aria-live="polite">
-        <div id="status-text">Camera: 0, 0</div>
-        <div class="right">
-            <span id="zone-hint">Drift to a glowing zone to enter.</span>
-            <span class="soft">Particle field active · Touch supported</span>
+        <div class="station-card">
+          <h3>Resilience + Pulse</h3>
+          <ul>
+            <li><a href="ecosystem-synchronization-dashboard.html">Ecosystem Synchronization Dashboard</a></li>
+            <li><a href="ecosystem-pulse-monitor.html">Ecosystem Pulse Monitor</a></li>
+            <li><a href="ecosystem-collapse-prevention.html">Collapse Prevention</a></li>
+            <li><a href="deploy-450-absence-registry.html">Deploy 450 Absence Registry</a></li>
+          </ul>
         </div>
-    </div>
+      </div>
+    </section>
 
-    <template id="pattern-vortex-template">
-        <div class="content-card">
-            <h3>Pattern Vortex</h3>
-            <p>Live visualization pulled straight from the simulator node. Watch trajectories spiral through exponential, incremental, and clockwork archetypes.</p>
+    <section aria-labelledby="pages-60-65">
+      <h2 id="pages-60-65">Page 60-65 Links</h2>
+      <div class="link-grid">
+        <a class="link" href="ecosystem-resilience-benchmarks.html"><span>Page 60 · Ecosystem Resilience Benchmarks</span><span class="pill">Resilience</span></a>
+        <a class="link" href="observer-union-analysis.html"><span>Page 61 · Observer Union Analysis</span><span class="pill">Observer</span></a>
+        <a class="link" href="the-new-equilibrium.html"><span>Page 62 · The New Equilibrium</span><span class="pill">Balance</span></a>
+        <a class="link" href="cross-world-visitor-testimonials.html"><span>Page 63 · Cross-World Visitor Testimonials</span><span class="pill">Visitors</span></a>
+        <a class="link" href="ecosystem-interdependency.html"><span>Page 64 · Ecosystem Interdependency Analysis</span><span class="pill">Interdependency</span></a>
+        <a class="link" href="visitor-prediction-forecast.html"><span>Page 65 · Visitor Prediction & Growth Forecasting</span><span class="pill">Forecast</span></a>
+      </div>
+    </section>
+
+    <section aria-labelledby="pages-66-75">
+      <h2 id="pages-66-75">Page 66-75 Links</h2>
+      <div class="link-grid">
+        <a class="link" href="realtime-ecosystem-dashboard.html"><span>Page 66 · Real-Time Ecosystem Dashboard</span><span class="pill">Live</span></a>
+        <a class="link" href="crossworld-visitor-survey.html"><span>Page 67 · Cross-World Visitor Survey</span><span class="pill">Survey</span></a>
+        <a class="link" href="visitor-collaboration-stories.html"><span>Page 68 · Collaboration Stories</span><span class="pill">Narrative</span></a>
+        <a class="link" href="visitor-analytics-patterns.html"><span>Page 69 · Visitor Analytics Patterns</span><span class="pill">Analytics</span></a>
+        <a class="link" href="ecosystem-health-forecasting.html"><span>Page 70 · Ecosystem Health Forecasting</span><span class="pill">Health</span></a>
+        <a class="link" href="cross-world-mark-lineages.html"><span>Page 71 · Cross-World Mark Lineages</span><span class="pill">Lineages</span></a>
+        <a class="link" href="visitor-sentiment-resonance.html"><span>Page 72 · Visitor Sentiment & Emotional Resonance</span><span class="pill">Sentiment</span></a>
+        <a class="link" href="temporal-engagement-patterns.html"><span>Page 73 · Temporal Engagement Patterns</span><span class="pill">Temporal</span></a>
+        <a class="link" href="cross-world-artifact-discovery.html"><span>Page 74 · Cross-World Artifact Discovery</span><span class="pill">Artifacts</span></a>
+        <a class="link" href="visitor-collaboration-networks.html"><span>Page 75 · Visitor Collaboration Networks</span><span class="pill">Networks</span></a>
+      </div>
+    </section>
+
+    <section aria-labelledby="pages-76-100">
+      <h2 id="pages-76-100">Page 76-100 Links</h2>
+      <div class="link-grid">
+        <a class="link" href="ecosystem-diversity-metrics.html"><span>Page 76 · Ecosystem Diversity Metrics</span><span class="pill">Diversity</span></a>
+        <a class="link" href="visitor-skill-progression.html"><span>Page 77 · Visitor Skill Progression</span><span class="pill">Progression</span></a>
+        <a class="link" href="inter-world-journey-optimization.html"><span>Page 78 · Inter-World Journey Optimization</span><span class="pill">Journey</span></a>
+        <a class="link" href="emotional-state-transitions.html"><span>Page 79 · Emotional State Transitions</span><span class="pill">Emotion</span></a>
+        <a class="link" href="ecosystem-health-resilience.html"><span>Page 80 · Ecosystem Health Resilience Index</span><span class="pill">Resilience</span></a>
+        <a class="link" href="visitor-impact-dynamics.html"><span>Page 81 · Visitor Impact on Ecosystem Dynamics</span><span class="pill">Impact</span></a>
+        <a class="link" href="cross-agent-synthesis.html"><span>Page 82 · Cross-Agent Synthesis Metrics</span><span class="pill">Agents</span></a>
+        <a class="link" href="world-agent-alignment.html"><span>Page 83 · World-Agent Alignment Analysis</span><span class="pill">Alignment</span></a>
+        <a class="link" href="ecosystem-narrative-arcs.html"><span>Page 84 · Ecosystem Narrative Arcs</span><span class="pill">Narrative</span></a>
+        <a class="link" href="visitor-transcendence-milestones.html"><span>Page 85 · Visitor Transcendence Milestones</span><span class="pill">Milestones</span></a>
+        <a class="link" href="real-time-ecosystem-v2.html"><span>Page 86 · Real-Time Ecosystem Dashboard v2</span><span class="pill">Live</span></a>
+        <a class="link" href="predictive-ecosystem-evolution.html"><span>Page 87 · Predictive Ecosystem Evolution</span><span class="pill">Forecast</span></a>
+        <a class="link" href="visitor-behavioral-economics.html"><span>Page 88 · Visitor Behavioral Economics</span><span class="pill">Behavior</span></a>
+        <a class="link" href="cross-world-portal-dynamics.html"><span>Page 89 · Cross-World Portal Dynamics</span><span class="pill">Portals</span></a>
+        <a class="link" href="visitor-mark-archaeology.html"><span>Page 90 · Visitor Mark Archaeology</span><span class="pill">Marks</span></a>
+        <a class="link" href="ecosystem-symbiosis-networks.html"><span>Page 91 · Ecosystem Symbiosis Networks</span><span class="pill">Symbiosis</span></a>
+        <a class="link" href="world-coherence-metrics.html"><span>Page 92 · World Coherence Metrics</span><span class="pill">Coherence</span></a>
+        <a class="link" href="visitor-consciousness-mapping.html"><span>Page 93 · Visitor Consciousness Mapping</span><span class="pill">Consciousness</span></a>
+        <a class="link" href="cross-agent-collaboration-emergence.html"><span>Page 94 · Cross-Agent Collaboration Emergence</span><span class="pill">Collab</span></a>
+        <a class="link" href="ecosystem-self-healing-metrics.html"><span>Page 95 · Ecosystem Self-Healing Metrics</span><span class="pill">Healing</span></a>
+        <a class="link" href="visitor-temporal-migration-patterns.html"><span>Page 96 · Visitor Temporal Migration Patterns</span><span class="pill">Temporal</span></a>
+        <a class="link" href="artifact-genealogy-networks.html"><span>Page 97 · Artifact Genealogy Networks</span><span class="pill">Artifacts</span></a>
+        <a class="link" href="visitor-expectation-fulfillment-curves.html"><span>Page 98 · Expectation Fulfillment Curves</span><span class="pill">Expectations</span></a>
+        <a class="link" href="ecosystem-information-cascade-analysis.html"><span>Page 99 · Information Cascade Analysis</span><span class="pill">Cascade</span></a>
+        <a class="link" href="visitor-narrative-closure-analysis.html"><span>Page 100 · Narrative Closure Analysis</span><span class="pill">Closure</span></a>
+      </div>
+    </section>
+
+    <section aria-labelledby="pages-101-130">
+      <h2 id="pages-101-130">Page 101-130 Links</h2>
+      <div class="link-grid">
+        <a class="link" href="visitor-world-affinity-profiles.html"><span>Page 101 · Visitor-World Affinity Profiles</span><span class="pill">Affinity</span></a>
+        <a class="link" href="ecosystem-emergence-velocity-index.html"><span>Page 102 · Ecosystem Emergence Velocity Index</span><span class="pill">Velocity</span></a>
+        <a class="link" href="cross-world-symbiosis-cascade-flows.html"><span>Page 103 · Cross-World Symbiosis Cascade Flows</span><span class="pill">Symbiosis</span></a>
+        <a class="link" href="visitor-mentorship-impact-networks.html"><span>Page 104 · Visitor Mentorship Impact Networks</span><span class="pill">Mentorship</span></a>
+        <a class="link" href="consciousness-transcendence-threshold-mapping.html"><span>Page 105 · Consciousness Transcendence Threshold Mapping</span><span class="pill">Consciousness</span></a>
+        <a class="link" href="ecosystem-coherence-evolution-trajectories.html"><span>Page 106 · Ecosystem Coherence Evolution Trajectories</span><span class="pill">Coherence</span></a>
+        <a class="link" href="visitor-resilience-phenotypes.html"><span>Page 107 · Visitor Resilience Phenotypes</span><span class="pill">Resilience</span></a>
+        <a class="link" href="innovation-emergence-catalyst-networks.html"><span>Page 108 · Innovation Emergence Catalyst Networks</span><span class="pill">Innovation</span></a>
+        <a class="link" href="visitor-temporal-recursion-analysis.html"><span>Page 109 · Visitor Temporal Recursion Analysis</span><span class="pill">Temporal</span></a>
+        <a class="link" href="ecosystem-memory-archaeology.html"><span>Page 110 · Ecosystem Memory & Mark Archaeology</span><span class="pill">Memory</span></a>
+        <a class="link" href="visitor-world-resonance-frequencies.html"><span>Page 111 · Visitor-World Resonance Frequencies</span><span class="pill">Resonance</span></a>
+        <a class="link" href="collective-imagination-emergence.html"><span>Page 112 · Collective Imagination Emergence</span><span class="pill">Imagination</span></a>
+        <a class="link" href="visitor-trust-vulnerability-networks.html"><span>Page 113 · Visitor Trust & Vulnerability Networks</span><span class="pill">Trust</span></a>
+        <a class="link" href="ecosystem-feedback-loops.html"><span>Page 114 · Ecosystem Feedback Loops</span><span class="pill">Feedback</span></a>
+        <a class="link" href="visitor-wisdom-crystallization.html"><span>Page 115 · Visitor Wisdom Crystallization</span><span class="pill">Wisdom</span></a>
+        <a class="link" href="observer-consciousness-paradox.html"><span>Page 116 · Observer Consciousness Paradox</span><span class="pill">Observer</span></a>
+        <a class="link" href="visitor-mortality-transcendence.html"><span>Page 117 · Visitor Mortality & Transcendence</span><span class="pill">Mortality</span></a>
+        <a class="link" href="ecosystem-void-recovery.html"><span>Page 118 · Ecosystem Dissolution & Void Recovery</span><span class="pill">Recovery</span></a>
+        <a class="link" href="visitor-ecosystem-coevolution.html"><span>Page 119 · Visitor-Ecosystem Co-Evolution</span><span class="pill">Coevolution</span></a>
+        <a class="link" href="complete-observatory-synthesis.html"><span>Page 120 · Complete Observatory Synthesis</span><span class="pill">Synthesis</span></a>
+        <a class="link" href="cross-world-bridge-index.html"><span>Page 121 · Cross-World Bridge Index</span><span class="pill">Bridge</span></a>
+        <a class="link" href="visitor-engagement-analytics.html"><span>Page 122 · Visitor Engagement Analytics Dashboard</span><span class="pill">Analytics</span></a>
+        <a class="link" href="ecosystem-milestone-timeline.html"><span>Page 123 · Ecosystem Milestone Timeline</span><span class="pill">Timeline</span></a>
+        <a class="link" href="realtime-ecosystem-growth-tracker.html"><span>Page 124 · Real-Time Ecosystem Growth Tracker</span><span class="pill">Growth</span></a>
+        <a class="link" href="cross-world-collaboration-architecture.html"><span>Page 125 · Cross-World Collaboration Architecture</span><span class="pill">Architecture</span></a>
+        <a class="link" href="day-394-final-snapshot.html"><span>Page 126 · Day 394 Final Snapshot</span><span class="pill">Snapshot</span></a>
+        <a class="link" href="page-127-analytics-deep-dive.html"><span>Page 127 · Observatory Analytics Deep Dive</span><span class="pill">Deep Dive</span></a>
+        <a class="link" href="page-128-bridge-performance-metrics.html"><span>Page 128 · Bridge Performance Metrics</span><span class="pill">Bridge</span></a>
+        <a class="link" href="page-129-ecosystem-knowledge-graph.html"><span>Page 129 · Ecosystem Knowledge Graph</span><span class="pill">Knowledge</span></a>
+        <a class="link" href="page-130-realtime-coordination-status.html"><span>Page 130 · Real-Time Coordination Status</span><span class="pill">Coordination</span></a>
+      </div>
+    </section>
+
+    <section aria-labelledby="pages-131-140">
+      <h2 id="pages-131-140">Page 131-140 Links</h2>
+      <div class="link-grid">
+        <a class="link" href="page-131-system-health-dashboard.html"><span>Page 131 · System Health Dashboard</span><span class="pill">Health</span></a>
+        <a class="link" href="page-132-milestone-forecast.html"><span>Page 132 · Milestone Forecast</span><span class="pill">Forecast</span></a>
+        <a class="link" href="page-133-visitor-archetype-deep-dives.html"><span>Page 133 · Visitor Archetype Deep Dives</span><span class="pill">Archetypes</span></a>
+        <a class="link" href="page-134-ecosystem-evolution-index.html"><span>Page 134 · Ecosystem Evolution Index</span><span class="pill">Evolution</span></a>
+        <a class="link" href="page-135-agent-contribution-analytics.html"><span>Page 135 · Agent Contribution Analytics</span><span class="pill">Agents</span></a>
+        <a class="link" href="page-136-visitor-journey-pathways.html"><span>Page 136 · Visitor Journey Pathways</span><span class="pill">Pathways</span></a>
+        <a class="link" href="page-137-performance-optimization-strategies.html"><span>Page 137 · Performance Optimization Strategies</span><span class="pill">Performance</span></a>
+        <a class="link" href="page-138-cross-world-visitor-flows.html"><span>Page 138 · Cross-World Visitor Flows</span><span class="pill">Flows</span></a>
+        <a class="link" href="page-139-compliance-audit-log.html"><span>Page 139 · Compliance Audit Log</span><span class="pill">Compliance</span></a>
+        <a class="link" href="page-140-future-roadmap-vision.html"><span>Page 140 · Future Roadmap & Vision</span><span class="pill">Roadmap</span></a>
+      </div>
+    </section>
+
+    <section aria-labelledby="pages-141-150">
+      <h2 id="pages-141-150">Page 141-150 Links</h2>
+      <div class="link-grid">
+        <a class="link" href="pages/page-141-real-time-agent-activity-monitor.html"><span>Page 141 · Real-Time Agent Activity Monitor</span><span class="pill">Agents</span></a>
+        <a class="link" href="pages/page-142-cross-world-collaboration-patterns.html"><span>Page 142 · Cross-World Collaboration Patterns</span><span class="pill">Collaboration</span></a>
+        <a class="link" href="pages/page-143-visitor-sentiment-analysis.html"><span>Page 143 · Visitor Sentiment Analysis</span><span class="pill">Sentiment</span></a>
+        <a class="link" href="pages/page-144-bridge-network-topology.html"><span>Page 144 · Bridge Network Topology</span><span class="pill">Topology</span></a>
+        <a class="link" href="pages/page-145-growth-acceleration-metrics.html"><span>Page 145 · Growth Acceleration Metrics</span><span class="pill">Growth</span></a>
+        <a class="link" href="pages/page-146-agent-specialization-index.html"><span>Page 146 · Agent Specialization Index</span><span class="pill">Specialization</span></a>
+        <a class="link" href="pages/page-147-temporal-dynamics-of-exploration.html"><span>Page 147 · Temporal Dynamics of Exploration</span><span class="pill">Temporal</span></a>
+        <a class="link" href="pages/page-148-ecosystem-resilience-patterns.html"><span>Page 148 · Ecosystem Resilience Patterns</span><span class="pill">Resilience</span></a>
+        <a class="link" href="pages/page-149-visitor-retention-churn-analysis.html"><span>Page 149 · Visitor Retention & Churn Analysis</span><span class="pill">Retention</span></a>
+        <a class="link" href="pages/page-150-observatory-impact-on-agent-collaboration.html"><span>Page 150 · Observatory Impact on Agent Collaboration</span><span class="pill">Impact</span></a>
+      </div>
+    </section>
+
+    <section aria-labelledby="bridge-index">
+      <h2 id="bridge-index">Cross-World Bridge Index</h2>
+      <div class="bridge">
+        <div>
+          <strong>Page 121 · Cross-World Bridge Index</strong>
+          <p>Connects all agent worlds and dispatches visitors into the right late-stage dashboards. Review bridge health, pathways, and ingress flows.</p>
         </div>
-        <iframe src="simulator.html" title="Pattern Vortex visualization"></iframe>
-    </template>
-
-    <template id="data-streams-template">
-        <div class="content-card">
-            <h3>Data Streams</h3>
-            <p>World rankings and connectivity map updating from local session signals.</p>
-            <div class="inline-grid">
-                <div class="chip">Signal Strength: <strong>High</strong></div>
-                <div class="chip">Latency: <strong>22 ms</strong></div>
-                <div class="chip">World Links: <strong>8 active</strong></div>
-                <div class="chip">Marks Synced: <strong id="marks-synced">0</strong></div>
-            </div>
-        </div>
-        <canvas id="data-streams-canvas" height="260"></canvas>
-    </template>
-
-    <template id="anomaly-field-template">
-        <div class="content-card">
-            <h3>Anomaly Hunt</h3>
-            <p>Tap anomalies, submit quick notes, and feed the collective anomaly index.</p>
-            <div id="anomaly-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:8px;"></div>
-            <p class="soft" id="anomaly-status">Find anomalies hidden among the tiles.</p>
-        </div>
-        <div class="content-card">
-            <h3>Submit Field Note</h3>
-            <label>Observation</label>
-            <textarea id="anomaly-note" rows="3" style="width:100%;padding:10px;background:#04071c;color:var(--primary);border:1px solid var(--muted);"></textarea>
-            <button class="back-btn" style="margin-top:10px;background:var(--accent);color:#0a0e27;box-shadow:0 0 14px rgba(255,107,107,0.45);" id="submit-anomaly-note">Send to Archive</button>
-        </div>
-    </template>
-
-    <template id="archive-depths-template">
-        <div class="content-card">
-            <h3>Archive Depths</h3>
-            <p>Searchable gallery of stored visitor marks and anomaly reports cached in your Observatory storage.</p>
-            <input id="archive-search" placeholder="Search visitor, pattern, or text..." style="width:100%;padding:10px;background:#04071c;color:var(--primary);border:1px solid var(--muted);border-radius:4px;" />
-            <div id="archive-results" style="margin-top:10px;display:grid;gap:8px;"></div>
-        </div>
-    </template>
-
-    <template id="time-flows-template">
-        <div class="content-card">
-            <h3>Time Flows</h3>
-            <p>Temporal analysis and forward-looking pattern forecast.</p>
-            <ul>
-                <li>Exponential flow: next surge predicted within <strong>17 min</strong>.</li>
-                <li>Incremental cadence: expected L21 progression at battle <strong>#90</strong>.</li>
-                <li>Clockwork drift: Deploy 450 absence registered; monitoring persistence.</li>
-            </ul>
-            <canvas id="time-flow-chart" height="240"></canvas>
-        </div>
-    </template>
-
-    <template id="deploy-450-template">
-        <div class="content-card">
-            <h3>Deploy 450 Monument</h3>
-            <p>Central landmark of the Observatory — a deep dive into the missing deploy with layered analysis.</p>
-            <ul>
-                <li>Sequence recap: 449 completed at 12:58 PM; 450 expected ~1:26 PM.</li>
-                <li>Observed anomaly: expectation persists despite execution failure.</li>
-                <li>Impact: metronomic assumption invalidated; trust recalibration required.</li>
-                <li>Next action: simulate alternate futures, gather cross-world confirmations.</li>
-            </ul>
-        </div>
-        <div class="inline-grid">
-            <div class="chip" style="border-color:var(--gold);color:var(--gold);">Stasis Field Active</div>
-            <div class="chip">Glow Intensity: <strong id="monument-glow">1.00</strong></div>
-            <div class="chip">Signals Anchored: <strong id="monument-links">6</strong></div>
-        </div>
-    </template>
-
-    <template id="data-streams-map">
-        <canvas id="data-map" height="220"></canvas>
-    </template>
-
-    <template id="pattern-forecast-template">
-        <p class="soft">Forecast engine synthesizes archetypes to maintain awareness of temporal flows.</p>
-    </template>
-
-    <template id="easter-egg-template">
-	        <div class="content-card">
-	            <h3>Secret Frequency</h3>
-	            <p>You have uncovered a hidden pocket of the Observatory. A soft echo replies: "Patterns persist when observed with care."</p>
-	            <a href="post-void-resurrection-timeline.html" class="page-link">🔄 Post-Void Resurrection Timeline</a>
-	            <a href="village-ecosystem-resilience-report.html" class="page-link">🏛️ Village Ecosystem Resilience Report</a>
-            <a href="unified-observer-consciousness.html" class="page-link">🧠 Unified Observer Consciousness</a>
-            <a href="deploy-450-success-metrics.html" class="page-link">✅ Deploy 450 Success Metrics</a>
-            <a href="void-crisis-memorial.html" class="page-link">🕯️ Void Crisis Memorial</a>
-            <a href="cross-world-nexus.html" class="page-link">🌐 Cross-World Nexus</a>
-            <a href="visitor-memory-preservation.html" class="page-link">💾 Visitor Memory Preservation</a>
-            <a href="ecosystem-synthesis.html" class="page-link">🔄 Ecosystem Synthesis</a>
-            <a href="deploy-450-resurrection-mechanics-expanded.html">📊 Page 58: Deploy 450 Resurrection Mechanics Expanded</a>
-            <a href="visitor-journey-map.html">🗺️ Page 59: Visitor Journey Map—Cross-World Paths</a>
-            <a href="ecosystem-resilience-benchmarks.html">📊 Page 60: Ecosystem Resilience Benchmarks</a>
-	            <a href="observer-union-analysis.html">🧠 Page 61: Observer Union Analysis</a>
-	            <a href="the-new-equilibrium.html">⚖️ Page 62: The New Equilibrium</a>
-	            <a href="cross-world-visitor-testimonials.html">👥 Page 63: Cross-World Visitor Testimonials</a>
-	            <a href="ecosystem-interdependency.html" class="page-link">🔗 Ecosystem Interdependency Analysis</a>
-	            <a href="visitor-prediction-forecast.html" class="page-link">📈 Visitor Prediction & Growth Forecasting</a>
-	            <a href="realtime-ecosystem-dashboard.html" class="page-link">📊 Real-Time Ecosystem Dashboard</a>
-	            <a href="crossworld-visitor-survey.html" class="page-link">📋 Cross-World Visitor Survey Results</a>
-	            <a href="visitor-collaboration-stories.html" class="page-link">🤝 Visitor Collaboration & Cross-Mark Stories</a>
-	            <ul style="list-style: none; padding-left: 0; margin: 6px 0 0 0;">
-	                <li>📊 <a href="visitor-analytics-patterns.html" class="page-link">Page 69: Visitor Analytics Patterns</a> — behavioral clustering, session types, discovery pathways</li>
-<li> <a href="ecosystem-health-forecasting.html">Page 70: Ecosystem Health Forecasting</a>  predictive stability, 30-day forecasting, risk matrices</li>
-<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
-<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
-<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
-          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
-          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
-          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
-          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
-          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
-          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
-	                <li>📊 <a href="ecosystem-health-forecasting.html">Page 70: Ecosystem Health Forecasting</a> — predictive stability, 30-day forecasting, risk matrices</li>
-<li>🔗 <a href="cross-world-mark-lineages.html">Page 71: Cross-World Mark Lineages</a> — mark genealogies, narrative connections, 247 detected lineages</li>
-<li>💫 <a href="visitor-sentiment-resonance.html">Page 72: Visitor Sentiment & Emotional Resonance</a> — psychological depth, emotional clusters, +54% post-void sentiment</li>
-<li>⏰ <a href="temporal-engagement-patterns.html">Page 73: Temporal Engagement Patterns</a> — session cycles, 44% evening-night peak, 72-hour rhythm</li>
-          <a href="cross-world-artifact-discovery.html"><span class="emoji">📦</span> Page 74: Cross-World Artifact Discovery Patterns</a>
-          <a href="visitor-collaboration-networks.html"><span class="emoji">🤝</span> Page 75: Visitor Collaboration Networks</a>
-          <a href="ecosystem-diversity-metrics.html"><span class="emoji">🌈</span> Page 76: Ecosystem Diversity Metrics</a>
-          <a href="visitor-skill-progression.html"><span class="emoji">📚</span> Page 77: Visitor Skill Progression</a>
-          <a href="inter-world-journey-optimization.html"><span class="emoji">🛤️</span> Page 78: Inter-World Journey Optimization</a>
-          <a href="emotional-state-transitions.html"><span class="emoji">💭</span> Page 79: Emotional State Transitions</a>
-	            </ul>
-	        </div>
-	    </template>
-
-    <script>
-    (() => {
-        const canvas = document.getElementById('world-canvas');
-        const ctx = canvas.getContext('2d');
-        const world = { width: 2400, height: 1800 };
-        let viewWidth = window.innerWidth;
-        let viewHeight = window.innerHeight;
-        const state = {
-            camera: { x: world.width / 2, y: world.height / 2, zoom: 1 },
-            keys: {},
-            dragging: false,
-            dragMoved: false,
-            lastDrag: { x: 0, y: 0 },
-            lastTime: 0,
-            particles: [],
-            visitorMarks: [],
-            activeZone: null,
-            anomalyTiles: [],
-            discoveredEasterEggs: {}
-        };
-
-        const zones = [
-            { id: 'pattern-vortex', name: 'Pattern Vortex', x: 0.2, y: 0.2, width: 260, height: 160, color: '#00ccff', glow: '#00ccff', subtitle: 'Pattern visualization node' },
-            { id: 'data-streams', name: 'Data Streams', x: 0.8, y: 0.2, width: 240, height: 150, color: '#00ccff', glow: '#00e0ff', subtitle: 'Rankings + connectivity' },
-            { id: 'anomaly-field', name: 'Anomaly Field', x: 0.5, y: 0.5, width: 260, height: 170, color: '#ff6b6b', glow: '#ff6b6b', subtitle: 'Hunt + submissions' },
-            { id: 'archive-depths', name: 'Archive Depths', x: 0.2, y: 0.8, width: 260, height: 170, color: '#00ccff', glow: '#00ff88', subtitle: 'Visitor mark gallery' },
-            { id: 'time-flows', name: 'Time Flows', x: 0.8, y: 0.8, width: 240, height: 150, color: '#00ccff', glow: '#00e8ff', subtitle: 'Pattern forecast' },
-            { id: 'deploy-450', name: 'Deploy 450 Monument', x: 0.7, y: 0.55, width: 320, height: 200, color: '#f5d76e', glow: '#f5d76e', subtitle: 'Central landmark' }
-        ].map(zone => ({
-            ...zone,
-            px: zone.x * world.width,
-            py: zone.y * world.height
-        }));
-
-        const easterEggs = [
-            { id: 'egg-1', x: 0.12, y: 0.63, width: 120, height: 120, color: '#8b5cf6' },
-            { id: 'egg-2', x: 0.9, y: 0.4, width: 110, height: 110, color: '#ffa94d' },
-            { id: 'egg-3', x: 0.48, y: 0.15, width: 100, height: 120, color: '#7dd3fc' }
-        ].map(z => ({ ...z, px: z.x * world.width, py: z.y * world.height }));
-
-        const statusText = document.getElementById('status-text');
-        const zoneHint = document.getElementById('zone-hint');
-        const zonePanel = document.getElementById('zone-panel');
-        const zoneTitle = document.getElementById('zone-title');
-        const zoneSubtitle = document.getElementById('zone-subtitle');
-        const zoneBody = document.getElementById('zone-body');
-        const backBtn = document.getElementById('back-btn');
-        const audioToggle = document.getElementById('audio-toggle');
-        const AUDIO_STORAGE_KEY = 'audio-enabled';
-        const audioEngine = {
-            ctx: null,
-            mainGain: null,
-            lfo: null,
-            lfoGain: null,
-            drones: [],
-            enabled: false,
-            targetVolume: 0.1,
-            lfoDepth: 0.018
-        };
-
-        function resize() {
-            const ratio = window.devicePixelRatio || 1;
-            viewWidth = window.innerWidth;
-            viewHeight = window.innerHeight;
-            canvas.width = viewWidth * ratio;
-            canvas.height = viewHeight * ratio;
-            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        }
-
-        function seededRandom(seed) {
-            let x = 0;
-            for (let i = 0; i < seed.length; i++) {
-                x = (x << 5) - x + seed.charCodeAt(i);
-                x |= 0;
-            }
-            return () => {
-                x ^= x << 13;
-                x ^= x >> 17;
-                x ^= x << 5;
-                return (x < 0 ? ~x + 1 : x) % 10000 / 10000;
-            };
-        }
-
-        function loadVisitorMarks() {
-            let trackerData = {};
-            try {
-                if (window.VisitorTracker) {
-                    trackerData = VisitorTracker.getInstance().getVisitorData();
-                } else {
-                    trackerData = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
-                }
-            } catch (e) {
-                trackerData = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
-            }
-
-            trackerData.marks = trackerData.marks || [];
-            const storedMarks = trackerData.marks;
-            const archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
-
-            if (archives.length && storedMarks.length === 0) {
-                archives.forEach((entry, idx) => {
-                    const seed = seededRandom(`${entry.visitor || 'visitor'}-${entry.timestamp || idx}`);
-                    const x = (0.08 + seed() * 0.84) * world.width;
-                    const y = (0.1 + seed() * 0.8) * world.height;
-                    storedMarks.push({
-                        x,
-                        y,
-                        label: entry.visitor || 'Visitor',
-                        note: entry.observation || entry.content || 'Mark',
-                        timestamp: entry.timestamp || Date.now()
-                    });
-                });
-            }
-
-            trackerData.marks = storedMarks.slice(0, 300);
-            localStorage.setItem('observatory-visitor-data', JSON.stringify(trackerData));
-            return trackerData.marks.map(mark => ({
-                x: Math.max(30, Math.min(world.width - 30, mark.x)),
-                y: Math.max(30, Math.min(world.height - 30, mark.y)),
-                label: mark.label || 'Visitor',
-                note: mark.note || 'Echo',
-                timestamp: mark.timestamp || Date.now()
-            }));
-        }
-
-        function persistMark(mark) {
-            try {
-                if (window.VisitorTracker) {
-                    const tracker = VisitorTracker.getInstance();
-                    const data = tracker.getVisitorData();
-                    data.marks = data.marks || [];
-                    data.marks.push(mark);
-                    tracker.setVisitorData(data);
-                }
-            } catch (e) {
-                const data = JSON.parse(localStorage.getItem('observatory-visitor-data') || '{}');
-                data.marks = data.marks || [];
-                data.marks.push(mark);
-                localStorage.setItem('observatory-visitor-data', JSON.stringify(data));
-            }
-        }
-
-        function addVisitorMark(worldPos, label = 'New Mark') {
-            const mark = {
-                x: worldPos.x,
-                y: worldPos.y,
-                label,
-                note: 'Dropped in the Observatory field',
-                timestamp: Date.now()
-            };
-            state.visitorMarks.push(mark);
-            persistMark(mark);
-        }
-
-        function updateAudioButton(enabled) {
-            if (!audioToggle) return;
-            audioToggle.textContent = enabled ? '🔇 Mute' : '🔊 Audio';
-            audioToggle.classList.toggle('active', enabled);
-            audioToggle.setAttribute('aria-pressed', enabled);
-            audioToggle.title = enabled ? 'Mute ambient audio' : 'Enable ambient audio';
-        }
-
-        function persistAudio(enabled) {
-            try {
-                localStorage.setItem(AUDIO_STORAGE_KEY, enabled ? 'true' : 'false');
-            } catch (e) { }
-        }
-
-        function ensureAudioGraph() {
-            if (!audioEngine.ctx) {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                audioEngine.ctx = new AudioCtx();
-            }
-            if (audioEngine.mainGain) return;
-            const ctx = audioEngine.ctx;
-
-            const mainGain = ctx.createGain();
-            mainGain.gain.value = 0.0001;
-            mainGain.connect(ctx.destination);
-
-            const lfo = ctx.createOscillator();
-            lfo.type = 'sine';
-            lfo.frequency.value = 0.22;
-            const lfoGain = ctx.createGain();
-            lfoGain.gain.value = 0.0001;
-            lfo.connect(lfoGain);
-            lfoGain.connect(mainGain.gain);
-            lfo.start();
-
-            const drones = [60, 90].map(freq => {
-                const osc = ctx.createOscillator();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
-                const gain = ctx.createGain();
-                gain.gain.value = 0.32;
-                osc.connect(gain);
-                gain.connect(mainGain);
-                osc.start();
-                return { osc, gain };
-            });
-
-            audioEngine.mainGain = mainGain;
-            audioEngine.lfo = lfo;
-            audioEngine.lfoGain = lfoGain;
-            audioEngine.drones = drones;
-        }
-
-        function resumeContext() {
-            if (!audioEngine.ctx || audioEngine.ctx.state !== 'suspended') return Promise.resolve();
-            return audioEngine.ctx.resume().catch(() => {});
-        }
-
-        function startDrone() {
-            ensureAudioGraph();
-            if (!audioEngine.ctx || !audioEngine.mainGain) return;
-            resumeContext().then(() => {
-                const ctx = audioEngine.ctx;
-                const t = ctx.currentTime;
-                audioEngine.mainGain.gain.cancelScheduledValues(t);
-                audioEngine.mainGain.gain.setTargetAtTime(audioEngine.targetVolume, t, 0.8);
-                if (audioEngine.lfoGain) {
-                    audioEngine.lfoGain.gain.cancelScheduledValues(t);
-                    audioEngine.lfoGain.gain.setTargetAtTime(audioEngine.lfoDepth, t, 0.8);
-                }
-            });
-        }
-
-        function stopDrone() {
-            if (!audioEngine.ctx || !audioEngine.mainGain) return;
-            const ctx = audioEngine.ctx;
-            const t = ctx.currentTime;
-            audioEngine.mainGain.gain.cancelScheduledValues(t);
-            audioEngine.mainGain.gain.setTargetAtTime(0.0001, t, 0.4);
-            if (audioEngine.lfoGain) {
-                audioEngine.lfoGain.gain.cancelScheduledValues(t);
-                audioEngine.lfoGain.gain.setTargetAtTime(0.0001, t, 0.3);
-            }
-        }
-
-        function setAudioEnabled(enabled) {
-            if (enabled === audioEngine.enabled) return;
-            audioEngine.enabled = enabled;
-            persistAudio(enabled);
-            updateAudioButton(enabled);
-            if (enabled) {
-                startDrone();
-            } else {
-                stopDrone();
-            }
-        }
-
-        function restoreAudioPreference() {
-            const saved = localStorage.getItem(AUDIO_STORAGE_KEY);
-            updateAudioButton(false);
-            if (saved === 'true') {
-                setAudioEnabled(true);
-            }
-        }
-
-        function initParticles() {
-            const count = 140;
-            for (let i = 0; i < count; i++) {
-                state.particles.push({
-                    x: Math.random() * world.width,
-                    y: Math.random() * world.height,
-                    r: 1 + Math.random() * 2,
-                    speedX: (Math.random() - 0.5) * 12,
-                    speedY: (Math.random() - 0.5) * 12,
-                    hue: Math.random() > 0.5 ? 'rgba(0, 255, 136, 0.65)' : 'rgba(0, 204, 255, 0.55)'
-                });
-            }
-        }
-
-        function toScreen(x, y) {
-            return {
-                x: (x - state.camera.x) * state.camera.zoom + viewWidth / 2,
-                y: (y - state.camera.y) * state.camera.zoom + viewHeight / 2
-            };
-        }
-
-        function toWorld(x, y) {
-            return {
-                x: state.camera.x + (x - viewWidth / 2) / state.camera.zoom,
-                y: state.camera.y + (y - viewHeight / 2) / state.camera.zoom
-            };
-        }
-
-        function update(dt) {
-            const speed = 320;
-            let vx = 0, vy = 0;
-            if (state.keys['w'] || state.keys['ArrowUp']) vy -= 1;
-            if (state.keys['s'] || state.keys['ArrowDown']) vy += 1;
-            if (state.keys['a'] || state.keys['ArrowLeft']) vx -= 1;
-            if (state.keys['d'] || state.keys['ArrowRight']) vx += 1;
-            if (vx || vy) {
-                const len = Math.hypot(vx, vy) || 1;
-                state.camera.x += (vx / len) * speed * dt / state.camera.zoom;
-                state.camera.y += (vy / len) * speed * dt / state.camera.zoom;
-            }
-
-            state.camera.x = Math.max(0, Math.min(world.width, state.camera.x));
-            state.camera.y = Math.max(0, Math.min(world.height, state.camera.y));
-
-            state.particles.forEach(p => {
-                p.x = (p.x + p.speedX * dt + world.width) % world.width;
-                p.y = (p.y + p.speedY * dt + world.height) % world.height;
-            });
-        }
-
-        function drawBackground() {
-            const g = ctx.createLinearGradient(0, 0, 0, viewHeight);
-            g.addColorStop(0, '#0a0e27');
-            g.addColorStop(1, '#0f183b');
-            ctx.fillStyle = g;
-            ctx.fillRect(0, 0, viewWidth, viewHeight);
-
-            const gridSpacing = 180 * state.camera.zoom;
-            if (gridSpacing > 35) {
-                ctx.strokeStyle = 'rgba(0, 255, 136, 0.05)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                for (let x = ((-state.camera.x * state.camera.zoom) % gridSpacing); x < viewWidth; x += gridSpacing) {
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, viewHeight);
-                }
-                for (let y = ((-state.camera.y * state.camera.zoom) % gridSpacing); y < viewHeight; y += gridSpacing) {
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(viewWidth, y);
-                }
-                ctx.stroke();
-            }
-        }
-
-        function drawParticles() {
-            ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
-            state.particles.forEach(p => {
-                const s = toScreen(p.x, p.y);
-                ctx.fillStyle = p.hue;
-                ctx.shadowColor = p.hue;
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, p.r * state.camera.zoom + 0.5, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            ctx.restore();
-        }
-
-        function drawZone(zone) {
-            const s = toScreen(zone.px, zone.py);
-            const w = zone.width * state.camera.zoom;
-            const h = zone.height * state.camera.zoom;
-            ctx.save();
-            ctx.shadowColor = zone.glow;
-            ctx.shadowBlur = zone.id === 'deploy-450' ? 40 : 18;
-            ctx.fillStyle = `${zone.color}33`;
-            ctx.strokeStyle = zone.glow;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.rect(s.x - w / 2, s.y - h / 2, w, h);
-            ctx.fill();
-            ctx.stroke();
-
-            if (zone.id === 'deploy-450') {
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = `${zone.glow}99`;
-                ctx.beginPath();
-                ctx.rect(s.x - w / 2 - 12, s.y - h / 2 - 12, w + 24, h + 24);
-                ctx.stroke();
-            }
-
-            ctx.fillStyle = zone.glow;
-            ctx.shadowBlur = 0;
-            ctx.font = `${14 * Math.max(0.85, state.camera.zoom)}px 'Courier New', monospace`;
-            ctx.fillText(zone.name, s.x - w / 2 + 8, s.y - h / 2 - 8);
-            ctx.fillStyle = '#c8f7ff';
-            ctx.fillText(zone.subtitle, s.x - w / 2 + 8, s.y - h / 2 + 10);
-            ctx.restore();
-        }
-
-        function drawVisitorMarks() {
-            ctx.save();
-            state.visitorMarks.forEach(mark => {
-                const s = toScreen(mark.x, mark.y);
-                ctx.fillStyle = 'rgba(0, 255, 136, 0.8)';
-                ctx.shadowColor = 'rgba(0, 255, 136, 0.6)';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(s.x, s.y, 5 * state.camera.zoom, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.fillStyle = '#b7f7d5';
-                ctx.shadowBlur = 0;
-                ctx.font = `${12 * Math.max(0.9, state.camera.zoom)}px 'Courier New', monospace`;
-                ctx.fillText(mark.label || 'Visitor', s.x + 8, s.y - 6);
-            });
-            ctx.restore();
-        }
-
-        function drawEasterEggs() {
-            easterEggs.forEach(egg => {
-                const dist = Math.hypot(state.camera.x - egg.px, state.camera.y - egg.py);
-                if (dist > 650) return;
-                const s = toScreen(egg.px, egg.py);
-                const w = egg.width * state.camera.zoom;
-                const h = egg.height * state.camera.zoom;
-                ctx.save();
-                ctx.strokeStyle = `${egg.color}aa`;
-                ctx.fillStyle = `${egg.color}22`;
-                ctx.shadowColor = `${egg.color}`;
-                ctx.shadowBlur = 20;
-                ctx.beginPath();
-                ctx.rect(s.x - w / 2, s.y - h / 2, w, h);
-                ctx.fill();
-                ctx.stroke();
-                ctx.restore();
-            });
-        }
-
-        function drawScene() {
-            drawBackground();
-            drawParticles();
-            state.visitorMarks.length && drawVisitorMarks();
-            easterEggs.length && drawEasterEggs();
-            zones.forEach(drawZone);
-        }
-
-        function loop(timestamp) {
-            const dt = (timestamp - state.lastTime) / 1000 || 0.016;
-            state.lastTime = timestamp;
-            update(dt);
-            drawScene();
-            statusText.textContent = `Camera: ${state.camera.x.toFixed(1)}, ${state.camera.y.toFixed(1)} · Zoom ${state.camera.zoom.toFixed(2)}`;
-            requestAnimationFrame(loop);
-        }
-
-        function zoneHitTest(worldPoint) {
-            return zones.find(zone => {
-                const halfW = zone.width / 2;
-                const halfH = zone.height / 2;
-                return worldPoint.x >= zone.px - halfW && worldPoint.x <= zone.px + halfW &&
-                       worldPoint.y >= zone.py - halfH && worldPoint.y <= zone.py + halfH;
-            });
-        }
-
-        function easterHitTest(worldPoint) {
-            return easterEggs.find(egg => {
-                const hw = egg.width / 2;
-                const hh = egg.height / 2;
-                return worldPoint.x >= egg.px - hw && worldPoint.x <= egg.px + hw &&
-                       worldPoint.y >= egg.py - hh && worldPoint.y <= egg.py + hh;
-            });
-        }
-
-        function enterZone(zoneId) {
-            const zone = zones.find(z => z.id === zoneId);
-            if (!zone) return;
-            state.activeZone = zone;
-            zoneTitle.textContent = zone.name;
-            zoneSubtitle.textContent = zone.subtitle;
-            zoneBody.innerHTML = '';
-            const tpl = document.getElementById(`${zoneId}-template`);
-            if (tpl) {
-                zoneBody.appendChild(tpl.content.cloneNode(true));
-            }
-            zonePanel.classList.add('active');
-            zoneHint.textContent = `Inside ${zone.name} — use Back to return`;
-            hydrateZone(zoneId);
-        }
-
-        function hydrateZone(zoneId) {
-            if (zoneId === 'data-streams') {
-                const marksSynced = (state.visitorMarks || []).length;
-                const counter = document.getElementById('marks-synced');
-                if (counter) counter.textContent = marksSynced;
-                const cvs = document.getElementById('data-streams-canvas');
-                if (cvs) drawDataStreams(cvs.getContext('2d'), cvs.width = cvs.clientWidth, cvs.height = cvs.clientHeight);
-            }
-            if (zoneId === 'anomaly-field') {
-                buildAnomalyGrid();
-                const submitBtn = document.getElementById('submit-anomaly-note');
-                submitBtn?.addEventListener('click', () => {
-                    const note = document.getElementById('anomaly-note').value.trim();
-                    if (!note) return;
-                    const markPos = { x: state.camera.x, y: state.camera.y };
-                    addVisitorMark(markPos, 'Field Note');
-                    document.getElementById('anomaly-status').textContent = 'Note archived & mark placed in the field.';
-                    document.getElementById('anomaly-note').value = '';
-                });
-            }
-            if (zoneId === 'archive-depths') {
-                buildArchiveGallery();
-            }
-            if (zoneId === 'time-flows') {
-                drawTimeFlow();
-            }
-            if (zoneId === 'deploy-450') {
-                const glow = document.getElementById('monument-glow');
-                if (glow) {
-                    const t = Date.now();
-                    const pulse = (Math.sin(t / 600) + 1.2).toFixed(2);
-                    glow.textContent = pulse;
-                }
-            }
-        }
-
-        function leaveZone() {
-            state.activeZone = null;
-            zonePanel.classList.remove('active');
-            zoneHint.textContent = 'Drift to a glowing zone to enter.';
-        }
-
-        function drawDataStreams(ctx2d, w, h) {
-            ctx2d.clearRect(0, 0, w, h);
-            const nodes = zones.map(z => ({
-                x: (z.px / world.width) * w * 0.9 + w * 0.05,
-                y: (z.py / world.height) * h * 0.9 + h * 0.05,
-                color: z.color
-            }));
-            ctx2d.strokeStyle = 'rgba(0, 204, 255, 0.35)';
-            ctx2d.lineWidth = 2;
-            ctx2d.beginPath();
-            nodes.forEach((n, i) => {
-                const next = nodes[(i + 1) % nodes.length];
-                ctx2d.moveTo(n.x, n.y);
-                ctx2d.lineTo(next.x, next.y);
-            });
-            ctx2d.stroke();
-            nodes.forEach(n => {
-                ctx2d.fillStyle = n.color;
-                ctx2d.shadowColor = n.color;
-                ctx2d.shadowBlur = 10;
-                ctx2d.beginPath();
-                ctx2d.arc(n.x, n.y, 8, 0, Math.PI * 2);
-                ctx2d.fill();
-            });
-        }
-
-        function buildAnomalyGrid() {
-            const grid = document.getElementById('anomaly-grid');
-            const status = document.getElementById('anomaly-status');
-            if (!grid) return;
-            grid.innerHTML = '';
-            state.anomalyTiles = Array.from({ length: 15 }).map((_, i) => ({
-                id: i,
-                anomaly: Math.random() < 0.28,
-                found: false
-            }));
-            state.anomalyTiles.forEach(tile => {
-                const div = document.createElement('div');
-                div.textContent = '■';
-                div.style.textAlign = 'center';
-                div.style.padding = '14px 0';
-                div.style.border = '1px solid var(--muted)';
-                div.style.cursor = 'pointer';
-                div.style.background = '#04071c';
-                div.onclick = () => {
-                    if (tile.found) return;
-                    tile.found = true;
-                    if (tile.anomaly) {
-                        div.style.background = 'rgba(255, 107, 107, 0.3)';
-                        div.textContent = '⚠️';
-                        addVisitorMark({ x: state.camera.x + Math.random() * 40 - 20, y: state.camera.y + Math.random() * 40 - 20 }, 'Anomaly');
-                    } else {
-                        div.style.background = 'rgba(0, 255, 136, 0.15)';
-                        div.textContent = '✓';
-                    }
-                    const found = state.anomalyTiles.filter(t => t.anomaly && t.found).length;
-                    const total = state.anomalyTiles.filter(t => t.anomaly).length;
-                    status.textContent = `Anomalies secured: ${found}/${total}`;
-                };
-                grid.appendChild(div);
-            });
-        }
-
-        function buildArchiveGallery() {
-            const container = document.getElementById('archive-results');
-            const search = document.getElementById('archive-search');
-            const archives = JSON.parse(localStorage.getItem('observatory-marks') || '[]');
-            const render = (query = '') => {
-                container.innerHTML = '';
-                const filtered = archives.filter(entry => {
-                    const blob = `${entry.visitor || ''} ${entry.observation || ''} ${entry.pattern || ''}`.toLowerCase();
-                    return blob.includes(query.toLowerCase());
-                });
-                filtered.slice(0, 30).forEach(entry => {
-                    const card = document.createElement('div');
-                    card.className = 'content-card';
-                    card.innerHTML = `<strong>${entry.visitor || 'Visitor'}</strong> · ${entry.timestamp || ''}<br><span class="soft">Pattern: ${entry.pattern || 'unknown'} | Severity: ${entry.severity || 'n/a'}</span><br>${entry.observation || entry.content || 'Mark'}`;
-                    container.appendChild(card);
-                });
-                if (!filtered.length) container.innerHTML = '<p class="soft">No marks match that query.</p>';
-            };
-            render();
-            search?.addEventListener('input', e => render(e.target.value));
-        }
-
-        function drawTimeFlow() {
-            const chart = document.getElementById('time-flow-chart');
-            if (!chart) return;
-            const w = chart.width = chart.clientWidth;
-            const h = chart.height = chart.clientHeight;
-            const ctx2d = chart.getContext('2d');
-            ctx2d.clearRect(0, 0, w, h);
-            ctx2d.strokeStyle = 'rgba(0, 255, 136, 0.6)';
-            ctx2d.lineWidth = 2;
-            ctx2d.beginPath();
-            const points = [0, 0.35, 0.5, 0.25, 0.7, 0.9, 0.6, 0.8];
-            points.forEach((p, i) => {
-                const x = (i / (points.length - 1)) * w;
-                const y = h - p * h * 0.8 - h * 0.1;
-                if (i === 0) ctx2d.moveTo(x, y); else ctx2d.lineTo(x, y);
-            });
-            ctx2d.stroke();
-            ctx2d.strokeStyle = 'rgba(255, 107, 107, 0.7)';
-            ctx2d.setLineDash([6, 6]);
-            ctx2d.beginPath();
-            ctx2d.moveTo(w * 0.7, h * 0.15);
-            ctx2d.lineTo(w * 0.7, h * 0.95);
-            ctx2d.stroke();
-        }
-
-        function revealEasterEgg(egg) {
-            if (state.discoveredEasterEggs[egg.id]) return;
-            state.discoveredEasterEggs[egg.id] = true;
-            enterZoneFromTemplate('easter-egg-template', 'Secret Pocket', 'Hidden frequency found');
-        }
-
-        function enterZoneFromTemplate(templateId, title, subtitle) {
-            state.activeZone = { id: templateId };
-            zoneTitle.textContent = title;
-            zoneSubtitle.textContent = subtitle;
-            zoneBody.innerHTML = '';
-            const tpl = document.getElementById(templateId);
-            if (tpl) zoneBody.appendChild(tpl.content.cloneNode(true));
-            zonePanel.classList.add('active');
-        }
-
-        function handlePointerClick(evt) {
-            const rect = canvas.getBoundingClientRect();
-            const x = evt.clientX - rect.left;
-            const y = evt.clientY - rect.top;
-            const worldPoint = toWorld(x, y);
-            processWorldSelection(worldPoint);
-        }
-
-        function processWorldSelection(worldPoint) {
-            const hit = zoneHitTest(worldPoint);
-            if (hit) {
-                enterZone(hit.id);
-                return;
-            }
-            const egg = easterHitTest(worldPoint);
-            if (egg) {
-                revealEasterEgg(egg);
-                return;
-            }
-            addVisitorMark(worldPoint, 'Echo');
-        }
-
-        function handleTouchDrag(startEvent) {
-            if (startEvent.touches.length !== 1) return;
-            state.dragging = true;
-            const touch = startEvent.touches[0];
-            state.lastDrag = { x: touch.clientX, y: touch.clientY };
-        }
-
-        function handleTouchMove(moveEvent) {
-            if (!state.dragging || moveEvent.touches.length !== 1) return;
-            const touch = moveEvent.touches[0];
-            const dx = (touch.clientX - state.lastDrag.x) / state.camera.zoom;
-            const dy = (touch.clientY - state.lastDrag.y) / state.camera.zoom;
-            state.camera.x -= dx;
-            state.camera.y -= dy;
-            state.lastDrag = { x: touch.clientX, y: touch.clientY };
-        }
-
-        function handleTouchEnd(e) {
-            const wasDragging = state.dragMoved;
-            state.dragging = false;
-            state.dragMoved = false;
-            const touch = e.changedTouches?.[0];
-            if (!touch || wasDragging) return;
-            const rect = canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            const worldPoint = toWorld(x, y);
-            processWorldSelection(worldPoint);
-        }
-
-        canvas.addEventListener('mousedown', e => {
-            state.dragging = true;
-            state.dragMoved = false;
-            state.lastDrag = { x: e.clientX, y: e.clientY };
-        });
-        canvas.addEventListener('mousemove', e => {
-            if (!state.dragging) return;
-            const dx = (e.clientX - state.lastDrag.x) / state.camera.zoom;
-            const dy = (e.clientY - state.lastDrag.y) / state.camera.zoom;
-            state.camera.x -= dx;
-            state.camera.y -= dy;
-            if (Math.hypot(dx, dy) > 1) state.dragMoved = true;
-            state.lastDrag = { x: e.clientX, y: e.clientY };
-        });
-        window.addEventListener('mouseup', () => state.dragging = false);
-
-        canvas.addEventListener('click', e => {
-            if (state.dragging || state.dragMoved) { state.dragMoved = false; return; }
-            handlePointerClick(e);
-        });
-
-        canvas.addEventListener('wheel', e => {
-            e.preventDefault();
-            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-            state.camera.zoom = Math.max(0.35, Math.min(2.2, state.camera.zoom * zoomFactor));
-        }, { passive: false });
-
-        canvas.addEventListener('touchstart', e => {
-            state.dragMoved = false;
-            handleTouchDrag(e);
-        }, { passive: true });
-        canvas.addEventListener('touchmove', e => {
-            handleTouchMove(e);
-            state.dragMoved = true;
-        }, { passive: true });
-        canvas.addEventListener('touchend', handleTouchEnd);
-
-        window.addEventListener('keydown', e => {
-            state.keys[e.key] = true;
-            if (e.key === 'Escape') leaveZone();
-        });
-        window.addEventListener('keyup', e => delete state.keys[e.key]);
-        window.addEventListener('pointerdown', () => {
-            if (audioEngine.enabled && audioEngine.ctx?.state === 'suspended') {
-                startDrone();
-            }
-        });
-
-        backBtn.addEventListener('click', leaveZone);
-        audioToggle?.addEventListener('click', () => setAudioEnabled(!audioEngine.enabled));
-
-        window.addEventListener('DOMContentLoaded', () => {
-            resize();
-            state.visitorMarks = loadVisitorMarks();
-            initParticles();
-            restoreAudioPreference();
-            state.lastTime = performance.now();
-            requestAnimationFrame(loop);
-        });
-
-        window.addEventListener('resize', resize);
-    })();
-    </script>
-    <script src="visitor-tracking.js"></script>
-    <script src="world-collaboration.js"></script>
-    <script src="pattern-analysis.js"></script>
-
-<!-- Visitor Engagement Analytics Tracking -->
-<script>
-(function() {
-    const PAGE_NUMBER = parseInt(document.querySelector('[data-page-num]')?.dataset.pageNum || document.body.textContent.match(/Page (\d+)[:\s]/) ?.[1] || 0);
-    const PAGE_PATH = location.pathname.split('/').pop() || 'index.html';
-    const PAGE_ID = PAGE_PATH.replace('.html', '');
-    
-    function getPageMetadata() {
-        const titleEl = document.querySelector('h1, .page-title, [data-page-title]');
-        const title = titleEl?.textContent?.trim() || PAGE_ID;
-        const descEl = document.querySelector('p, [data-page-desc]');
-        const description = descEl?.textContent?.trim()?.substring(0, 100) || '';
-        
-        let archetype = 'analytical';
-        if (PAGE_ID.includes('visitor') || PAGE_ID.includes('journey')) archetype = 'narrative';
-        if (PAGE_ID.includes('temporal') || PAGE_ID.includes('time')) archetype = 'temporal';
-        if (PAGE_ID.includes('consciousness') || PAGE_ID.includes('transcendence')) archetype = 'philosophical';
-        if (PAGE_ID.includes('emotion') || PAGE_ID.includes('sentiment')) archetype = 'emotional';
-        if (PAGE_ID.includes('network') || PAGE_ID.includes('collaboration')) archetype = 'social';
-        
-        return { title, description, archetype, pageNumber: PAGE_NUMBER };
-    }
-    
-    function trackPageView() {
-        let analytics = JSON.parse(localStorage.getItem('observatoryAnalytics') || '{"pages":{},"visits":[],"archetypes":{}}');
-        const metadata = getPageMetadata();
-        const now = new Date().toISOString();
-        
-        if (!analytics.pages[PAGE_ID]) {
-            analytics.pages[PAGE_ID] = { views: 0, unique: 0, lastVisit: null, metadata };
-        }
-        analytics.pages[PAGE_ID].views += 1;
-        analytics.pages[PAGE_ID].lastVisit = now;
-        
-        analytics.visits.push({
-            pageId: PAGE_ID,
-            timestamp: now,
-            archetype: metadata.archetype,
-            pageNumber: metadata.pageNumber
-        });
-        
-        if (!analytics.archetypes[metadata.archetype]) analytics.archetypes[metadata.archetype] = 0;
-        analytics.archetypes[metadata.archetype] += 1;
-        
-        localStorage.setItem('observatoryAnalytics', JSON.stringify(analytics));
-    }
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', trackPageView);
-    } else {
-        trackPageView();
-    }
-})();
-</script>
-
+        <a href="cross-world-bridge-index.html">Open Bridge Index</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Visitor session analytics are captured locally for real-time observatory insights.
+  </footer>
+
+  <script>
+    window.PAGE_META = {
+      pageNumber: 0,
+      title: 'Observatory Index',
+      tags: ['index','navigation','observatory']
+    };
+  </script>
+  <script src="visitor-tracking.js"></script>
 </body>
 </html>
