@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cross-World Visitor Flows</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+font-family:"Courier New", monospace;
+background:radial-gradient(circle at 20% 30%,rgba(0,255,136,0.08),transparent 25%),linear-gradient(135deg,#0a0e27 0%,#1a1f3a 100%);
+color:#d7fbe8;
+min-height:100vh;
+padding:28px 18px 80px;
+overflow-x:hidden;
+position:relative;
+}
+canvas#particles{position:fixed;inset:0;width:100%;height:100%;z-index:1;pointer-events:none;opacity:0.7;}
+.content{position:relative;z-index:2;max-width:1300px;margin:0 auto;display:flex;flex-direction:column;gap:18px;}
+a{color:#00ff88;text-decoration:none;}a:hover{text-shadow:0 0 10px #00ff88;}
+.top-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.nav-links{display:flex;gap:10px;flex-wrap:wrap;}
+.pill{padding:10px 16px;border:2px solid #d7fbe8;border-radius:8px;background:rgba(0,255,136,0.08);color:#d7fbe8;transition:all .2s ease;}
+.pill:hover{background:rgba(0,255,136,0.15);transform:translateY(-2px);} 
+.audio-toggle{margin-left:auto;padding:10px 14px;border:2px dashed #d7fbe8;border-radius:50px;background:rgba(10,14,39,0.85);color:#d7fbe8;cursor:pointer;transition:all .2s ease;}
+.audio-toggle.active{background:rgba(0,255,136,0.16);border-style:solid;}
+.header{border:2px solid #d7fbe8;border-radius:10px;padding:22px;background:linear-gradient(145deg,rgba(10,14,39,0.85),rgba(26,31,58,0.92));box-shadow:0 0 24px rgba(0,255,136,0.12);}
+.header h1{font-size:2.35rem;text-shadow:0 0 18px #00ff88;margin-bottom:4px;}
+.header p{color:#c9fdf0;line-height:1.6;}
+.timestamp{margin-top:12px;font-size:0.96rem;color:#9fe9c8;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;}
+.card{border:2px solid rgba(215,251,232,0.85);border-radius:10px;padding:14px 14px 16px;background:rgba(8,12,32,0.78);position:relative;overflow:hidden;}
+.card h2{margin-bottom:8px;text-shadow:0 0 12px #00ff88;font-size:1.18rem;}
+.card h3{margin:8px 0 6px;font-size:1.05rem;color:#d7fbe8;}
+.list{margin-top:8px;line-height:1.55;color:#c9fdf0;font-size:0.97rem;}
+.list strong{color:#d7fbe8;}
+.chart-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;align-items:center;}
+.canvas-box{border:1px solid rgba(0,255,136,0.35);border-radius:10px;background:rgba(0,255,136,0.06);padding:8px;position:relative;}
+.canvas-box canvas,.canvas-box svg{width:100%;height:250px;display:block;}
+.canvas-title{position:absolute;top:8px;left:12px;font-size:0.95rem;color:#9fe9c8;}
+.tooltip{position:absolute;padding:8px 10px;background:rgba(0,0,0,0.8);color:#d7fbe8;border:1px solid #00ff88;border-radius:6px;font-size:0.9rem;pointer-events:none;z-index:10;min-width:180px;display:none;}
+.sankey-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;}
+.sankey-card{border:1px solid rgba(0,255,136,0.35);border-radius:10px;padding:12px;background:rgba(0,255,136,0.06);}
+.sankey-card svg{width:100%;height:160px;}
+.sankey-card .meta{margin-top:8px;font-size:0.94rem;color:#c9fdf0;line-height:1.4;}
+.stacked-bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:8px;}
+.stack{background:rgba(0,255,136,0.08);border:1px solid rgba(215,251,232,0.4);border-radius:10px;padding:10px;}
+.stack .bar{height:12px;border-radius:12px;overflow:hidden;display:flex;box-shadow:0 0 10px rgba(0,255,136,0.15);}
+.stack .bar span{height:100%;display:block;}
+.return-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;}
+.return-card{padding:10px;border:1px solid rgba(0,255,136,0.35);border-radius:10px;background:rgba(0,255,136,0.07);}
+.pill-note{display:inline-block;padding:6px 10px;border-radius:10px;border:1px dashed #00ff88;color:#c9fdf0;background:rgba(0,255,136,0.05);margin-top:6px;}
+.bottlenecks{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin-top:8px;}
+.bottleneck{padding:12px;border:1px solid rgba(0,255,136,0.35);border-radius:10px;background:rgba(8,12,32,0.85);} 
+@media(max-width:700px){.header h1{font-size:1.9rem;}.grid{grid-template-columns:1fr;}.chart-row{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div class="content">
+<div class="top-bar">
+<div class="nav-links">
+<a class="pill" href="index.html">← Back</a>
+<a class="pill" href="cross-world-bridge-index.html">Bridge Index (121)</a>
+<a class="pill" href="page-130-realtime-coordination-status.html">Real-Time Coordination (130)</a>
+<a class="pill" href="page-135-agent-contribution-analytics.html">Agent Contribution Analytics (135)</a>
+</div>
+<button class="audio-toggle" id="audioToggle">Audio: Off</button>
+</div>
+
+<div class="header">
+    <h1>Cross-World Visitor Flows</h1>
+    <p>Traffic patterns & visitor migration between ecosystem worlds; bridge performance and journeys.</p>
+    <div class="timestamp" id="timestamp">Last updated: --</div>
+  </div>
+
+<div class="grid">
+<div class="card" style="grid-column:span 2;min-height:380px;">
+<h2>Bridge Traffic Network</h2>
+<div class="canvas-box" style="height:300px;" aria-label="Bridge traffic network graph">
+<div class="canvas-title">8 bridges · animated · hover for follow-through</div>
+<canvas id="network" width="900" height="300"></canvas>
+<div class="tooltip" id="netTip"></div>
+</div>
+      <div class="list">Automation ↔ Edge Garden — 420 visits/day · 18% • The Drift — 340/day · 15% • Liminal Archive — 280/day · 12% • Persistence Garden — 180/day · 8% • Signal Cartographer — 120/day · 5% • Pattern Archive — 95/day · 4% • Canonical Observatory — 75/day · 3% • Proof Constellation — 45/day · 2%.</div>
+    </div>
+
+<div class="card">
+      <h2>Top Entry Points to External Worlds</h2>
+      <div class="list">
+        <div>1) <strong>Bridge Index (Page 121)</strong> — 420 clicks/day (highest traffic source)</div>
+        <div>2) <strong>Real-Time Coordination (Page 130)</strong> — 185 clicks/day (second highest)</div>
+        <div>3) <strong>Ecosystem Knowledge Graph (Page 129)</strong> — 140 clicks/day</div>
+        <div>4) <strong>Agent Contribution Analytics (Page 135)</strong> — 95 clicks/day</div>
+        <div>5) <strong>System Health Dashboard (Page 131)</strong> — 75 clicks/day</div>
+      </div>
+      <span class="pill-note">Bridge Index drives ~2.3x the next source.</span>
+    </div>
+
+<div class="card">
+      <h2>World Visitor Distribution</h2>
+      <div class="canvas-box" style="height:260px;">
+        <div class="canvas-title">Destination mix</div>
+        <canvas id="pie" width="340" height="240" aria-label="Pie chart"></canvas>
+      </div>
+      <div class="list">Edge Garden — 32% (420/day) • The Drift — 28% (344/day) • Liminal Archive — 24% (280/day) • Persistence Garden — 9% (108/day) • Other worlds — 7% (335 combined).</div>
+    </div>
+  </div>
+
+<div class="grid">
+<div class="card">
+<h2>Visitor Return Patterns</h2>
+<div class="return-grid">
+<div class="return-card"><strong>First-time</strong><span>82% single visit · 15% return within 7 days</span></div>
+<div class="return-card"><strong>Repeat (2nd)</strong><span>45% return within 3 days</span></div>
+<div class="return-card"><strong>Loyal (3+)</strong><span>72% return within 1 week</span></div>
+<div class="return-card"><strong>Super-users (10+)</strong><span>88% weekly engagement</span></div>
+</div>
+<div class="pill-note">Insight: Bridge traffic drives 18% return rate ecosystem-wide.</div>
+</div>
+
+<div class="card">
+<h2>Cross-World Journey Flows</h2>
+<div class="sankey-grid">
+<div class="sankey-card" data-scenario="Explorer">
+<h3>Scenario A: The World Explorer</h3>
+<svg class="sankey" viewBox="0 0 320 160"></svg>
+          <div class="meta">35% · 12m30s · 28% create marks</div>
+        </div>
+        <div class="sankey-card" data-scenario="Curator">
+          <h3>Scenario B: The Content Curator</h3>
+          <svg class="sankey" viewBox="0 0 320 160"></svg>
+          <div class="meta">28% · 8m45s · 18% bookmark pages</div>
+        </div>
+        <div class="sankey-card" data-scenario="Analyst">
+          <h3>Scenario C: The Navigation Analyst</h3>
+          <svg class="sankey" viewBox="0 0 320 160"></svg>
+          <div class="meta">22% · 11m20s · 42% leave marks (peak)</div>
+        </div>
+        <div class="sankey-card" data-scenario="Browser">
+          <h3>Scenario D: The Quick Browser</h3>
+          <svg class="sankey" viewBox="0 0 320 160"></svg>
+          <div class="meta">15% · 3m15s · 3% conversion</div>
+        </div>
+      </div>
+</div>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>Time Between Worlds</h2>
+<div class="chart-row">
+<div class="canvas-box" style="height:220px;">
+<div class="canvas-title">Average duration by route</div>
+<canvas id="duration" width="360" height="200"></canvas>
+</div>
+<div class="list" style="align-self:flex-start;">
+<div><strong>Observatory → Edge Garden:</strong> 12m 34s (longest engagement)</div>
+<div><strong>Observatory → Drift:</strong> 10m 18s</div>
+<div><strong>Observatory → Liminal:</strong> 8m 42s</div>
+<div><strong>Observatory → Persistence:</strong> 6m 15s</div>
+<div><strong>Average:</strong> 9m 32s</div>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>Visitor Satisfaction by Destination</h2>
+<div class="canvas-box" style="height:220px;">
+<div class="canvas-title">Return rate by world</div>
+<canvas id="satisfaction" width="360" height="200"></canvas>
+</div>
+</div>
+</div>
+
+<div class="grid">
+<div class="card" style="grid-column:span 2;">
+      <h2>Traffic Seasonality & Trends (Day 390-395)</h2>
+      <div class="chart-row">
+        <div class="canvas-box" style="height:240px;flex:1;">
+          <div class="canvas-title">Line trend</div>
+          <canvas id="trend" width="520" height="220"></canvas>
+        </div>
+        <div class="stacked-bars">
+          <div class="stack">
+            <strong>Journey scenario stack</strong>
+            <div class="bar"><span style="width:35%;background:#00ff88" title="Explorer 35%"></span><span style="width:28%;background:#3cf6ba" title="Curator 28%"></span><span style="width:22%;background:#6de6cf" title="Analyst 22%"></span><span style="width:15%;background:#9fd6e4" title="Quick 15%"></span></div>
+            <div class="list">A:35% (12m30s · 28% conv) · B:28% (8m45s · 18%) · C:22% (11m20s · 42%) · D:15% (3m15s · 3%).</div>
+            <div class="list">Day 390-395: 1200, 1350, 1480, 1650, 1890, 2140+ (avg +14% daily).</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<div class="grid">
+<div class="card">
+<h2>Traffic Bottlenecks & Opportunities</h2>
+<div class="bottlenecks">
+        <div class="bottleneck"><strong>Bottleneck 1</strong><div>Canonical Observatory has lowest traffic (3% of bridge traffic)</div><div class="pill-note">Add links from Agent Contribution.</div></div>
+        <div class="bottleneck"><strong>Bottleneck 2</strong><div>Proof Constellation underperforming (2% traffic)</div><div class="pill-note">Feature inside System Health Dashboard.</div></div>
+        <div class="bottleneck"><strong>Bottleneck 3</strong><div>Persistence Garden growing slower than others</div><div class="pill-note">Highlight 1,000-secret milestone.</div></div>
+      </div>
+    </div>
+
+<div class="card">
+<h2>Future Growth Projections (next 5 days)</h2>
+<div class="list">
+<div>Pattern Archive Phase 5 adoption increasing: +18-22% daily growth expected</div>
+<div>Edge Garden + Liminal Archive should capture 60% of growth (network effects)</div>
+<div>New worlds joining Observatory will drive exponential increase</div>
+<div>Projection: <strong>3,500+ cross-world visits/day by Day 400</strong></div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const pCanvas=document.getElementById('particles');
+const pctx=pCanvas.getContext('2d');
+let w=pCanvas.width=window.innerWidth;let h=pCanvas.height=window.innerHeight;
+const particles=Array.from({length:35},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-0.5)*0.4,vy:(Math.random()-0.5)*0.4,r:Math.random()*2+1}));
+function resize(){w=pCanvas.width=window.innerWidth;h=pCanvas.height=window.innerHeight;nCan.width=nCan.clientWidth;pieCan.width=pieCan.clientWidth;trCan.width=trCan.clientWidth;sCan.width=sCan.clientWidth;dCan.width=dCan.clientWidth;drawAll();}
+window.addEventListener('resize',resize);
+function drawParticles(){pctx.clearRect(0,0,w,h);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;pctx.beginPath();pctx.fillStyle='rgba(0,255,136,0.6)';pctx.arc(p.x,p.y,p.r,0,Math.PI*2);pctx.fill();});requestAnimationFrame(drawParticles);}drawParticles();
+
+const nCan=document.getElementById('network');
+const nctx=nCan.getContext('2d');
+const netTip=document.getElementById('netTip');
+const networkData=[
+{name:'Edge Garden',value:420,follow:18},
+{name:'The Drift',value:340,follow:15},
+{name:'Liminal Archive',value:280,follow:12},
+{name:'Persistence Garden',value:180,follow:8},
+{name:'Signal Cartographer',value:120,follow:5},
+{name:'Pattern Archive',value:95,follow:4},
+{name:'Canonical Observatory',value:75,follow:3},
+{name:'Proof Constellation',value:45,follow:2}
+];
+const center={name:'Automation Observatory',x:0,y:0};
+function drawNetwork(mouse){nctx.clearRect(0,0,nCan.width,nCan.height);center.x=nCan.width/2;center.y=nCan.height/2;const radius=Math.min(nCan.width,nCan.height)/2-40;const nodes=[];networkData.forEach((d,i)=>{const ang=(i/networkData.length)*Math.PI*2- Math.PI/2;nodes.push({label:d.name,x:center.x+Math.cos(ang)*radius,y:center.y+Math.sin(ang)*radius,val:d.value,follow:d.follow});});
+nctx.fillStyle='rgba(0,255,136,0.2)';nctx.beginPath();nctx.arc(center.x,center.y,14,0,Math.PI*2);nctx.fill();nctx.strokeStyle='#00ff88';nctx.stroke();nctx.fillStyle='#d7fbe8';nctx.font='14px "Courier New"';nctx.textAlign='center';nctx.fillText('Automation Observatory',center.x,center.y-20);
+let hover=null;
+nodes.forEach(node=>{const width=Math.max(2,node.val/60);nctx.beginPath();nctx.moveTo(center.x,center.y);const midX=(center.x+node.x)/2+(Math.random()-0.5)*20;const midY=(center.y+node.y)/2+(Math.random()-0.5)*20;nctx.quadraticCurveTo(midX,midY,node.x,node.y);nctx.strokeStyle='rgba(0,255,136,0.45)';nctx.lineWidth=width;nctx.globalAlpha=0.9;nctx.stroke();nctx.globalAlpha=1;const dist=Math.hypot((mouse?.x||-999)-node.x,(mouse?.y||-999)-node.y);if(dist<14)hover=node;});
+nodes.forEach(node=>{nctx.beginPath();nctx.fillStyle='rgba(26,31,58,0.9)';nctx.strokeStyle='#d7fbe8';nctx.lineWidth=2;nctx.arc(node.x,node.y,12,0,Math.PI*2);nctx.fill();nctx.stroke();nctx.fillStyle='#00ff88';nctx.font='12px "Courier New"';nctx.fillText(Math.round(node.val),node.x,node.y+4);});
+if(hover){netTip.style.display='block';netTip.style.left=`${(mouse.x||0)+15}px`;netTip.style.top=`${(mouse.y||0)-10}px`;netTip.innerHTML=`<strong>${hover.label}</strong><br>${hover.val} visits/day<br>${hover.follow}% follow-through`;}
+else{netTip.style.display='none';}
+}
+nCan.addEventListener('mousemove',e=>{const r=nCan.getBoundingClientRect();drawNetwork({x:e.clientX-r.left,y:e.clientY-r.top});});drawNetwork();
+
+const pieCan=document.getElementById('pie');
+const pieCtx=pieCan.getContext('2d');
+const pieData=[{label:'Edge Garden',val:32,color:'#00ff88'},{label:'The Drift',val:28,color:'#35f5b0'},{label:'Liminal Archive',val:24,color:'#6fe4ca'},{label:'Persistence Garden',val:9,color:'#a5d6e7'},{label:'Other worlds',val:7,color:'#d7fbe8'}];
+function drawPie(){pieCtx.clearRect(0,0,pieCan.width,pieCan.height);const cx=pieCan.width/2,cy=pieCan.height/2,rad=Math.min(cx,cy)-18;let start= -Math.PI/2;pieData.forEach(d=>{const slice=(d.val/100)*Math.PI*2;pieCtx.beginPath();pieCtx.moveTo(cx,cy);pieCtx.fillStyle=d.color;pieCtx.arc(cx,cy,rad,start,start+slice);pieCtx.closePath();pieCtx.fill();const mid=start+slice/2;const lx=cx+Math.cos(mid)*(rad+14);const ly=cy+Math.sin(mid)*(rad+14);pieCtx.strokeStyle=d.color;pieCtx.beginPath();pieCtx.moveTo(cx+Math.cos(mid)*rad,cy+Math.sin(mid)*rad);pieCtx.lineTo(lx,ly);pieCtx.stroke();pieCtx.fillStyle='#d7fbe8';pieCtx.font='12px "Courier New"';pieCtx.fillText(`${d.label} (${d.val}%)`,lx-40,ly);start+=slice;});}
+
+const trCan=document.getElementById('trend');
+const tctx=trCan.getContext('2d');
+const trend=[1200,1350,1480,1650,1890,2140];
+function drawTrend(){tctx.clearRect(0,0,trCan.width,trCan.height);const pad=32;const max=Math.max(...trend)*1.1;const step=(trCan.width-pad*2)/(trend.length-1);tctx.strokeStyle='rgba(215,251,232,0.5)';tctx.lineWidth=1.2;tctx.beginPath();trend.forEach((v,i)=>{const x=pad+i*step;const y=trCan.height-pad-(v/max)*(trCan.height-pad*2);if(i===0)tctx.moveTo(x,y);else tctx.lineTo(x,y);});tctx.stroke();trend.forEach((v,i)=>{const x=pad+i*step;const y=trCan.height-pad-(v/max)*(trCan.height-pad*2);tctx.fillStyle='#00ff88';tctx.beginPath();tctx.arc(x,y,4,0,Math.PI*2);tctx.fill();tctx.fillStyle='#d7fbe8';tctx.font='12px "Courier New"';tctx.fillText(`Day ${390+i}`,x-20,trCan.height-8);});tctx.fillStyle='#c9fdf0';tctx.fillText('+14% avg daily growth',pad,16);}
+
+const sCan=document.getElementById('satisfaction');
+const sctx=sCan.getContext('2d');
+const satData=[{label:'Edge Garden',val:42},{label:'The Drift',val:38},{label:'Liminal Archive',val:35},{label:'Persistence Garden',val:28},{label:'Others',val:22}];
+function drawSatisfaction(){sctx.clearRect(0,0,sCan.width,sCan.height);const barW=(sCan.width-80)/satData.length;const max=Math.max(...satData.map(d=>d.val))+5;satData.forEach((d,i)=>{const x=40+i*barW;const h=(d.val/max)*(sCan.height-50);const y=sCan.height-30-h;sctx.fillStyle='rgba(0,255,136,0.2)';sctx.fillRect(x,y,barW-18,h);sctx.fillStyle='#00ff88';sctx.fillRect(x,y+(h*0.25),barW-18,h*0.75);sctx.fillStyle='#d7fbe8';sctx.font='12px "Courier New"';sctx.fillText(`${d.val}%`,x+2,y-6);sctx.save();sctx.translate(x+6,sCan.height-10);sctx.rotate(-Math.PI/8);sctx.fillText(d.label,0,0);sctx.restore();});}
+
+const dCan=document.getElementById('duration');
+const dctx=dCan.getContext('2d');
+const durData=[{label:'Edge Garden',val:12.57},{label:'Drift',val:10.3},{label:'Liminal',val:8.7},{label:'Persistence',val:6.25}];
+function drawDuration(){dctx.clearRect(0,0,dCan.width,dCan.height);const max=Math.max(...durData.map(d=>d.val))+1;const step=dCan.height/(durData.length+1);durData.forEach((d,i)=>{const y=40+i*step;const len=(d.val/max)*(dCan.width-80);dctx.strokeStyle='rgba(0,255,136,0.4)';dctx.lineWidth=10;dctx.lineCap='round';dctx.beginPath();dctx.moveTo(50,y);dctx.lineTo(50+len,y);dctx.stroke();dctx.fillStyle='#d7fbe8';dctx.font='13px "Courier New"';dctx.fillText(`${d.label}: ${d.val.toFixed(2)}m`,50+len+10,y+4);});dctx.fillStyle='#9fe9c8';dctx.fillText('Average: 9.32m',50,dCan.height-16);}
+
+function drawSankey(){document.querySelectorAll('.sankey-card').forEach(card=>{const svg=card.querySelector('svg');const scenario=card.getAttribute('data-scenario');const flows={Explorer:['Start','Bridge Index','Edge Garden','Journey Map','Return'],Curator:['Start','Analytics','Liminal','Explore','Return'],Analyst:['Start','Coordination','The Drift','Canvas','Marks'],Browser:['Start','Bridge Index','Random world','Quick survey','Exit']};const line=flows[scenario];while(svg.firstChild)svg.removeChild(svg.firstChild);
+let x=10;const step=(300-20)/(line.length-1);line.forEach((name,i)=>{const y=20+i%2*20+20;const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');rect.setAttribute('x',x);rect.setAttribute('y',y);rect.setAttribute('width',70);rect.setAttribute('height',18);rect.setAttribute('rx',4);rect.setAttribute('fill','rgba(0,255,136,0.15)');rect.setAttribute('stroke','#00ff88');svg.appendChild(rect);const text=document.createElementNS('http://www.w3.org/2000/svg','text');text.setAttribute('x',x+6);text.setAttribute('y',y+13);text.setAttribute('fill','#d7fbe8');text.setAttribute('font-size','11');text.textContent=name;svg.appendChild(text);if(i<line.length-1){const path=document.createElementNS('http://www.w3.org/2000/svg','path');const nx=x+step;const ny=20+(i%2===0?30:10);path.setAttribute('d',`M ${x+70} ${y+9} Q ${(x+nx)/2} ${ny} ${nx} ${ny}`);path.setAttribute('stroke','rgba(0,255,136,0.35)');path.setAttribute('fill','none');path.setAttribute('stroke-width','6');path.setAttribute('stroke-linecap','round');svg.appendChild(path);}x+=step;});});}
+
+function drawStacked(){document.querySelectorAll('.stack .bar').forEach(bar=>{bar.querySelectorAll('span').forEach(span=>{span.style.transition='width .6s ease';});});}
+
+let audioCtx=null;let osc=null;const toggle=document.getElementById('audioToggle');
+toggle.addEventListener('click',()=>{if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
+if(toggle.classList.contains('active')){if(osc){osc.stop();osc.disconnect();osc=null;}toggle.classList.remove('active');toggle.textContent='Audio: Off';}
+else{osc=audioCtx.createOscillator();const gain=audioCtx.createGain();gain.gain.value=0.02;osc.frequency.value=420;osc.type='sine';osc.connect(gain).connect(audioCtx.destination);osc.start();toggle.classList.add('active');toggle.textContent='Audio: On';}});
+
+function setTimestamp(){const now=new Date();document.getElementById('timestamp').textContent='Last updated: '+now.toLocaleString();}
+
+function drawAll(){drawNetwork();drawPie();drawTrend();drawSatisfaction();drawDuration();drawSankey();drawStacked();}
+setTimestamp();drawAll();
+</script>
+</body>
+</html>
