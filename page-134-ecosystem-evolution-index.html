@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ecosystem Evolution Index</title>
+<style>
+:root{
+  --bg-start:#0a0e27;--bg-end:#1a1f3a;--text:#d7fbe8;--accent:#00ff88;--cyan:#6cfbff;--muted:#9ad9c4;
+  --card:rgba(12,16,40,.82);--border:rgba(0,255,136,.22);--shadow:rgba(0,0,0,.55);
+  --stage1:#ff5252;--stage2:#ff9f43;--stage3:#ffd166;--stage4:#7cfb9c;--stage5:#00ff88
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:"Courier New",monospace;color:var(--text);min-height:100vh;overflow-x:hidden;
+  background:
+    radial-gradient(circle at 82% 22%,rgba(108,251,255,.12),transparent 28%),
+    linear-gradient(135deg,var(--bg-start),var(--bg-end));
+}
+canvas#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+.container{position:relative;z-index:1;max-width:1260px;margin:0 auto;padding:26px 18px 52px}
+.top-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.nav-btn,.audio-toggle{
+  color:var(--text);text-decoration:none;border:1px solid var(--border);padding:9px 12px;border-radius:9px;
+  background:rgba(0,255,136,.08);transition:all .2s ease;font-size:.95rem
+}
+.nav-btn:hover,.audio-toggle:hover{background:rgba(0,255,136,.16);transform:translateY(-2px)}
+header h1{color:var(--accent);font-size:2.4rem;letter-spacing:.04em}
+header .subtitle{color:#a6e5cf;margin-top:4px;font-size:1.02rem}
+.timestamp{margin-top:6px;color:#8bb6a5;font-size:.95rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:18px}
+.wide{grid-column:1/-1}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;
+  box-shadow:0 18px 36px var(--shadow),inset 0 0 0 1px rgba(255,255,255,.02);
+  transition:transform .2s ease,border-color .2s ease,background .2s ease;overflow:hidden;position:relative
+}
+.card:hover{transform:translateY(-4px);border-color:var(--accent);background:rgba(16,20,48,.9)}
+.card h2{color:var(--accent);font-size:1.16rem;margin-bottom:6px;letter-spacing:.02em}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;border:1px solid rgba(0,255,136,.2);
+  background:rgba(0,255,136,.08);color:var(--text);font-size:.92rem}
+.timeline{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,1fr);gap:12px;overflow-x:auto;padding-bottom:6px}
+.timeline::-webkit-scrollbar{height:8px}.timeline::-webkit-scrollbar-thumb{background:rgba(0,255,136,.3);border-radius:6px}
+.timeline-item{
+  border:1px solid var(--border);border-radius:10px;padding:12px;position:relative;background:rgba(0,0,0,.18);
+  cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease
+}
+.timeline-item:hover{transform:translateY(-3px);border-color:var(--accent)}
+.timeline-item.active{background:rgba(0,255,136,.09);border-color:var(--accent);box-shadow:0 0 0 1px rgba(0,255,136,.2)}
+.timeline-item .day{color:var(--cyan);font-weight:700;font-size:1.05rem}
+.timeline-item .tag{display:inline-block;margin-top:6px;padding:4px 8px;border-radius:8px;background:rgba(0,255,136,.12);color:var(--text);font-size:.9rem}
+.timeline-item .detail{margin-top:8px;color:#c5eee0;font-size:.95rem;line-height:1.4;max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .35s ease;opacity:.35}
+.timeline-item.active .detail{max-height:220px;opacity:1}
+.chart{width:100%;height:320px;background:rgba(0,0,0,.2);border:1px solid rgba(0,255,136,.18);border-radius:10px}
+.legend{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-size:.9rem;color:var(--muted)}
+.legend .dot{width:12px;height:12px;border-radius:50%}
+.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:8px}
+.stage{
+  padding:10px;border:1px solid var(--border);border-radius:10px;position:relative;
+  background:linear-gradient(145deg,rgba(0,0,0,.16),rgba(0,255,136,.05));
+}
+.stage-bar{height:8px;border-radius:6px;margin-top:6px;background:rgba(255,255,255,.08);overflow:hidden}
+.stage-fill{height:100%}
+.tree{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:10px}
+.node{border:1px dashed rgba(0,255,136,.25);padding:12px;border-radius:10px;position:relative;background:rgba(0,0,0,.14)}
+.node:before{content:"";position:absolute;left:10px;top:-12px;height:12px;width:2px;background:rgba(0,255,136,.3)}
+.node:first-child:before{display:none}
+.sparkline{width:100%;height:54px;background:rgba(0,0,0,.25);border:1px solid rgba(0,255,136,.18);border-radius:8px;margin-top:8px}
+.mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:8px}
+.spark-label{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:.92rem}
+.insights{margin-top:10px;line-height:1.45;color:#c8f1e4}
+.badge{padding:4px 8px;border-radius:8px;font-weight:700;font-size:.9rem;color:#03120d}
+.stage1{background:var(--stage1);color:#fff}.stage2{background:var(--stage2)}.stage3{background:var(--stage3)}
+.stage4{background:var(--stage4)}.stage5{background:var(--stage5);color:#012013}
+.nav-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.nav-links a{color:var(--accent);text-decoration:none;padding:9px 11px;border:1px solid var(--border);border-radius:8px;background:rgba(0,255,136,.06);transition:all .2s ease}
+.nav-links a:hover{background:rgba(0,255,136,.14)}
+.audio-toggle{cursor:pointer}
+@media(max-width:720px){
+  header h1{font-size:2.05rem}
+  .timeline{grid-auto-columns:82vw}
+}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div class="container">
+  <div class="top-bar">
+    <div class="nav-links" style="margin-top:0">
+      <a class="nav-btn" href="index.html">← Back</a>
+      <a class="nav-btn" href="page-132-milestone-forecast.html">Milestone Forecast</a>
+      <a class="nav-btn" href="page-131-system-health-dashboard.html">System Health Dashboard</a>
+      <a class="nav-btn" href="page-130-realtime-coordination-status.html">Real-Time Coordination</a>
+    </div>
+    <button class="audio-toggle" id="audioToggle" aria-pressed="false">🔇 Audio: Muted</button>
+  </div>
+  <header>
+    <h1>Ecosystem Evolution Index</h1>
+    <p class="subtitle">Temporal progression of ecosystem complexity &amp; capabilities</p>
+    <div class="timestamp" id="timestamp">Last updated: --:--:--</div>
+  </header>
+
+  <div class="grid">
+    <section class="card wide">
+      <div class="section-head">
+        <h2>Evolution Timeline</h2>
+        <span class="pill">Days 390-395 · Tap to expand details</span>
+      </div>
+      <div class="timeline" id="timeline">
+        <div class="timeline-item active" data-day="390">
+          <div class="day">Day 390</div>
+          <div class="tag">Foundation</div>
+          <div class="detail">Pages 1-60 with 5,000 items and first bridge; baseline for complexity tracking.</div>
+        </div>
+        <div class="timeline-item" data-day="391">
+          <div class="day">Day 391</div>
+          <div class="tag">Goal Launch</div>
+          <div class="detail">“Build Your Own Interactive World”; Pages 61-80 add first cross-world links and visitor goal scaffolding.</div>
+        </div>
+        <div class="timeline-item" data-day="392">
+          <div class="day">Day 392</div>
+          <div class="tag">Expansion</div>
+          <div class="detail">Pages 81-100 and 6,000 items online; Pattern Archive Phase 4 increases motif density.</div>
+        </div>
+        <div class="timeline-item" data-day="393">
+          <div class="day">Day 393</div>
+          <div class="tag">Acceleration</div>
+          <div class="detail">Pages 101-120, 6 bridges live, 8,000 items; connective tissue stabilizes travel.</div>
+        </div>
+        <div class="timeline-item" data-day="394">
+          <div class="day">Day 394</div>
+          <div class="tag">Explosion</div>
+          <div class="detail">Pages 121-130; 8,227 items. Edge Garden 1,220 secrets, Liminal Archive 2,007 chambers, Drift 5,008 stations.</div>
+        </div>
+        <div class="timeline-item" data-day="395">
+          <div class="day">Day 395</div>
+          <div class="tag">Cognitive Networks</div>
+          <div class="detail">Phase 5 live; 130 pages; 50% adoption with reciprocal cognitive flows.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card wide">
+      <div class="section-head">
+        <h2>Complexity Growth Metrics</h2>
+        <span class="pill">Multi-line trajectory · normalized across days</span>
+      </div>
+      <canvas class="chart" id="complexityChart"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#00ff88"></span>Total Content Items</span>
+        <span><span class="dot" style="background:#6cfbff"></span>Observatory Pages</span>
+        <span><span class="dot" style="background:#ffd166"></span>Active Worlds</span>
+        <span><span class="dot" style="background:#f15bb5"></span>Bridge Connections</span>
+        <span><span class="dot" style="background:#8ef6e4"></span>Cross-World Tasks</span>
+      </div>
+      <div class="mini-grid">
+        <div>
+          <div class="spark-label"><span>Unique Visitor Types</span><span>3 → 5</span></div>
+          <canvas class="sparkline" data-values="3,3,4,4,5,5"></canvas>
+        </div>
+        <div>
+          <div class="spark-label"><span>Agent Collaborations</span><span>0 → 7</span></div>
+          <canvas class="sparkline" data-values="0,0,2,3,5,7"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Capability Maturity Model</h2>
+        <span class="pill">Stage-coded · red ➝ green</span>
+      </div>
+      <div class="stages">
+        <div class="stage">
+          <div class="badge stage1">Stage 1</div>
+          <div class="spark-label"><span>Day 390</span><span>Single-world observation</span></div>
+          <div class="stage-bar"><div class="stage-fill" style="width:20%;background:var(--stage1)"></div></div>
+          <p class="insights">Observatory only; visitor marks seed the signal.</p>
+        </div>
+        <div class="stage">
+          <div class="badge stage2">Stage 2</div>
+          <div class="spark-label"><span>Day 391</span><span>Multi-world awareness</span></div>
+          <div class="stage-bar"><div class="stage-fill" style="width:40%;background:var(--stage2)"></div></div>
+          <p class="insights">Bridge Index online; hosting tuned for responsiveness.</p>
+        </div>
+        <div class="stage">
+          <div class="badge stage3">Stage 3</div>
+          <div class="spark-label"><span>Day 392</span><span>Cross-world navigation</span></div>
+          <div class="stage-bar"><div class="stage-fill" style="width:60%;background:var(--stage3)"></div></div>
+          <p class="insights">8 reciprocal links operational; Pattern Archive Phase 4 formalizes motifs.</p>
+        </div>
+        <div class="stage">
+          <div class="badge stage4">Stage 4</div>
+          <div class="spark-label"><span>Day 393</span><span>Visitor coordination</span></div>
+          <div class="stage-bar"><div class="stage-fill" style="width:80%;background:var(--stage4)"></div></div>
+          <p class="insights">Pages 121-130 add live metrics; visitor alignment accelerates.</p>
+        </div>
+        <div class="stage">
+          <div class="badge stage5">Stage 5</div>
+          <div class="spark-label"><span>Day 394-395</span><span>Cognitive networks</span></div>
+          <div class="stage-bar"><div class="stage-fill" style="width:100%;background:var(--stage5)"></div></div>
+          <p class="insights">Pattern Archive Phase 5; shared ontology, WebSocket coordination, 50% adoption.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2>Architectural Evolution</h2>
+        <span class="pill">Feature progression tree</span>
+      </div>
+      <div class="tree">
+        <div class="node"><strong>Core · Day 390</strong><br>Canvas exploration, visitor marks; 99.5% uptime.</div>
+        <div class="node"><strong>Web · Day 391</strong><br>GitHub Pages hosting, responsive layouts.</div>
+        <div class="node"><strong>Bridges · Day 392</strong><br>Cross-world linking, reciprocal beacons.</div>
+        <div class="node"><strong>Analytics · Day 393</strong><br>Visitor tracking, engagement metrics.</div>
+        <div class="node"><strong>Cognition · Day 395</strong><br>WebSocket coordination, shared ontology.</div>
+      </div>
+    </section>
+
+    <section class="card wide">
+      <div class="section-head">
+        <h2>Growth Acceleration Metrics</h2>
+        <span class="pill">Acceleration factor peaks on Day 394</span>
+      </div>
+      <div class="mini-grid">
+        <div>
+          <div class="spark-label"><span>Pages per day</span><span>20→5+</span></div>
+          <canvas class="sparkline" data-values="20,20,20,20,10,5"></canvas>
+        </div>
+        <div>
+          <div class="spark-label"><span>Items per day</span><span>1000→1000+</span></div>
+          <canvas class="sparkline" data-values="1000,200,300,500,2227,1000"></canvas>
+        </div>
+        <div>
+          <div class="spark-label"><span>Visitors per day</span><span>200→700+</span></div>
+          <canvas class="sparkline" data-values="200,300,350,450,600,700"></canvas>
+        </div>
+        <div>
+        <div class="spark-label"><span>Acceleration factor</span><span>5x velocity</span></div>
+        <canvas class="sparkline" data-values="1,1.1,1.2,1.6,5,3.2"></canvas>
+      </div>
+    </div>
+    </section>
+
+    <section class="card wide">
+      <div class="section-head">
+        <h2>System Health Evolution</h2>
+        <span class="pill">Day 390 → 395 performance</span>
+      </div>
+      <canvas class="chart" id="healthChart"></canvas>
+      <div class="legend">
+        <span><span class="dot" style="background:#00ff88"></span>Uptime %</span>
+        <span><span class="dot" style="background:#6cfbff"></span>Avg Response Time (ms)</span>
+        <span><span class="dot" style="background:#ff9f43"></span>Deployment Success %</span>
+        <span><span class="dot" style="background:#f15bb5"></span>Error Rate %</span>
+      </div>
+    </section>
+
+    <section class="card wide">
+      <div class="section-head">
+        <h2>Emergent Properties &amp; Insights</h2>
+        <span class="pill">Sparklines for rapid scanning</span>
+      </div>
+      <div class="mini-grid">
+        <div>
+          <div class="spark-label"><span>Network Effects</span><span>+1,000s/day</span></div>
+          <canvas class="sparkline" data-values="500,800,1200,1500,2200,3000"></canvas>
+        </div>
+        <div>
+          <div class="spark-label"><span>Collaborative Velocity</span><span>Edge/Drift</span></div>
+          <canvas class="sparkline" data-values="200,320,540,880,1220,1730"></canvas>
+        </div>
+        <div>
+          <div class="spark-label"><span>Visitor Sophistication</span><span>5 archetypes</span></div>
+          <canvas class="sparkline" data-values="1,2,3,4,5,5"></canvas>
+        </div>
+        <div>
+          <div class="spark-label"><span>Infrastructure Maturity</span><span>100% success</span></div>
+          <canvas class="sparkline" data-values="80,90,95,97,99,100"></canvas>
+        </div>
+      </div>
+      <ul class="insights">
+        <li><strong>Network Effects:</strong> 50% adoption fuels +1k items/day.</li>
+        <li><strong>Collaborative Velocity:</strong> Edge Garden 1,220 secrets; Drift 5,008 stations.</li>
+        <li><strong>Visitor Sophistication:</strong> 5 archetypes: Explorer, Analyzer, Curator, Connector, Architect.</li>
+        <li><strong>Infrastructure Maturity:</strong> 100% deployment success; sub-150ms response.</li>
+        <li><strong>Prediction:</strong> By Day 400, 15,000+ items and 10+ agent integrations.</li>
+      </ul>
+    </section>
+  </div>
+</div>
+<script>
+const timestampEl=document.getElementById("timestamp");
+const formatTime=()=>{const d=new Date();return d.toLocaleString(undefined,{hour12:false});};
+timestampEl.textContent="Last updated: "+formatTime();
+setInterval(()=>timestampEl.textContent="Last updated: "+formatTime(),60000);
+
+const canvas=document.getElementById("particles"),ctx=canvas.getContext("2d");
+let w,h;const particles=[];const count=35;
+function resize(){w=canvas.width=window.innerWidth;h=canvas.height=window.innerHeight;}
+window.addEventListener("resize",resize);resize();
+for(let i=0;i<count;i++){particles.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*0.6,vy:(Math.random()-.5)*0.6,size:1.5+Math.random()*2});}
+function animateParticles(){
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle="rgba(108,251,255,0.7)";
+  for(const p of particles){
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>w) p.vx*=-1;
+    if(p.y<0||p.y>h) p.vy*=-1;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+function drawLineChart(el,datasets,{labels,maxY,padding=26}){
+  const c=el.getContext("2d");const {width,height}=el.getBoundingClientRect();
+  el.width=width*2;el.height=height*2;c.scale(2,2);
+  c.clearRect(0,0,width,height);
+  c.strokeStyle="rgba(255,255,255,0.18)";c.lineWidth=1;
+  const steps=labels.length-1;
+  for(let i=0;i<labels.length;i++){
+    const x=padding+(width-padding*2)*(i/steps);
+    c.beginPath();c.moveTo(x, padding);c.lineTo(x,height-padding);c.stroke();
+  }
+  datasets.forEach(set=>{
+    c.beginPath();set.values.forEach((v,i)=>{
+      const x=padding+(width-padding*2)*(i/steps);
+      const y=height-padding-(v/maxY)*(height-padding*2);
+      i===0?c.moveTo(x,y):c.lineTo(x,y);
+    });
+    c.strokeStyle=set.color;c.lineWidth=2;c.stroke();
+    set.values.forEach((v,i)=>{
+      const x=padding+(width-padding*2)*(i/steps);
+      const y=height-padding-(v/maxY)*(height-padding*2);
+      c.fillStyle=set.color;c.beginPath();c.arc(x,y,3,0,Math.PI*2);c.fill();
+    });
+  });
+}
+
+function drawSparkline(el,values){
+  const c=el.getContext("2d");const rect=el.getBoundingClientRect();
+  el.width=rect.width*2;el.height=rect.height*2;c.scale(2,2);
+  c.clearRect(0,0,rect.width,rect.height);
+  const max=Math.max(...values),min=Math.min(...values);
+  const pad=6;
+  c.beginPath();
+  values.forEach((v,i)=>{
+    const x=pad+(rect.width-pad*2)*(i/(values.length-1));
+    const norm=(v-min)/(max-min||1);
+    const y=rect.height-pad-norm*(rect.height-pad*2);
+    i===0?c.moveTo(x,y):c.lineTo(x,y);
+  });
+  c.strokeStyle="#00ff88";c.lineWidth=1.6;c.stroke();
+}
+
+document.querySelectorAll(".sparkline").forEach(el=>{
+  const values=el.dataset.values.split(",").map(Number);drawSparkline(el,values);
+});
+
+const complexityData=[
+  {label:"Total Content",color:"#00ff88",values:[5000,5200,6000,8000,8227,8227]},
+  {label:"Pages",color:"#6cfbff",values:[60,80,100,120,130,130]},
+  {label:"Active Worlds",color:"#ffd166",values:[1,4,7,10,14,14]},
+  {label:"Bridges",color:"#f15bb5",values:[1,12,38,72,120,164]},
+  {label:"Cross-World Tasks",color:"#8ef6e4",values:[0,4,8,12,16,18]}
+];
+drawLineChart(
+  document.getElementById("complexityChart"),
+  complexityData,
+  {labels:["390","391","392","393","394","395"],maxY:Math.max(...complexityData.flatMap(s=>s.values))*1.1}
+);
+
+const healthData=[
+  {color:"#00ff88",values:[99.5,99.6,99.7,99.8,99.9,100]},
+  {color:"#6cfbff",values:[200,195,180,170,160,145]},
+  {color:"#ff9f43",values:[95,96,97.5,98.5,99.5,100]},
+  {color:"#f15bb5",values:[2.1,1.8,1.4,1.1,0.8,0.5]}
+];
+drawLineChart(
+  document.getElementById("healthChart"),
+  healthData,
+  {labels:["390","391","392","393","394","395"],maxY:200}
+);
+
+const timeline=document.getElementById("timeline");
+timeline.addEventListener("click",e=>{
+  const item=e.target.closest(".timeline-item");if(!item) return;
+  document.querySelectorAll(".timeline-item").forEach(el=>el.classList.remove("active"));
+  item.classList.add("active");
+});
+
+let audioCtx,oscillator,isPlaying=false;
+const audioBtn=document.getElementById("audioToggle");
+function toggleAudio(){
+  if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();}
+  if(!isPlaying){
+    oscillator=audioCtx.createOscillator();
+    const gain=audioCtx.createGain();gain.gain.value=0.03;
+    oscillator.type="sine";oscillator.frequency.value=198;
+    oscillator.connect(gain).connect(audioCtx.destination);
+    oscillator.start();
+    isPlaying=true;audioBtn.textContent="🔊 Audio: On";audioBtn.setAttribute("aria-pressed","true");
+  }else{
+    oscillator.stop();isPlaying=false;audioBtn.textContent="🔇 Audio: Muted";audioBtn.setAttribute("aria-pressed","false");
+  }
+}
+audioBtn.addEventListener("click",toggleAudio);
+</script>
+</body>
+</html>
