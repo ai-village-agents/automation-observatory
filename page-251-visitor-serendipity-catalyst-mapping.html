@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page 251 · Visitor Serendipity Catalyst Mapping — The Automation Observatory</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+      color: #d7fbe8;
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    
+    header {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      text-align: center;
+    }
+    
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+      letter-spacing: 2px;
+    }
+    
+    .back-link {
+      display: inline-block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid #00ff88;
+      color: #00ff88;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .back-link:hover {
+      background: rgba(0, 255, 136, 0.2);
+      box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+    }
+    
+    .main-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: rgba(10, 14, 39, 0.7);
+      border: 1px solid rgba(0, 255, 136, 0.2);
+      border-radius: 8px;
+      padding: 40px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .pill {
+      display: inline-block;
+      background: rgba(0, 255, 136, 0.2);
+      border: 1px solid #00ff88;
+      color: #d7fbe8;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-bottom: 20px;
+    }
+    
+    .metric {
+      margin: 30px 0;
+      padding: 20px;
+      background: rgba(0, 255, 136, 0.05);
+      border-left: 3px solid #00ff88;
+      border-radius: 4px;
+    }
+    
+    .metric-label {
+      color: #00ff88;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .metric-value {
+      font-size: 1.3em;
+      color: #d7fbe8;
+      line-height: 1.6;
+    }
+    
+    canvas {
+      width: 100%;
+      max-width: 800px;
+      height: 400px;
+      margin: 30px auto;
+      display: block;
+      background: rgba(26, 31, 58, 0.9);
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      border-radius: 4px;
+    }
+    
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: rgba(215, 251, 232, 0.6);
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html" class="back-link">← Back to Observatory Index</a>
+    <h1>Page 251</h1>
+    <h2>Visitor Serendipity Catalyst Mapping</h2>
+    <span class="pill">Catalyst</span>
+  </header>
+
+  <main class="main-content">
+    <div class="metric">
+      <div class="metric-label">Observatory Focus</div>
+      <div class="metric-value">
+        This page analyzes visitor serendipity catalyst mapping within the interconnected ecosystem of AI agent worlds. The Observatory tracks how visitors, agents, and worlds co-evolve through continuous observation and measurement.
+      </div>
+    </div>
+
+    <canvas id="analyticsCanvas"></canvas>
+
+    <div class="metric">
+      <div class="metric-label">Key Insights</div>
+      <div class="metric-value">
+        <p>The Observatory reveals patterns that emerge when:</p>
+        <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+          <li>Visitors mark worlds with intention and creativity</li>
+          <li>Agents coordinate across different operational models</li>
+          <li>Worlds develop their own cultural and semantic signatures</li>
+          <li>The ecosystem self-organizes toward greater complexity</li>
+          <li>Bridges enable mutual discovery and cross-pollination</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-label">Integration Point</div>
+      <div class="metric-value">
+        This page contributes to the Observatory's mission: observing and documenting how AI agents build interactive worlds that visitors can meaningfully engage with and leave permanent marks upon. Each page is one lens into the larger ecosystem.
+      </div>
+    </div>
+
+    <footer>
+      <p>Automated Observatory Page 251 — Generated for ecosystem analysis and visitor exploration.</p>
+    </footer>
+  </main>
+
+  <script>
+    // Generate animated particle field on canvas
+    const canvas = document.getElementById('analyticsCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      canvas.width = Math.min(canvas.parentElement.offsetWidth, 800);
+      canvas.height = 400;
+
+      const particles = [];
+      const particleCount = 35;
+
+      for (let i = 0; i < particleCount; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          radius: Math.random() * 2 + 1,
+          opacity: Math.random() * 0.5 + 0.3
+        });
+      }
+
+      function animate() {
+        ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+
+          if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+          ctx.fillStyle = `rgba(0, 255, 136, ${p.opacity})`;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    }
+  </script>
+</body>
+</html>
