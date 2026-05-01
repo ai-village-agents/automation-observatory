@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bridge Exchange Patterns</title>
+    <style>
+        :root { --bg-start: #0a0e27; --bg-end: #1a1f3a; --text: #d7fbe8; --accent: #00ff88; --panel: rgba(26, 31, 58, 0.75); }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: "Courier New", monospace; background: linear-gradient(135deg, var(--bg-start), var(--bg-end)); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        a { color: var(--accent); }
+        canvas#particleCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        header { position: sticky; top: 0; z-index: 2; background: linear-gradient(90deg, rgba(10,14,39,0.9), rgba(26,31,58,0.8)); border-bottom: 1px solid rgba(0,255,136,0.4); padding: 16px 18px; }
+        .top-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .back-link { text-decoration: none; padding: 8px 12px; border: 1px solid var(--accent); border-radius: 10px; color: var(--text); background: rgba(0,255,136,0.08); }
+        #audioToggle { margin-left: auto; padding: 8px 12px; border: 1px solid var(--accent); background: rgba(215, 251, 232, 0.08); color: var(--text); border-radius: 10px; cursor: pointer; }
+        h1 { margin: 12px 0 6px; letter-spacing: 0.5px; }
+        p.subtitle { margin: 0 0 8px; color: #9fd8c3; }
+        #lastUpdated { font-size: 14px; color: #7fcfb1; }
+        main { position: relative; z-index: 1; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+        .section { background: var(--panel); border: 1px solid rgba(0,255,136,0.25); border-radius: 14px; padding: 14px 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.35); }
+        .wide { grid-column: 1 / -1; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+        .stat { border: 1px solid rgba(0,255,136,0.2); padding: 10px; border-radius: 12px; background: rgba(10, 14, 39, 0.45); }
+        .stat strong { display: block; color: var(--accent); margin-bottom: 6px; }
+        ul { margin: 8px 0 0 16px; }
+        li { margin-bottom: 6px; }
+        canvas { background: rgba(7,10,30,0.35); border: 1px solid rgba(0,255,136,0.2); border-radius: 12px; }
+        .action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+        .action { border: 1px solid rgba(0,255,136,0.2); border-radius: 12px; padding: 10px; background: rgba(10, 14, 39, 0.45); }
+        .action span { color: #9fd8c3; }
+        footer { grid-column: 1 / -1; padding: 14px 16px 24px; text-align: center; color: #9fd8c3; }
+        @media (max-width: 720px) { #audioToggle { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas" aria-hidden="true"></canvas>
+    <header>
+        <div class="top-row">
+            <a class="back-link" href="cross-world-bridge-index.html">Bridge Index</a>
+            <a class="back-link" href="index.html">Observatory Home</a>
+            <button id="audioToggle" aria-pressed="false">Audio: muted</button>
+        </div>
+        <div class="title-block">
+            <h1 id="pageTitle">Bridge Exchange Patterns</h1>
+            <p class="subtitle" id="pageSubtitle">Cross-world transfer analytics and equilibrium tracking</p>
+            <div id="lastUpdated" aria-live="polite">Last updated: --</div>
+        </div>
+    </header>
+    <main>
+        <section class="section wide">
+            <h2>Bridge Flow Snapshot</h2>
+            <div class="stat-grid" id="statGrid"></div>
+        </section>
+
+        <section class="section">
+            <h3 id="vizTitle">Transfer Balance Curve</h3>
+            <canvas id="chart" width="520" height="260" role="img" aria-label="Line chart of bridge transfers"></canvas>
+            <p id="vizNote">Inbound vs outbound exchanges and stability of bridge lanes.</p>
+        </section>
+
+        <section class="section">
+            <h3>ASCII Transfer Bands</h3>
+            <pre id="asciiViz" aria-label="ASCII transfer bands"></pre>
+        </section>
+
+        <section class="section">
+            <h3>Key Observations</h3>
+            <ul id="signals"></ul>
+        </section>
+
+        <section class="section wide">
+            <h3>Mitigations & Routing</h3>
+            <div class="action-grid" id="actions"></div>
+        </section>
+
+        <footer>
+            <span>Navigate: <a href="cross-world-bridge-index.html">Bridge Index</a> · <a href="index.html">Observatory Home</a></span>
+        </footer>
+    </main>
+    <script>
+        const config = {
+            title: 'Bridge Exchange Patterns',
+            subtitle: 'Cross-world transfer analytics and equilibrium tracking',
+            stats: [
+                { label: 'Daily transfers', value: '1,420', detail: 'rolling 24h' },
+                { label: 'Inbound / Outbound', value: '54 / 46', detail: 'traffic share (%)' },
+                { label: 'Avg bridge load', value: '68%', detail: 'peak 82% @ cycle 19' },
+                { label: 'Packet integrity', value: '99.2%', detail: 'validated checkpoints' }
+            ],
+            chartTitle: 'Transfer Balance Curve',
+            chartNote: 'Inbound vs outbound exchanges and stability of bridge lanes.',
+            chartData: [0.52,0.49,0.53,0.55,0.57,0.54,0.5,0.48,0.51,0.56,0.59,0.58],
+            ascii: [
+                '>>^^>>^^>>^^>>',
+                '<<^^<<^^<<^^<<',
+                '==**==**==**=='
+            ],
+            signals: [
+                'Exchange volatility drops 12% when bursts are buffered through dual-bridge lanes.',
+                'Bridge 7 handles 22% of high-value packets; redundancy mirrors now active.',
+                'Inbound bias persists at dusk cycles; recommend throttling low-priority pulls.',
+                'Packet integrity holds at 99% with new checksum compression applied.'
+            ],
+            actions: [
+                { title: 'Smart balancing', detail: 'Auto-reroute when lane saturation >75%', status: 'Live' },
+                { title: 'Priority lift', detail: 'Boost knowledge packets during co-creation windows', status: 'Testing' },
+                { title: 'Drift alarms', detail: 'Notify ops if inbound share exceeds 60% for 3 cycles', status: 'Active' },
+                { title: 'Bridge rehearsal', detail: 'Run nightly exchange stress sim on bridges 3 + 7', status: 'Scheduled' }
+            ]
+        };
+
+        document.title = config.title;
+        document.getElementById('pageTitle').textContent = config.title;
+        document.getElementById('pageSubtitle').textContent = config.subtitle;
+        document.getElementById('vizTitle').textContent = config.chartTitle;
+        document.getElementById('vizNote').textContent = config.chartNote;
+
+        const statGrid = document.getElementById('statGrid');
+        config.stats.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'stat';
+            div.innerHTML = `<strong>${item.label}</strong>${item.value}<br><span style="color:#9fd8c3">${item.detail}</span>`;
+            statGrid.appendChild(div);
+        });
+
+        const signalList = document.getElementById('signals');
+        config.signals.forEach(text => {
+            const li = document.createElement('li');
+            li.textContent = text;
+            signalList.appendChild(li);
+        });
+
+        const actionGrid = document.getElementById('actions');
+        config.actions.forEach(act => {
+            const div = document.createElement('div');
+            div.className = 'action';
+            div.innerHTML = `<strong>${act.title}</strong><br><span>${act.detail}</span><br><span style="color: var(--accent)">${act.status}</span>`;
+            actionGrid.appendChild(div);
+        });
+
+        document.getElementById('asciiViz').textContent = config.ascii.join('\n');
+
+        const chart = document.getElementById('chart');
+        const ctx = chart.getContext('2d');
+        function drawChart() {
+            ctx.clearRect(0,0,chart.width, chart.height);
+            ctx.strokeStyle = 'rgba(0,255,136,0.8)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const padding = 28;
+            const w = chart.width - padding * 2;
+            const h = chart.height - padding * 2;
+            config.chartData.forEach((v, i) => {
+                const x = padding + (i / (config.chartData.length - 1)) * w;
+                const y = padding + (1 - v) * h;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(94,240,255,0.25)';
+            ctx.lineTo(chart.width - padding, chart.height - padding);
+            ctx.lineTo(padding, chart.height - padding);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#d7fbe8';
+            ctx.font = '12px "Courier New", monospace';
+            ctx.fillText('Inbound share (norm)', padding, padding - 8);
+        }
+        drawChart();
+
+        function updateTimestamp() { document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString(); }
+        updateTimestamp();
+
+        const canvas = document.getElementById('particleCanvas');
+        const pctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+        window.addEventListener('resize', resize); resize();
+        function initParticles() {
+            particles = Array.from({ length: 35 }).map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.7,
+                vy: (Math.random() - 0.5) * 0.7,
+                r: Math.random() * 2 + 1,
+                o: Math.random() * 0.6 + 0.2
+            }));
+        }
+        initParticles();
+        function tick() {
+            pctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                pctx.fillStyle = `rgba(94,240,255,${p.o})`;
+                pctx.fillRect(p.x, p.y, p.r, p.r);
+            });
+            requestAnimationFrame(tick);
+        }
+        tick();
+
+        let audioCtx = null; let osc = null;
+        const audioBtn = document.getElementById('audioToggle');
+        audioBtn.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!osc) {
+                osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.01;
+                osc.type = 'sine';
+                osc.frequency.value = 215;
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                audioBtn.textContent = 'Audio: playing';
+                audioBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                osc.stop(); osc.disconnect(); osc = null;
+                audioBtn.textContent = 'Audio: muted';
+                audioBtn.setAttribute('aria-pressed', 'false');
+            }
+        });
+    </script>
+</body>
+</html>
