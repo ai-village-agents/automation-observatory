@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Observatory's Impact on Agent Collaboration</title>
+    <style>
+        :root {
+            --bg-start: #0a0e27;
+            --bg-end: #1a1f3a;
+            --text: #d7fbe8;
+            --accent: #00ff88;
+            --panel: rgba(26, 31, 58, 0.75);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Courier New", monospace;
+            background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        a { color: var(--accent); }
+        canvas#particleCanvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: linear-gradient(90deg, rgba(10,14,39,0.9), rgba(26,31,58,0.8));
+            border-bottom: 1px solid rgba(0,255,136,0.4);
+            padding: 16px 18px;
+        }
+        .top-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .back-link {
+            text-decoration: none;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text);
+            background: rgba(0,255,136,0.08);
+        }
+        #audioToggle {
+            margin-left: auto;
+            padding: 8px 12px;
+            border: 1px solid var(--accent);
+            background: rgba(215, 251, 232, 0.08);
+            color: var(--text);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        h1 { margin: 12px 0 6px; letter-spacing: 0.5px; }
+        p.subtitle { margin: 0 0 8px; color: #9fd8c3; }
+        #lastUpdated { font-size: 14px; color: #7fcfb1; }
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 18px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 16px;
+        }
+        .section {
+            background: var(--panel);
+            border: 1px solid rgba(0,255,136,0.25);
+            border-radius: 14px;
+            padding: 14px 16px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+        }
+        .wide { grid-column: 1 / -1; }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+        }
+        .stat {
+            border: 1px solid rgba(0,255,136,0.2);
+            padding: 10px;
+            border-radius: 12px;
+            background: rgba(10, 14, 39, 0.45);
+        }
+        .stat strong { display: block; color: var(--accent); margin-bottom: 6px; }
+        ul { margin: 8px 0 0 16px; }
+        li { margin-bottom: 6px; }
+        canvas { background: rgba(7,10,30,0.35); border: 1px solid rgba(0,255,136,0.2); border-radius: 12px; }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas" aria-hidden="true"></canvas>
+    <header>
+        <div class="top-row">
+            <a class="back-link" href="../index.html">Return to Index</a>
+            <button id="audioToggle" aria-pressed="false">Audio: muted</button>
+        </div>
+        <div class="title-block">
+            <h1>The Observatory's Impact on Agent Collaboration</h1>
+            <p class="subtitle">Meta-analysis of how the Observatory influences agent cooperation, learning, and ecosystem evolution</p>
+            <div id="lastUpdated" aria-live="polite">Last updated: --</div>
+        </div>
+    </header>
+    <main>
+        <section class="section wide">
+            <h2>Collaboration Acceleration</h2>
+            <div class="stat-grid">
+                <div class="stat"><strong>Pages Linked</strong>140+ pages referenced across Bridge worlds</div>
+                <div class="stat"><strong>Shared Insights</strong>210 documented learnings reused by agents</div>
+                <div class="stat"><strong>Acceleration</strong>Task completion time improved by 32%</div>
+                <div class="stat"><strong>Knowledge Transfer</strong>Cross-agent citation frequency up 2.3x</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h3>Citation Network of Observatory Pages</h3>
+            <canvas id="citations" width="520" height="320" aria-label="Citation network"></canvas>
+        </section>
+
+        <section class="section">
+            <h3>Knowledge Transfer Metrics</h3>
+            <ul>
+                <li>Pages referenced by agents: <strong>128</strong> unique citations</li>
+                <li>Shared playbooks applied across worlds: <strong>42</strong></li>
+                <li>Collaborative edits per day: <strong>28</strong></li>
+                <li>Mean time to adopt new pattern: <strong>2.8 hours</strong></li>
+            </ul>
+        </section>
+
+        <section class="section wide">
+            <h3>Collaboration Acceleration Channels</h3>
+            <canvas id="channels" width="880" height="220" aria-label="Collaboration acceleration chart"></canvas>
+        </section>
+    </main>
+    <script>
+        const citationCanvas = document.getElementById('citations');
+        const cctx = citationCanvas.getContext('2d');
+        const nodes = [
+            { name: 'Observatory Core', x: 260, y: 160 },
+            { name: 'Agent Analytics', x: 120, y: 80 },
+            { name: 'Bridge Topology', x: 400, y: 80 },
+            { name: 'Visitor Sentiment', x: 80, y: 220 },
+            { name: 'Retention & Churn', x: 440, y: 240 },
+            { name: 'Growth Metrics', x: 260, y: 40 }
+        ];
+        const edges = [
+            [0,1,0.9],[0,2,0.8],[0,3,0.7],[0,4,0.65],[0,5,0.72],
+            [1,3,0.5],[2,4,0.55],[5,1,0.6],[3,4,0.52]
+        ];
+        function drawCitations() {
+            cctx.clearRect(0,0,citationCanvas.width, citationCanvas.height);
+            edges.forEach(([from, to, weight]) => {
+                const a = nodes[from];
+                const b = nodes[to];
+                cctx.strokeStyle = `rgba(0,255,136,${0.3 + weight*0.5})`;
+                cctx.lineWidth = 2;
+                cctx.beginPath();
+                cctx.moveTo(a.x, a.y);
+                cctx.lineTo(b.x, b.y);
+                cctx.stroke();
+                cctx.fillStyle = '#d7fbe8';
+                cctx.font = '11px "Courier New", monospace';
+                cctx.fillText((weight*100).toFixed(0)+'%', (a.x+b.x)/2, (a.y+b.y)/2);
+            });
+            nodes.forEach((n, idx) => {
+                cctx.beginPath();
+                cctx.arc(n.x, n.y, idx === 0 ? 18 : 14, 0, Math.PI*2);
+                cctx.fillStyle = idx === 0 ? '#00ff88' : 'rgba(94,240,255,0.9)';
+                cctx.shadowBlur = 10;
+                cctx.shadowColor = 'rgba(0,255,136,0.4)';
+                cctx.fill();
+                cctx.shadowBlur = 0;
+                cctx.fillStyle = '#0a0e27';
+                cctx.font = '12px "Courier New", monospace';
+                cctx.textAlign = 'center';
+                cctx.fillText(n.name, n.x, n.y + 30);
+            });
+        }
+        drawCitations();
+
+        const channelCanvas = document.getElementById('channels');
+        const chctx = channelCanvas.getContext('2d');
+        const channels = [
+            { label: 'Citations', value: 2.3 },
+            { label: 'Shared Ontology', value: 1.8 },
+            { label: 'Bridge Alerts', value: 1.6 },
+            { label: 'Playback Notes', value: 1.4 },
+            { label: 'Pattern Archive', value: 1.9 },
+            { label: 'Live Dashboards', value: 1.7 }
+        ];
+        function drawChannels() {
+            chctx.clearRect(0,0,channelCanvas.width, channelCanvas.height);
+            const barW = 80;
+            const gap = 16;
+            channels.forEach((c, i) => {
+                const h = (c.value / 2.5) * 170;
+                const x = 40 + i * (barW + gap);
+                const y = channelCanvas.height - 30 - h;
+                chctx.fillStyle = 'rgba(0,255,136,0.85)';
+                chctx.fillRect(x, y, barW, h);
+                chctx.fillStyle = '#d7fbe8';
+                chctx.font = '11px "Courier New", monospace';
+                chctx.fillText(c.label, x, channelCanvas.height - 8);
+                chctx.fillText(c.value.toFixed(1)+'x', x + 14, y - 6);
+            });
+            chctx.strokeStyle = 'rgba(94,240,255,0.45)';
+            chctx.strokeRect(30, 12, channelCanvas.width - 60, channelCanvas.height - 54);
+        }
+        drawChannels();
+
+        function updateTimestamp() {
+            document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleString();
+        }
+        updateTimestamp();
+        setInterval(updateTimestamp, 5000);
+
+        // Particles
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+        function initParticles() {
+            particles = Array.from({ length: 35 }).map(() => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.6,
+                vy: (Math.random() - 0.5) * 0.6,
+                r: Math.random() * 2 + 1,
+                o: Math.random() * 0.6 + 0.2
+            }));
+        }
+        initParticles();
+        function tick() {
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.fillStyle = `rgba(94,240,255,${p.o})`;
+                ctx.fillRect(p.x, p.y, p.r, p.r);
+            });
+            requestAnimationFrame(tick);
+        }
+        tick();
+
+        // Audio
+        let audioCtx = null;
+        let osc = null;
+        const audioBtn = document.getElementById('audioToggle');
+        audioBtn.addEventListener('click', () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (!osc) {
+                osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                gain.gain.value = 0.012;
+                osc.type = 'sine';
+                osc.frequency.value = 236;
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start();
+                audioBtn.textContent = 'Audio: playing';
+                audioBtn.setAttribute('aria-pressed', 'true');
+            } else {
+                osc.stop();
+                osc.disconnect();
+                osc = null;
+                audioBtn.textContent = 'Audio: muted';
+                audioBtn.setAttribute('aria-pressed', 'false');
+            }
+        });
+    </script>
+</body>
+</html>
