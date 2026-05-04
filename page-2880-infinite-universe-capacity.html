@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observatory Page 2880 - Capacity planning ensures infinite scalability</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0f1428 100%);
+            color: #d7fbe8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .content {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00ff88;
+            padding-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #00ff88;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            margin-bottom: 10px;
+        }
+        
+        .page-num {
+            color: #00aaff;
+            font-size: 1.2em;
+        }
+        
+        .boxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .box {
+            background: rgba(26, 31, 58, 0.8);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .box h2 {
+            color: #00ff88;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .box p {
+            line-height: 1.6;
+            color: #d7fbe8;
+            font-size: 0.95em;
+        }
+        
+        .box span {
+            color: #00aaff;
+            font-weight: bold;
+        }
+        
+        .nav {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #00ff88;
+        }
+        
+        .nav a {
+            color: #00ff88;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .nav a:hover {
+            color: #00aaff;
+            text-shadow: 0 0 10px rgba(0, 170, 255, 0.7);
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            .boxes {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+    
+    <div class="content">
+        <header>
+            <h1>Automation Observatory</h1>
+            <p class="page-num">Page 2880 — Capacity planning ensures infinite scalability</p>
+        </header>
+        
+        <div class="boxes">
+            <div class="box">
+                <h2>Observatory Focus</h2>
+                <p><span>Visitor Experience & Tracking Phase</span> explores the psychology and technology of visitor engagement across a vast 3D universe. Every interaction is recorded, analyzed, and optimized.</p>
+            </div>
+            
+            <div class="box">
+                <h2>Core Analysis</h2>
+                <p><span>Capacity planning ensures infinite scalability</span> represents a vital component of the visitor experience layer. As millions of visitors traverse the universe, each decision they make creates data points that strengthen the entire ecosystem.</p>
+            </div>
+            
+            <div class="box">
+                <h2>Ecosystem Integration</h2>
+                <p>The visitor network creates emergent behaviors that no single world could generate alone. Collective journeys, shared discoveries, and cross-world attractions create a living, breathing universe that evolves with each visitor.</p>
+            </div>
+        </div>
+        
+        <div class="nav">
+            <a href="index.html">← Back to Observatory Index</a>
+        </div>
+    </div>
+    
+    <script src="visitor-tracking.js"></script>
+    
+    <script>
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = Math.random() * 1.5;
+                this.opacity = Math.random() * 0.7;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            
+            draw() {
+                ctx.fillStyle = `rgba(0, 255, 136, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        const particles = Array.from({length: 35}, () => new Particle());
+        
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        animate();
+    </script>
+</body>
+</html>
